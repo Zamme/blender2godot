@@ -1,0 +1,14 @@
+*.blend1
+
+JocNou_Game/
+
+builds/
+
+
+NEW_GAME_Game/
+
+Test_Svmres/Svmres_Test_Game/
+
+Test_Svmres/
+
+*.vscode/
