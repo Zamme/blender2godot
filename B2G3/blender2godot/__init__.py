@@ -134,7 +134,7 @@ def init_properties():
     bpy.types.Scene.splash_imagefilepath = bpy.props.StringProperty(name="Splash Image Filepath", subtype="FILE_PATH", default="res://icon.png")
     bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
     bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
-    bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color")
+    bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
 
     # Export vars
     bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)

@@ -54,7 +54,7 @@ class SplashPropertiesPanel(bpy.types.Panel):
         box2 = row2.box()
         box2.prop(scene, "splash_fullsize")
         box2.prop(scene, "splash_usefilter")
-        #box2.prop(scene, "splash_bgcolor")
+        box2.prop(scene, "splash_bgcolor")
 
 def register():
     bpy.utils.register_class(SplashPropertiesPanel)

@@ -111,7 +111,7 @@ class CreateGodotProjectOperator(bpy.types.Operator):
         splash_lines_to_add.append("boot_splash/image=" + '"' + context.scene.splash_imagefilepath + '"' + "\n")
         splash_lines_to_add.append("boot_splash/fullsize=" + str(context.scene.splash_fullsize).lower() + "\n")
         splash_lines_to_add.append("boot_splash/use_filter=" + str(context.scene.splash_usefilter).lower() + "\n")
-        #splash_lines_to_add = ["boot_splash/bg_color=" + str(context.scene.splash_bgcolor).lower() + "\n"]
+        splash_lines_to_add.append("boot_splash/bg_color=Color(" + str(context.scene.splash_bgcolor[0]) + ", " + str(context.scene.splash_bgcolor[1]) + ", " + str(context.scene.splash_bgcolor[2]) + ", " + str(context.scene.splash_bgcolor[3]) + ")" + "\n")
         #print(godot_project_file_content)
         godot_project_file_content = self.add_lines_at_section(context, godot_project_file_content, "[application]\n", splash_lines_to_add)
 
