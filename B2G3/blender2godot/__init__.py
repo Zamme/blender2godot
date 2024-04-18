@@ -37,6 +37,10 @@ from blender2godot.addon_config import addon_config
 
 from blender2godot.godot_project_properties import godot_project_properties
 
+from blender2godot.display_properties import display_properties
+
+from blender2godot.splash_properties import splash_properties
+
 from blender2godot.b2g_tools import (
 	advanced_tools,
 	general_tools,
@@ -117,6 +121,21 @@ def init_properties():
     
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
 
+    # Display vars
+    bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
+    bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
+    bpy.types.Scene.display_resizable = bpy.props.BoolProperty(name="Resizable", default=True)
+    bpy.types.Scene.display_borderless = bpy.props.BoolProperty(name="Borderless", default=False)
+    bpy.types.Scene.display_fullscreen = bpy.props.BoolProperty(name="Fullscreen", default=False)
+    bpy.types.Scene.display_alwaysontop = bpy.props.BoolProperty(name="Always on top", default=False)
+
+    # Splash vars
+    bpy.types.Scene.splash_showimage = bpy.props.BoolProperty(name="Show splash image", default=True)
+    bpy.types.Scene.splash_imagefilepath = bpy.props.StringProperty(name="Splash Image Filepath", subtype="FILE_PATH", default="res://icon.png")
+    bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
+    bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
+    bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color")
+
     # Export vars
     bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)
     bpy.types.Scene.linux_export = bpy.props.BoolProperty(name="Linux", default=False)
@@ -193,6 +212,8 @@ def register():
     bpy.utils.register_class(godot_project_properties.CreateGodotProjectOperator)
     bpy.utils.register_class(addon_config.Blender2GodotPanel)
     bpy.utils.register_class(godot_project_properties.GodotProjectPropertiesPanel)
+    bpy.utils.register_class(splash_properties.SplashPropertiesPanel)
+    bpy.utils.register_class(display_properties.DisplayPropertiesPanel)
     bpy.utils.register_class(scene_properties.ScenePropertiesPanel)
     bpy.utils.register_class(player_properties.PlayerPropertiesPanel)
     bpy.utils.register_class(advanced_tools.B2G_ToolsPanel)
@@ -209,6 +230,8 @@ def unregister():
     bpy.utils.unregister_class(game_export.GameExportPanel)
     bpy.utils.unregister_class(advanced_tools.B2G_ToolsPanel)
     bpy.utils.unregister_class(scene_properties.ScenePropertiesPanel)
+    bpy.utils.unregister_class(display_properties.DisplayPropertiesPanel)
+    bpy.utils.unregister_class(splash_properties.SplashPropertiesPanel)
     bpy.utils.unregister_class(godot_project_properties.GodotProjectPropertiesPanel)
     bpy.utils.unregister_class(addon_config.Blender2GodotPanel)
     bpy.utils.unregister_class(godot_project_properties.CreateGodotProjectOperator)
