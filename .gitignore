@@ -12,3 +12,4 @@ Test_Svmres/Svmres_Test_Game/
 Test_Svmres/
 
 *.vscode/
+*.pyc
