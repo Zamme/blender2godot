@@ -77,6 +77,12 @@ class ColliderProperties(bpy.types.PropertyGroup):
         ("mesh", "Mesh", "", "MESH", 2),
         ("smart", "Smart", "", "SMART", 3)]
 
+class ProjectTemplatesProperties(bpy.types.PropertyGroup):
+    """ Project templates properties """
+    project_templates_options = [
+        ("blank_template", "Blank", "", "BLANK", 0),
+        ("walker_template", "Walker", "", "WALKER", 1),
+        ("fps_template", "Fps", "", "FPS", 2)]
 
 class PlayerObjects(bpy.types.PropertyGroup):
     """ Player Objects """
@@ -97,8 +103,23 @@ def fill_player_objects_menu(self, context):
         if ob.type == "CAMERA":
             menu_item = (ob.name, ob.name, ob.name)
             player_objects.append(menu_item)
-            #print("One item added:", menu_item)
     return player_objects
+
+def fill_project_templates(self, context):
+    _templates = []
+    _templates.clear()
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _dirs_list = os.listdir(p_path)
+            _index = 0
+            for _dir_name in _dirs_list:
+                _name = _dir_name.removesuffix("_template")
+                _new_template = (_dir_name, _name.capitalize(), _name.upper())
+                _templates.append(_new_template)
+                _index += 1
+    return _templates
 
 def update_player_objects(aa):
     pass
@@ -106,19 +127,15 @@ def update_player_objects(aa):
 
 def init_properties():
     bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME")
-    bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Folder", subtype="DIR_PATH", default=" ")
-    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Icon", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.game_icon_image = bpy.props.PointerProperty(name="Game Icon Image", type=bpy.types.Image)
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
-    
     bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot", subtype="FILE_PATH", default="/usr/local/games/godot-engine")
     #bpy.types.Scene.custom_godot = bpy.props.BoolProperty(name="Custom Godot", default=False)
     #bpy.types.Scene.godot_executable_downloaded_zip = bpy.props.StringProperty(name="Godot zip", subtype="FILE_PATH", default=".")
-    
     bpy.types.Scene.colliders_filepath = bpy.props.StringProperty(name="Colliders", subtype="FILE_PATH", default=" ")
-    
     bpy.types.Scene.android_template_filepath = bpy.props.StringProperty(name="Android Template", subtype="FILE_PATH", default=" ")
-    
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
 
     # Display vars
@@ -168,6 +185,13 @@ def init_properties():
         description = "Collider type",
         default = "convex")
 
+    #bpy.types.Scene.project_template = bpy.props.EnumProperty(
+        #items = ProjectTemplatesProperties.project_templates_options,
+        #name = "Project Template",
+        #description = "Project type",
+        #default = "blank_template")
+
+    bpy.types.Scene.project_template = bpy.props.EnumProperty(items = fill_project_templates, name = "Project Template", description = "Project type")#, default = "blank_template")
     
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True)
     

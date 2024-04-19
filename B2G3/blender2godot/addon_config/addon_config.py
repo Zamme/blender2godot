@@ -31,28 +31,32 @@ class Blender2GodotPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 0
-    
+
+    #_gm_index = bpy.data.scenes.find(bpy.context.scene.gamemanager_scene_name)
+    #_gamemanager_added = (_gm_index > -1)
+
+    @classmethod 
+    def poll(self, context):
+        _in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
+        return (_in_gamemanager)
+
     def draw(self, context):
         layout = self.layout
-
         scene = context.scene
         blend_data = context.blend_data
+        # Addon settings
         row = layout.row()
         row.label(text="Addon properties:")
         row = layout.row()
-        box0 = row.box()
-        
-        # Addon settings
-        #box0.prop(scene, "custom_godot")
-        #if scene.custom_godot:
+        box0 = row.box()        
         box0.prop(scene, "godot_executable")
-
         if bpy.path.abspath("//") == "":       
             row = layout.row()
             row.label(text="Save blend file to continue")
 			
 
 def register():
+    bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
     bpy.utils.register_class(Blender2GodotPanel)
 
 def unregister():

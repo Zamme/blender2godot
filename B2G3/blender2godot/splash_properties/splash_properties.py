@@ -34,6 +34,10 @@ class SplashPropertiesPanel(bpy.types.Panel):
     bl_category = "Blender2Godot"
     bl_order = 1
     
+    @classmethod 
+    def poll(self, context):
+        return (context.scene.name == context.scene.gamemanager_scene_name)
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene

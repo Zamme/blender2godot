@@ -28,6 +28,10 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     bl_idname = "scene.export_project_to_godot_operator"
     bl_label = "Export To Godot"
     
+    @classmethod 
+    def poll(self, context):
+        return (context.scene.name == context.scene.gamemanager_scene_name)
+    
     def execute(self, context):
         print("Deleting last export...")
         bpy.ops.scene.delete_project_operator()

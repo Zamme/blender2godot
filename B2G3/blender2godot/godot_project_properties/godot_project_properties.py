@@ -76,8 +76,8 @@ class CreateGodotProjectOperator(bpy.types.Operator):
         return where
     
     def find_project_template_dir_path(self, context):
-        possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template"),
-        os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template")]
+        possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template),
+        os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template)]
         for p_path in possible_paths:
             if os.path.isdir(p_path):
                 self.godot_project_template_path = p_path
@@ -203,6 +203,10 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     bl_category = "Blender2Godot"
     bl_order = 1
     
+    @classmethod 
+    def poll(self, context):
+        return (context.scene.name == context.scene.gamemanager_scene_name)
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -222,6 +226,9 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         box2 = row2.box()
         box2.label(text="Icon must be a png image!")
         box2.prop(scene, "game_icon")
+        row3 = layout.row()
+        row3.prop(scene, "project_template")
+
         
 
 def register():

@@ -36,6 +36,10 @@ class ScenePropertiesPanel(bpy.types.Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 2
     
+    @classmethod 
+    def poll(self, context):
+        return (context.scene.name != context.scene.gamemanager_scene_name)
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene

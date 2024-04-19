@@ -52,6 +52,10 @@ class B2G_ToolsPanel(bpy.types.Panel):
     
     advanced_tools = False
     
+    @classmethod 
+    def poll(self, context):
+        return (context.scene.name == context.scene.gamemanager_scene_name)
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene
