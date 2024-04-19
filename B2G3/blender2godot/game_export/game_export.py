@@ -27,6 +27,32 @@ import time
 import bpy
 
 
+class OpenGodotProjectFolderOperator(bpy.types.Operator):
+    """Open Godot Project Folder Operator"""
+    bl_idname = "scene.open_godot_project_folder_operator"
+    bl_label = "Open Godot Project Folder"
+
+    def main(self, context):
+        print("Open folder")
+        bpy.ops.wm.path_open(filepath=context.scene.project_folder)     
+
+    def execute(self, context):
+        self.main(context)
+        return {'FINISHED'}
+
+class OpenGodotBuildsFolderOperator(bpy.types.Operator):
+    """Open Godot Builds Folder Operator"""
+    bl_idname = "scene.open_godot_builds_folder_operator"
+    bl_label = "Open Godot Builds Folder"
+
+    def main(self, context):
+        print("Open folder")
+        bpy.ops.wm.path_open(filepath=context.scene.game_exports_path)     
+
+    def execute(self, context):
+        self.main(context)
+        return {'FINISHED'}
+
 class BuildGameOperator(bpy.types.Operator):
     """Build Game Operator"""
     bl_idname = "scene.build_game_operator"
@@ -249,6 +275,12 @@ class GameExportPanel(bpy.types.Panel):
         row.scale_y = 3.0
         row.operator("scene.build_game_operator")
 
+        # Open folders buttons
+        row = layout.row()
+        row.operator("scene.open_godot_project_folder_operator")
+        row = layout.row()
+        row.operator("scene.open_godot_builds_folder_operator")
+
 
 class CompileSelectedVersionsOperator(bpy.types.Operator):
     bl_idname = "scene.compile_selected_versions_operator"
@@ -395,9 +427,13 @@ class MessageBoxOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(OpenGodotProjectFolderOperator)
+    bpy.utils.register_class(OpenGodotBuildsFolderOperator)
     bpy.utils.register_class(BuildGameOperator)
     bpy.utils.register_class(GameExportPanel)
 
 def unregister():
     bpy.utils.unregister_class(GameExportPanel)
     bpy.utils.unregister_class(BuildGameOperator)
+    bpy.utils.unregister_class(OpenGodotProjectFolderOperator)
+    bpy.utils.unregister_class(OpenGodotBuildsFolderOperator)

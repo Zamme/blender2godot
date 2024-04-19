@@ -137,11 +137,13 @@ def init_properties():
     bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
 
     # Export vars
+    # Checkboxes
     bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)
     bpy.types.Scene.linux_export = bpy.props.BoolProperty(name="Linux", default=False)
     bpy.types.Scene.windows_export = bpy.props.BoolProperty(name="Windows", default=False)
     bpy.types.Scene.mac_export = bpy.props.BoolProperty(name="Mac", default=False)
     bpy.types.Scene.web_export = bpy.props.BoolProperty(name="Web", default=False)
+    # Paths
     bpy.types.Scene.android_exe_filepath = bpy.props.StringProperty(name="AndroidExeFilepath", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.linux_exe_filepath = bpy.props.StringProperty(name="LinuxExeFilepath", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.windows_exe_filepath = bpy.props.StringProperty(name="WindowsExeFilepath", subtype="FILE_PATH", default=" ")
@@ -198,6 +200,8 @@ def clear_handlers():
 
 def register():
     init_properties()
+    bpy.utils.register_class(game_export.OpenGodotProjectFolderOperator)
+    bpy.utils.register_class(game_export.OpenGodotBuildsFolderOperator)
     bpy.utils.register_class(game_export.MessageBoxOperator)
     bpy.utils.register_class(game_export.CompileSelectedVersionsOperator)
     bpy.utils.register_class(scene_properties.SetGodotProjectEnvironmentOperator)
@@ -247,4 +251,6 @@ def unregister():
     bpy.utils.unregister_class(scene_properties.SetGodotProjectEnvironmentOperator)
     bpy.utils.unregister_class(game_export.CompileSelectedVersionsOperator)
     bpy.utils.unregister_class(game_export.MessageBoxOperator)
+    bpy.utils.unregister_class(game_export.OpenGodotProjectFolderOperator)
+    bpy.utils.unregister_class(game_export.OpenGodotBuildsFolderOperator)
     print("Blender2Godot addon unloaded.")
