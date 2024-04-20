@@ -52,6 +52,8 @@ class ScenePropertiesPanel(bpy.types.Panel):
         blend_data = context.blend_data
         
         if bpy.path.abspath("//") == "":       
+            row = layout.row()
+            row.label(text="Save blend file before!")
             return
         
         # SCENE PROPERTIES

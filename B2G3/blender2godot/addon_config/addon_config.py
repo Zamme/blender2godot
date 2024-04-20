@@ -32,7 +32,7 @@ class CreateGameManagerOperator(bpy.types.Operator):
     def execute(self, context):
         print("Creating Game Manager")
         _new_scene = bpy.data.scenes.new(context.scene.gamemanager_scene_name)
-        #context.scene = _new_scene
+        context.window.scene = _new_scene
         return {'FINISHED'}
 
 class Blender2GodotPanel(bpy.types.Panel):
