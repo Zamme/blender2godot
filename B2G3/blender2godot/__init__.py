@@ -126,6 +126,7 @@ def update_player_objects(aa):
 
 
 def init_properties():
+    bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
     bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME")
     bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")
     bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
@@ -224,6 +225,7 @@ def clear_handlers():
 
 def register():
     init_properties()
+    bpy.utils.register_class(addon_config.CreateGameManagerOperator)
     bpy.utils.register_class(game_export.OpenGodotProjectFolderOperator)
     bpy.utils.register_class(game_export.OpenGodotBuildsFolderOperator)
     bpy.utils.register_class(game_export.MessageBoxOperator)
@@ -277,4 +279,5 @@ def unregister():
     bpy.utils.unregister_class(game_export.MessageBoxOperator)
     bpy.utils.unregister_class(game_export.OpenGodotProjectFolderOperator)
     bpy.utils.unregister_class(game_export.OpenGodotBuildsFolderOperator)
+    bpy.utils.unregister_class(addon_config.CreateGameManagerOperator)
     print("Blender2Godot addon unloaded.")

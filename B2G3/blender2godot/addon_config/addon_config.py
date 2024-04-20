@@ -23,6 +23,18 @@ Editor main panel
 import bpy
 
 
+
+class CreateGameManagerOperator(bpy.types.Operator):
+    """Create Game Manager Operator"""
+    bl_idname = "scene.create_gamemanager_operator"
+    bl_label = "Create Game Manager"
+
+    def execute(self, context):
+        print("Creating Game Manager")
+        _new_scene = bpy.data.scenes.new(context.scene.gamemanager_scene_name)
+        #context.scene = _new_scene
+        return {'FINISHED'}
+
 class Blender2GodotPanel(bpy.types.Panel):
     """Blender2Godot Panel"""
     bl_label = "B2G Configuration"
@@ -32,31 +44,36 @@ class Blender2GodotPanel(bpy.types.Panel):
     bl_category = "Blender2Godot"
     bl_order = 0
 
-    #_gm_index = bpy.data.scenes.find(bpy.context.scene.gamemanager_scene_name)
-    #_gamemanager_added = (_gm_index > -1)
+    _gamemanager_added = False
+    _in_gamemanager = False
 
     @classmethod 
     def poll(self, context):
-        _in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
-        return (_in_gamemanager)
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        self._in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
+        return (self._in_gamemanager or not self._gamemanager_added)
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         blend_data = context.blend_data
-        # Addon settings
-        row = layout.row()
-        row.label(text="Addon properties:")
-        row = layout.row()
-        box0 = row.box()        
-        box0.prop(scene, "godot_executable")
-        if bpy.path.abspath("//") == "":       
+        if not self._gamemanager_added:
             row = layout.row()
-            row.label(text="Save blend file to continue")
+            row.operator("scene.create_gamemanager_operator")
+        else:
+            # Addon settings
+            row = layout.row()
+            row.label(text="Addon properties:")
+            row = layout.row()
+            box0 = row.box()        
+            box0.prop(scene, "godot_executable")
+            if bpy.path.abspath("//") == "":       
+                row = layout.row()
+                row.label(text="Save blend file to continue")
 			
 
 def register():
-    bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
     bpy.utils.register_class(Blender2GodotPanel)
 
 def unregister():

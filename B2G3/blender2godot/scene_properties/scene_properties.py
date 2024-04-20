@@ -35,10 +35,16 @@ class ScenePropertiesPanel(bpy.types.Panel):
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 2
-    
+
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
     @classmethod 
     def poll(self, context):
-        return (context.scene.name != context.scene.gamemanager_scene_name)
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
+        return (self._not_in_gamemanager and self._gamemanager_added)
     
     def draw(self, context):
         layout = self.layout
