@@ -26,6 +26,14 @@ import bpy
 from bpy.app.handlers import persistent
 
 
+class ColliderProperties(bpy.types.PropertyGroup):
+    """ Collider properties """
+    collider_options = [
+        ("none", "None", "", "NONE", 0),
+        ("convex", "Convex", "", "CONVEX", 1),
+        ("mesh", "Mesh", "", "MESH", 2),
+        ("smart", "Smart", "", "SMART", 3)]
+
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
     bl_label = "Scene Properties"
@@ -136,7 +144,19 @@ class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
         self.set_sky(context)
         return {'FINISHED'}
 
+def init_properties():
+    bpy.types.Object.collider = bpy.props.EnumProperty(
+        items = ColliderProperties.collider_options,
+        name = "Collider Type",
+        description = "Collider type",
+        default = "convex")
+    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True)
+    # Environment properties
+    bpy.types.Scene.sky_on = bpy.props.BoolProperty(name="Sky", default=True)
+    bpy.types.Scene.sky_energy = bpy.props.FloatProperty(name="Sky Energy", default=1.0, min=0.0, max=16.0, soft_min=0.0, soft_max=16.0)
+
 def register():
+    init_properties()
     bpy.utils.register_class(ScenePropertiesPanel)
     bpy.utils.register_class(SetGodotProjectEnvironmentOperator)
 

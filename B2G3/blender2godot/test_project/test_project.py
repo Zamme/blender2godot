@@ -54,7 +54,7 @@ class TestGamePanel(bpy.types.Panel):
     
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout

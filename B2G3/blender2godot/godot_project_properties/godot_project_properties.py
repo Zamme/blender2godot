@@ -202,10 +202,11 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 1
-    
+    bl_options = {"DEFAULT_CLOSED"}
+
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout
@@ -221,15 +222,14 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         box1 = row.box()
         # Project properties box
         box1.prop(scene, "game_name")
-        #box1.prop(scene, "game_folder")
+        box1.prop(scene, "game_folder")
         row2 = layout.row()
         box2 = row2.box()
         box2.label(text="Icon must be a png image!")
         box2.prop(scene, "game_icon")
         row3 = layout.row()
         row3.prop(scene, "project_template")
-
-        
+       
 
 def register():
     bpy.utils.register_class(DeleteProjectButtonOperator)

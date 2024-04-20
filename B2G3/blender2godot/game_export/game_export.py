@@ -243,7 +243,7 @@ class GameExportPanel(bpy.types.Panel):
 
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout
@@ -431,6 +431,8 @@ class MessageBoxOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(DailogBoxOperator)
+    bpy.utils.register_class(CompileSelectedVersionsOperator)
     bpy.utils.register_class(OpenGodotProjectFolderOperator)
     bpy.utils.register_class(OpenGodotBuildsFolderOperator)
     bpy.utils.register_class(BuildGameOperator)
@@ -441,3 +443,5 @@ def unregister():
     bpy.utils.unregister_class(BuildGameOperator)
     bpy.utils.unregister_class(OpenGodotProjectFolderOperator)
     bpy.utils.unregister_class(OpenGodotBuildsFolderOperator)
+    bpy.utils.unregister_class(CompileSelectedVersionsOperator)
+    bpy.utils.unregister_class(DailogBoxOperator)

@@ -22,6 +22,22 @@ For player behaviour
 
 import bpy
 
+
+class PlayerObjects(bpy.types.PropertyGroup):
+    """ Player Objects """
+    player_objects = [
+        ("none", "None", "", "NONE", 0),]
+
+def fill_player_objects_menu(self, context):
+    player_objects = []
+    player_objects.clear()
+    player_objects.append(("None", "None", "None"))
+    for ob in bpy.context.scene.objects:
+        if ob.type == "CAMERA":
+            menu_item = (ob.name, ob.name, ob.name)
+            player_objects.append(menu_item)
+    return player_objects
+
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
     bl_label = "Player Properties"
@@ -53,7 +69,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         # INITIAL PROPERTIES
         # Player object
         row = layout.row()
-        row.prop(context.scene, "player_object")
+        row.prop(scene, "player_object")
         
         # Player properties
         row = layout.row()
@@ -61,8 +77,14 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         box.prop(scene, "player_gravity_on")
         box.prop(scene, "camera_inverted")
 
+def init_properties():
+    # Player properties
+    bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
+    bpy.types.Scene.camera_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
+    bpy.types.Scene.player_object = bpy.props.EnumProperty(items=fill_player_objects_menu, name="Player", description="Player Object")  
 
 def register():
+    init_properties()
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():

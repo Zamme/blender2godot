@@ -33,10 +33,11 @@ class DisplayPropertiesPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 1
-    
+    bl_options = {"DEFAULT_CLOSED"}
+
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout
@@ -59,7 +60,6 @@ class DisplayPropertiesPanel(bpy.types.Panel):
         box2.prop(scene, "display_borderless")
         box2.prop(scene, "display_fullscreen")
         box2.prop(scene, "display_alwaysontop")
-        #box1.prop(scene, "game_folder")       
 
 def register():
     bpy.utils.register_class(DisplayPropertiesPanel)

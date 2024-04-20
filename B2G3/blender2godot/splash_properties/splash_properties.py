@@ -33,10 +33,11 @@ class SplashPropertiesPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 1
-    
+    bl_options = {"DEFAULT_CLOSED"}
+
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout

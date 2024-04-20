@@ -20,14 +20,117 @@
 Editor main panel
 """
 
+import os
+import subprocess
+import shutil
+import json
+from fileinput import FileInput
+
 import bpy
 
 
+class ProjectTemplatesProperties(bpy.types.PropertyGroup):
+    """ Project templates properties """
+    project_templates_options = [
+        ("blank_template", "Blank", "", "BLANK", 0),
+        ("walker_template", "Walker", "", "WALKER", 1),
+        ("fps_template", "Fps", "", "FPS", 2)]
+
+def init_properties():
+    print("Initiating properties...")
+    # Project props
+    bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME")
+    bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.game_icon_image = bpy.props.PointerProperty(name="Game Icon Image", type=bpy.types.Image)
+    bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot", subtype="FILE_PATH", default="/usr/local/games/godot-engine")
+    #bpy.types.Scene.custom_godot = bpy.props.BoolProperty(name="Custom Godot", default=False)
+    #bpy.types.Scene.godot_executable_downloaded_zip = bpy.props.StringProperty(name="Godot zip", subtype="FILE_PATH", default=".")
+    bpy.types.Scene.colliders_filepath = bpy.props.StringProperty(name="Colliders", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.android_template_filepath = bpy.props.StringProperty(name="Android Template", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.project_template = bpy.props.EnumProperty(items = fill_project_templates, name = "Project Template", description = "Project type")#, default = "blank_template")
+
+    # Display vars
+    bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
+    bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
+    bpy.types.Scene.display_resizable = bpy.props.BoolProperty(name="Resizable", default=True)
+    bpy.types.Scene.display_borderless = bpy.props.BoolProperty(name="Borderless", default=False)
+    bpy.types.Scene.display_fullscreen = bpy.props.BoolProperty(name="Fullscreen", default=False)
+    bpy.types.Scene.display_alwaysontop = bpy.props.BoolProperty(name="Always on top", default=False)
+
+    # Splash vars
+    bpy.types.Scene.splash_showimage = bpy.props.BoolProperty(name="Show splash image", default=True)
+    bpy.types.Scene.splash_imagefilepath = bpy.props.StringProperty(name="Splash Image Filepath", subtype="FILE_PATH", default="res://icon.png")
+    bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
+    bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
+    bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
+
+    # Export vars
+    # Checkboxes
+    bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)
+    bpy.types.Scene.linux_export = bpy.props.BoolProperty(name="Linux", default=False)
+    bpy.types.Scene.windows_export = bpy.props.BoolProperty(name="Windows", default=False)
+    bpy.types.Scene.mac_export = bpy.props.BoolProperty(name="Mac", default=False)
+    bpy.types.Scene.web_export = bpy.props.BoolProperty(name="Web", default=False)
+    # Paths
+    bpy.types.Scene.android_exe_filepath = bpy.props.StringProperty(name="AndroidExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.linux_exe_filepath = bpy.props.StringProperty(name="LinuxExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.windows_exe_filepath = bpy.props.StringProperty(name="WindowsExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.mac_exe_filepath = bpy.props.StringProperty(name="MacExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.web_exe_filepath = bpy.props.StringProperty(name="WebExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.current_version_compiling = bpy.props.StringProperty(name="CurrentVersionCompiling", default=" ")
+    bpy.types.Scene.game_exports_path = bpy.props.StringProperty(name="GameExportsPath", default=" ")
+    bpy.types.Scene.android_exports_path = bpy.props.StringProperty(name="AndroidExportPath", default=" ")
+    bpy.types.Scene.linux_exports_path = bpy.props.StringProperty(name="LinuxExportPath", default=" ")
+    bpy.types.Scene.windows_exports_path = bpy.props.StringProperty(name="WindowsExportPath", default=" ")
+    bpy.types.Scene.mac_exports_path = bpy.props.StringProperty(name="MacExportPath", default=" ")
+    bpy.types.Scene.web_exports_path = bpy.props.StringProperty(name="WebExportPath", default=" ")
+    
+    # Android environment vars
+    bpy.types.Scene.android_sdk_dirpath = bpy.props.StringProperty(name="Android SDK Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.android_jdk_dirpath = bpy.props.StringProperty(name="JDK Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.android_debug_keystore_filepath = bpy.props.StringProperty(name="Debug Keystore", subtype="FILE_PATH", default=" ")
+    
+    # Panels checkboxes
+    bpy.types.Scene.advanced_tools = bpy.props.BoolProperty(name="Advanced Tools", default=False)
+    
+    print("Properties initiated.")
+
+def clear_properties():
+    del bpy.types.Scene.player_object
+
+"""
+def check_player_objects():
+    if len(player_objects) != len(bpy.context.scene.objects):
+        self.fill_player_object_menu(bpy.context)
+"""
+
+def fill_project_templates(self, context):
+    _templates = []
+    _templates.clear()
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _dirs_list = os.listdir(p_path)
+            _index = 0
+            for _dir_name in _dirs_list:
+                _name = _dir_name.removesuffix("_template")
+                _new_template = (_dir_name, _name.capitalize(), _name.upper())
+                _templates.append(_new_template)
+                _index += 1
+    return _templates
+
+def update_player_objects(aa):
+    pass
 
 class CreateGameManagerOperator(bpy.types.Operator):
     """Create Game Manager Operator"""
     bl_idname = "scene.create_gamemanager_operator"
     bl_label = "Create Game Manager"
+
 
     def execute(self, context):
         print("Creating Game Manager")
@@ -39,6 +142,7 @@ class Blender2GodotPanel(bpy.types.Panel):
     """Blender2Godot Panel"""
     bl_label = "B2G Configuration"
     bl_idname = "BLENDER2GODOT_PT_layout"
+    bl_description = "Main Blender2Godot Panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
@@ -70,11 +174,14 @@ class Blender2GodotPanel(bpy.types.Panel):
             box0.prop(scene, "godot_executable")
             if bpy.path.abspath("//") == "":       
                 row = layout.row()
-                row.label(text="Save blend file to continue")
-			
+                row.label(text="Save blend file to continue")		
 
 def register():
+    init_properties()
+    bpy.utils.register_class(CreateGameManagerOperator)
     bpy.utils.register_class(Blender2GodotPanel)
 
 def unregister():
+    clear_properties()
     bpy.utils.unregister_class(Blender2GodotPanel)
+    bpy.utils.unregister_class(CreateGameManagerOperator)

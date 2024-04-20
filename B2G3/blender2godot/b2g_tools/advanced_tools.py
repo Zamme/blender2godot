@@ -54,7 +54,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     
     @classmethod 
     def poll(self, context):
-        return (context.scene.name == context.scene.gamemanager_scene_name)
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
     
     def draw(self, context):
         layout = self.layout
@@ -64,17 +64,13 @@ class B2G_ToolsPanel(bpy.types.Panel):
         if bpy.path.abspath("//") == "":       
             return
 
+        # Game structure
+        row = layout.row()
+        row.label(text="Game Structure:")
         # Export project to godot button
         row = layout.row()
         row.scale_y = 3.0
         row.operator("scene.export_project_to_godot_operator")        
-        
-        """
-        # Test game button
-        row = layout.row()
-        row.scale_y = 3.0
-        row.operator("scene.test_game_operator")
-        """
         
         row = layout.row()
         row.prop(context.scene, 'advanced_tools')
@@ -154,8 +150,10 @@ class ExportGameOperator(bpy.types.Operator):
     
     def export_icon(self, context):
         scene = context.scene
+        dest_image_path = os.path.join(scene.project_folder, "icon.png")
+        if ((scene.game_icon == "") or (scene.game_icon == dest_image_path)): # TODO : what to do?
+            return
         if self.check_custom_icon(context):
-            dest_image_path = os.path.join(scene.project_folder, "icon.png")
             shutil.copyfile(scene.game_icon, dest_image_path)
         else:
             print("Custom icon is not a png image. Loading default icon.")
