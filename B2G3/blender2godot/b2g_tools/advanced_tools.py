@@ -40,6 +40,17 @@ class my_dictionary(dict):
     def add(self, key, value): 
         self[key] = value 
 
+
+class RemoveSceneFromListOperator(bpy.types.Operator):
+    """Remove scene from list"""
+    bl_idname = "scene.remove_scene_from_list_operator"
+    bl_label = "X"
+
+    def execute(self, context):
+        print("removing scene...")
+        print("scene removed.")
+        return {'FINISHED'}
+
 class B2G_ToolsPanel(bpy.types.Panel):
     """B2G Tools Panel"""
     bl_label = "B2G Tools"
@@ -67,6 +78,21 @@ class B2G_ToolsPanel(bpy.types.Panel):
         # Game structure
         row = layout.row()
         row.label(text="Game Structure:")
+        row = layout.row()
+        box = row.box()
+        """
+        my_item = bpy.context.scene.my_settings.add()
+        my_item.name = "Spam"
+        my_item.value = 1000
+        """
+        #_sa = bpy.data.scenes["B2G_GameManager"].scenes_added
+        _sa = bpy.data.scenes
+        #col = box.column(align=True)
+        grid = box.grid_flow(row_major=True, columns=2, align=True)
+        for i, item in enumerate(_sa):
+            grid.label(text=item.name)
+            grid.operator("scene.remove_scene_from_list_operator")
+        #col.prop_enum(bpy.data, "scenes")
         # Export project to godot button
         row = layout.row()
         row.scale_y = 3.0
@@ -278,6 +304,7 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(RemoveSceneFromListOperator)
     bpy.utils.register_class(ExportGameOperator)
     bpy.utils.register_class(B2G_ToolsPanel)
     bpy.utils.register_class(OpenGodotProjectOperator)
@@ -286,4 +313,5 @@ def unregister():
     bpy.utils.unregister_class(OpenGodotProjectOperator)
     bpy.utils.unregister_class(B2G_ToolsPanel)
     bpy.utils.unregister_class(ExportGameOperator)
+    bpy.utils.unregister_class(RemoveSceneFromListOperator)
 

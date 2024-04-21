@@ -36,6 +36,10 @@ class ProjectTemplatesProperties(bpy.types.PropertyGroup):
         ("walker_template", "Walker", "", "WALKER", 1),
         ("fps_template", "Fps", "", "FPS", 2)]
 
+class SceneToAddItem(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="Test Property", default="Unknown")
+    value: bpy.props.IntProperty(name="Test Property", default=22)
+
 def init_properties():
     print("Initiating properties...")
     # Project props
@@ -51,7 +55,8 @@ def init_properties():
     bpy.types.Scene.android_template_filepath = bpy.props.StringProperty(name="Android Template", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.project_template = bpy.props.EnumProperty(items = fill_project_templates, name = "Project Template", description = "Project type")#, default = "blank_template")
-
+    bpy.types.Scene.scenes_added = bpy.props.CollectionProperty(type=SceneToAddItem)
+    
     # Display vars
     bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
     bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
@@ -177,6 +182,7 @@ class Blender2GodotPanel(bpy.types.Panel):
                 row.label(text="Save blend file to continue")		
 
 def register():
+    bpy.utils.register_class(SceneToAddItem)
     init_properties()
     bpy.utils.register_class(CreateGameManagerOperator)
     bpy.utils.register_class(Blender2GodotPanel)
@@ -185,3 +191,4 @@ def unregister():
     clear_properties()
     bpy.utils.unregister_class(Blender2GodotPanel)
     bpy.utils.unregister_class(CreateGameManagerOperator)
+    bpy.utils.unregister_class(SceneToAddItem)
