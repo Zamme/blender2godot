@@ -53,7 +53,7 @@ bl_info = {
     "name": "Blender2Godot",
     "author": "Jaume Castells",
     "version": (0,1),
-    "blender": (2, 82, 0),
+    "blender": (3, 6, 7),
     "location": "View 3D/Properties",
     "description": "Blender to godot easy exporter",
     "warning": "",
@@ -62,15 +62,28 @@ bl_info = {
     "category": "Interface",
 }   
 
-def init_handlers():
-    #bpy.app.handlers.depsgraph_update_post.append(update_player_objects)
-    pass
+def update_properties(dummy1, dummy2):
+    print("Updating properties...")
+    #bpy.data.scenes["B2G_GameManager"].scenes_added.clear()
+    for _sc in bpy.data.scenes:
+        if _sc.name != "B2G_GameManager":
+            _sc_present = False
+            for _sca in bpy.data.scenes["B2G_GameManager"].scenes_added:
+                if _sc.name == _sca.name:
+                    _sc_present = True
+            if not _sc_present:
+                _new_item = bpy.context.scene.scenes_added.add()
+                _new_item.name = _sc.name
+                _new_item.value = False
+    print("Properties updated.")
 
+def init_handlers():
+    bpy.app.handlers.depsgraph_update_post.append(update_properties)
+    bpy.app.handlers.save_post.append(update_properties)
 
 def clear_handlers():
-    #bpy.app.handlers.depsgraph_update_post.remove(update_player_objects)
-    pass
-
+    bpy.app.handlers.depsgraph_update_post.remove(update_properties)
+    bpy.app.handlers.save_post.remove(update_properties)
 
 def register():
     bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")

@@ -40,6 +40,17 @@ class my_dictionary(dict):
     def add(self, key, value): 
         self[key] = value 
 
+class SCENES_UL_scenes_added(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        #layout.prop(item, "name", text=item.name, emboss=False, icon_value=icon)
+ 
+        custom_icon = 'SCENE'
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name, icon = custom_icon)
+            layout.prop(item, "value")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = custom_icon)
 
 class RemoveSceneFromListOperator(bpy.types.Operator):
     """Remove scene from list"""
@@ -80,19 +91,15 @@ class B2G_ToolsPanel(bpy.types.Panel):
         row.label(text="Game Structure:")
         row = layout.row()
         box = row.box()
+        obj = context.object
+        if len(bpy.data.scenes["B2G_GameManager"].scenes_added) > 0:
+            box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
         """
-        my_item = bpy.context.scene.my_settings.add()
-        my_item.name = "Spam"
-        my_item.value = 1000
-        """
-        #_sa = bpy.data.scenes["B2G_GameManager"].scenes_added
-        _sa = bpy.data.scenes
-        #col = box.column(align=True)
         grid = box.grid_flow(row_major=True, columns=2, align=True)
-        for i, item in enumerate(_sa):
+        for i, item in enumerate(bpy.data.scenes["B2G_GameManager"].scenes_added):
             grid.label(text=item.name)
             grid.operator("scene.remove_scene_from_list_operator")
-        #col.prop_enum(bpy.data, "scenes")
+        """
         # Export project to godot button
         row = layout.row()
         row.scale_y = 3.0
@@ -143,10 +150,10 @@ class ExportGameOperator(bpy.types.Operator):
     def check_custom_icon(self, context):
         return (imghdr.what(context.scene.game_icon) == "png")
     
-    def export_colliders(self, context):
+    def export_colliders(self, context, _scene):
         print("Exporting colliders...")
         self.find_colliders_file_path(context)
-        scene_objects = context.scene.objects
+        scene_objects = _scene.objects
         for ob in scene_objects:
             if ob.godot_exportable:
                 new_name = ob.name.replace(".", "")
@@ -167,12 +174,16 @@ class ExportGameOperator(bpy.types.Operator):
         self.models_folder_path = os.path.join(self.assets_folder_path, self.models_folder_name)
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
-        self.export_scene(context)
-        self.export_colliders(context)
-        self.export_player_info(context)
-        self.export_lights(context)
-        self.export_icon(context)
-        bpy.ops.scene.set_godot_project_environment_operator()
+        for _sc_added in context.scene.scenes_added:
+            if _sc_added.value:
+                _sc = bpy.data.scenes[_sc_added.name]
+                self.export_scene(context, _sc)
+                self.export_colliders(context, _sc)
+                #self.export_player_info(context)
+                #self.export_lights(context)
+                #self.export_icon(context)
+        #bpy.ops.scene.set_godot_project_environment_operator()
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
     
     def export_icon(self, context):
         scene = context.scene
@@ -250,13 +261,15 @@ class ExportGameOperator(bpy.types.Operator):
             data_file = json.load(fp)
         print(data_file)        
     
-    def export_scene(self, context):
-        print("Exporting scene", context.scene.name)
-        model_path = os.path.join(self.models_folder_path, context.scene.name)
-        for ob in context.scene.objects:
+    def export_scene(self, context, _scene):
+        print("Exporting scene", _scene.name)
+        context.window.scene = _scene
+        model_path = os.path.join(self.models_folder_path, _scene.name)
+        for ob in _scene.objects:
             ob.select_set(ob.godot_exportable)
-        bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True)
-        print("Scene", context.scene.name, "exported.")
+        if len(_scene.objects) > 0:
+            bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True)
+        print("Scene", _scene.name, "exported.")
     
     def find_colliders_file_path(self, context):
         self.colliders_filepath = os.path.join(context.scene.project_folder, "colliders_info", "colliders.json")
@@ -304,6 +317,7 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(SCENES_UL_scenes_added)
     bpy.utils.register_class(RemoveSceneFromListOperator)
     bpy.utils.register_class(ExportGameOperator)
     bpy.utils.register_class(B2G_ToolsPanel)
@@ -314,4 +328,5 @@ def unregister():
     bpy.utils.unregister_class(B2G_ToolsPanel)
     bpy.utils.unregister_class(ExportGameOperator)
     bpy.utils.unregister_class(RemoveSceneFromListOperator)
+    bpy.utils.unregister_class(SCENES_UL_scenes_added)
 
