@@ -178,11 +178,16 @@ class ExportGameOperator(bpy.types.Operator):
             if _sc_added.value:
                 _sc = bpy.data.scenes[_sc_added.name]
                 self.export_scene(context, _sc)
+                context.window.scene = bpy.data.scenes["B2G_GameManager"]
                 self.export_colliders(context, _sc)
-                #self.export_player_info(context)
-                #self.export_lights(context)
-                #self.export_icon(context)
-        #bpy.ops.scene.set_godot_project_environment_operator()
+                context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                self.export_player_info(context)
+                context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                self.export_lights(context)
+                context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                self.export_icon(context)
+                context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
     
     def export_icon(self, context):

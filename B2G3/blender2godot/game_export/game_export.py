@@ -431,6 +431,7 @@ class MessageBoxOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
+    bpy.utils.register_class(MessageBoxOperator)
     bpy.utils.register_class(DailogBoxOperator)
     bpy.utils.register_class(CompileSelectedVersionsOperator)
     bpy.utils.register_class(OpenGodotProjectFolderOperator)
@@ -445,3 +446,4 @@ def unregister():
     bpy.utils.unregister_class(OpenGodotBuildsFolderOperator)
     bpy.utils.unregister_class(CompileSelectedVersionsOperator)
     bpy.utils.unregister_class(DailogBoxOperator)
+    bpy.utils.unregister_class(MessageBoxOperator)

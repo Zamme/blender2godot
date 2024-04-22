@@ -64,7 +64,6 @@ bl_info = {
 
 def update_properties(dummy1, dummy2):
     print("Updating properties...")
-    #bpy.data.scenes["B2G_GameManager"].scenes_added.clear()
     for _sc in bpy.data.scenes:
         if _sc.name != "B2G_GameManager":
             _sc_present = False
@@ -82,8 +81,8 @@ def init_handlers():
     bpy.app.handlers.save_post.append(update_properties)
 
 def clear_handlers():
-    bpy.app.handlers.depsgraph_update_post.remove(update_properties)
     bpy.app.handlers.save_post.remove(update_properties)
+    bpy.app.handlers.depsgraph_update_post.remove(update_properties)
 
 def register():
     bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
