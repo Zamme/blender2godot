@@ -52,7 +52,8 @@ func _ready():
 		print("Stage template present!")
 		if get_child_count() == 0:
 			self.mount_scene()
-			#get_tree().quit()
+			yield(get_tree(),"idle_frame")
+			get_tree().quit()
 		else:
 			self.update_scene() # TODO
 	else:

@@ -68,8 +68,8 @@ class CreateGodotProjectOperator(bpy.types.Operator):
         return where
     
     def add_lines_at_section(self, context, where, _section, new_lines):
-        print("New lines to add:")
-        print(new_lines)
+        #print("New lines to add:")
+        #print(new_lines)
         section_index = where.index(_section)
         for _new_line in new_lines:
             where.insert(section_index + 2, _new_line)
@@ -206,7 +206,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
 
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
     def draw(self, context):
         layout = self.layout

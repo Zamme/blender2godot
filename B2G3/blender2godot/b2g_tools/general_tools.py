@@ -30,7 +30,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved) and (len(context.scene.scenes_added) > 0))
     
     def execute(self, context):
         print("Deleting last export...")

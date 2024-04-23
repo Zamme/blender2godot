@@ -76,7 +76,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
     def draw(self, context):
         layout = self.layout
@@ -88,18 +88,14 @@ class B2G_ToolsPanel(bpy.types.Panel):
 
         # Game structure
         row = layout.row()
-        row.label(text="Game Structure:")
+        row.label(text="Check scenes to export:")
         row = layout.row()
         box = row.box()
-        obj = context.object
         if len(bpy.data.scenes["B2G_GameManager"].scenes_added) > 0:
             box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
-        """
-        grid = box.grid_flow(row_major=True, columns=2, align=True)
-        for i, item in enumerate(bpy.data.scenes["B2G_GameManager"].scenes_added):
-            grid.label(text=item.name)
-            grid.operator("scene.remove_scene_from_list_operator")
-        """
+        else:
+            box.label(text="No scenes to add")
+
         # Export project to godot button
         row = layout.row()
         row.scale_y = 3.0

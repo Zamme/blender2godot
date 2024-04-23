@@ -180,7 +180,7 @@ class Blender2GodotPanel(bpy.types.Panel):
             row = layout.row()
             box0 = row.box()        
             box0.prop(scene, "godot_executable")
-            if bpy.path.abspath("//") == "":       
+            if not bpy.data.is_saved:       
                 row = layout.row()
                 row.label(text="Save blend file to continue")		
 

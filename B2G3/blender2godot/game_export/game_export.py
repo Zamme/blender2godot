@@ -243,7 +243,7 @@ class GameExportPanel(bpy.types.Panel):
 
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.path.abspath("//") != ""))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
     def draw(self, context):
         layout = self.layout
