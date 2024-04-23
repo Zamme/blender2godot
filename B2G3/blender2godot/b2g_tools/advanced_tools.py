@@ -42,12 +42,10 @@ class my_dictionary(dict):
 
 class SCENES_UL_scenes_added(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        #layout.prop(item, "name", text=item.name, emboss=False, icon_value=icon)
- 
         custom_icon = 'SCENE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, icon = custom_icon)
-            layout.prop(item, "value")
+            layout.label(text=item.scene_name, icon = custom_icon)
+            layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = custom_icon)
@@ -171,8 +169,8 @@ class ExportGameOperator(bpy.types.Operator):
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
         for _sc_added in context.scene.scenes_added:
-            if _sc_added.value:
-                _sc = bpy.data.scenes[_sc_added.name]
+            if _sc_added.scene_exportable:
+                _sc = bpy.data.scenes[_sc_added.scene_name]
                 self.export_scene(context, _sc)
                 context.window.scene = bpy.data.scenes["B2G_GameManager"]
                 self.export_colliders(context, _sc)
@@ -269,7 +267,7 @@ class ExportGameOperator(bpy.types.Operator):
         for ob in _scene.objects:
             ob.select_set(ob.godot_exportable)
         if len(_scene.objects) > 0:
-            bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True)
+            bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True, use_active_scene=True)
         print("Scene", _scene.name, "exported.")
     
     def find_colliders_file_path(self, context):

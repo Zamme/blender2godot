@@ -37,8 +37,9 @@ class ProjectTemplatesProperties(bpy.types.PropertyGroup):
         ("fps_template", "Fps", "", "FPS", 2)]
 
 class SceneToAddItem(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="Scene Name", default="Unknown")
-    value: bpy.props.BoolProperty(name="", default=False)
+    scene_name: bpy.props.StringProperty(name="Scene Name", default="Unknown")
+    scene_exportable: bpy.props.BoolProperty(name="", default=False)
+    scene_type : bpy.props.IntProperty(name="", default=-1)
 
 def init_properties():
     print("Initiating properties...")

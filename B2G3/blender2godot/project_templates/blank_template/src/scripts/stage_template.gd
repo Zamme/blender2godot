@@ -51,9 +51,9 @@ func _ready():
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if get_child_count() == 0:
-			self.mount_scene()
-			yield(get_tree(),"idle_frame")
-			get_tree().quit()
+			self.mount_stages()
+#			yield(get_tree(),"idle_frame")
+#			get_tree().quit()
 		else:
 			self.update_scene() # TODO
 	else:
@@ -177,11 +177,31 @@ func add_scene(scene_file_path, with_name = "Scene"):
 	else:
 		print("Scene not found: ", scene_file_path)
 
+func add_scene_to_scene(to_scene, scene_file_path, with_name = "Scene"):
+	print("Adding scene " + scene_file_path)
+	var _dir : Directory = Directory.new()
+	if _dir.file_exists(scene_file_path):
+		var scene_instance = load(scene_file_path).instance()
+		#scene_instance.name = with_name
+		to_scene.add_child(scene_instance)
+		scene_instance.set_owner(to_scene)
+#		if scene_instance.name == "Player":
+#			print("Positioning player at:")
+#			print(self.initial_player_position)
+#			scene_instance.global_transform.origin = self.initial_player_position
+	else:
+		print("Scene not found: ", scene_file_path)
 
 func add_scenes(scene_filepaths):
 	for scene_filepath in scene_filepaths:
 		self.add_scene(scene_filepath)
 
+func add_scenes_to_new_scene(new_scene_name, scene_filepaths):
+	var _new_scene : Spatial = Spatial.new()
+	for scene_filepath in scene_filepaths:
+		_new_scene.name = new_scene_name
+		self.add_scene_to_scene(_new_scene, scene_filepath, new_scene_name)
+	return _new_scene
 
 func add_smart_collider(scene):
 	print("Adding smart colliding...")
@@ -453,23 +473,29 @@ func import_files(files_to_import):
 		print("No files to import.")
 
 
-func mount_scene():
+func mount_stages():
 	print("Mounting scene...")
 	var files_to_import = self.dir_contents(MODELS_PATH)
 	import_files(files_to_import)
-	#var all_scenes = self.dir_contents(SCENES_PATH, ".tscn")
-	#print("Scenes:")
-	#for sc in all_scenes:
-		#print(sc)
-	#self.apply_import_changes_to_list(imported_scenes, SCENES_PATH)
-	self.add_scenes(imported_scenes)
-	if lights_instance != null:
-		repack_scene(lights_instance, LIGHTS_SCENE_PATH)
-		lights_instance.queue_free()
-	self.add_scene(PLAYER_SCENE_PATH, "Player")
-	self.add_scene(LIGHTS_SCENE_PATH, "Lights")
 	
-	repack_scene(self, STAGE_TEMPLATE_PATH)
+	# Create Stages
+	var _index : int = 0
+	for _file_to_import in files_to_import:
+		var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
+		_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
+		var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+		var _new_stage_path : String = STAGES_PATH + "/" + _new_stage_name + ".tscn"
+		self.repack_scene(_new_stage, _new_stage_path)
+		_index += 1
+	
+#	self.add_scenes(imported_scenes)
+#	if lights_instance != null:
+#		repack_scene(lights_instance, LIGHTS_SCENE_PATH)
+#		lights_instance.queue_free()
+#	self.add_scene(PLAYER_SCENE_PATH, "Player")
+#	self.add_scene(LIGHTS_SCENE_PATH, "Lights")
+#
+#	repack_scene(self, STAGE_TEMPLATE_PATH)
 	#self.add_scene(COLLIDERS_PATH, "Colliders")
 
 
@@ -594,4 +620,10 @@ new_collider.set_owner(scene_to_save)
 new_collider_collision_shape.set_owner(scene_to_save)
 """
 
-
+"""
+	#var all_scenes = self.dir_contents(SCENES_PATH, ".tscn")
+	#print("Scenes:")
+	#for sc in all_scenes:
+		#print(sc)
+	#self.apply_import_changes_to_list(imported_scenes, SCENES_PATH)
+"""

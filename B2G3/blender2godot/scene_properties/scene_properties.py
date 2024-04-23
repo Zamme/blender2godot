@@ -34,6 +34,12 @@ class ColliderProperties(bpy.types.PropertyGroup):
         ("mesh", "Mesh", "", "MESH", 2),
         ("smart", "Smart", "", "SMART", 3)]
 
+class SceneTypeProperties(bpy.types.PropertyGroup):
+    """ Scene Type properties """
+    scene_type_options = [
+        ("stage", "Stage", "", "STAGE", 0),
+        ("character", "Character", "", "CHARACTER", 1)]
+
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
     bl_label = "Scene Properties"
@@ -59,34 +65,38 @@ class ScenePropertiesPanel(bpy.types.Panel):
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             row = layout.row()
             row.label(text="Save blend file before!")
             return
         
         # SCENE PROPERTIES
-        # Environment Lighting
-        # Sky
         row = layout.row()
-        row.label(text="Environment properties:")
-        row = layout.row()
-        box = row.box()
-        box.prop(context.scene, "sky_on")
-        row1 = box.row()
-        if context.scene.sky_on:
-            box1 = row1.box()
-            box1.prop(context.scene, "sky_energy")
-        
-        # ACTIVE OBJECT PROPERTIES
-        if context.active_object is not None:
+        row.prop(context.scene, "scene_type")
+
+        if context.scene.scene_type == "stage":
+            # Environment Lighting
+            # Sky
             row = layout.row()
-            row.label(text="Active object properties:")
+            row.label(text="Environment properties:")
             row = layout.row()
-            box3 = row.box()
-            box3.label(text=context.active_object.name)
-            box3.prop(context.active_object, "godot_exportable")
-            if context.active_object.godot_exportable:
-                box3.prop(context.active_object, "collider")
+            box = row.box()
+            box.prop(context.scene, "sky_on")
+            row1 = box.row()
+            if context.scene.sky_on:
+                box1 = row1.box()
+                box1.prop(context.scene, "sky_energy")
+            
+            # ACTIVE OBJECT PROPERTIES
+            if context.active_object is not None:
+                row = layout.row()
+                row.label(text="Active object properties:")
+                row = layout.row()
+                box3 = row.box()
+                box3.label(text=context.active_object.name)
+                box3.prop(context.active_object, "godot_exportable")
+                if context.active_object.godot_exportable:
+                    box3.prop(context.active_object, "collider")
 
 
 class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
@@ -150,6 +160,13 @@ def init_properties():
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
+
+    bpy.types.Scene.scene_type = bpy.props.EnumProperty(
+        items = SceneTypeProperties.scene_type_options,
+        name = "Scene Type",
+        description = "Scene type",
+        default = "stage")
+
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True)
     # Environment properties
     bpy.types.Scene.sky_on = bpy.props.BoolProperty(name="Sky", default=True)

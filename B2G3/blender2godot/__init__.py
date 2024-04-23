@@ -73,20 +73,23 @@ def update_scenes_added():
         if _sc.name != "B2G_GameManager":
             _sc_present = False
             for _sca in bpy.data.scenes["B2G_GameManager"].scenes_added:
-                if _sc.name == _sca.name:
+                if _sc.name == _sca.scene_name:
                     _sc_present = True
             if not _sc_present:
                 _new_item = bpy.data.scenes["B2G_GameManager"].scenes_added.add()
-                _new_item.name = _sc.name
-                _new_item.value = False
+                _new_item.scene_name = _sc.name
+                _new_item.exportable = False
     # Clean deleted scenes
+    _scenes_names_to_remove = []    
     for _index, _sca in enumerate(bpy.data.scenes["B2G_GameManager"].scenes_added):
         _sc_present = False
         for _sc in bpy.data.scenes:
-            if _sc.name == _sca.name:
+            if _sc.name == _sca.scene_name:
                 _sc_present = True
         if not _sc_present:
-            bpy.data.scenes["B2G_GameManager"].scenes_added.remove(_index)
+            _scenes_names_to_remove.append(_sca)
+    for _scene_name in _scenes_names_to_remove:
+        bpy.data.scenes["B2G_GameManager"].scenes_added.remove(_scene_name)
 
 def init_handlers():
     bpy.app.handlers.depsgraph_update_post.append(update_properties)
@@ -109,32 +112,6 @@ def register():
     player_properties.register()
     test_project.register()
     game_export.register()
-    """
-    bpy.utils.register_class(addon_config.CreateGameManagerOperator)
-    bpy.utils.register_class(game_export.OpenGodotProjectFolderOperator)
-    bpy.utils.register_class(game_export.OpenGodotBuildsFolderOperator)
-    bpy.utils.register_class(game_export.MessageBoxOperator)
-    bpy.utils.register_class(game_export.CompileSelectedVersionsOperator)
-    bpy.utils.register_class(scene_properties.SetGodotProjectEnvironmentOperator)
-    bpy.utils.register_class(general_tools.ExportProjectToGodotOperator)
-    bpy.utils.register_class(game_export.BuildGameOperator)
-    bpy.utils.register_class(godot_project_properties.DeleteProjectButtonOperator)
-    bpy.utils.register_class(godot_project_properties.AreYouSureDeletingOperator)
-    bpy.utils.register_class(godot_project_properties.DeleteProjectOperator)
-    bpy.utils.register_class(advanced_tools.ExportGameOperator)
-    bpy.utils.register_class(advanced_tools.OpenGodotProjectOperator)
-    bpy.utils.register_class(test_project.TestGameOperator)
-    bpy.utils.register_class(godot_project_properties.CreateGodotProjectOperator)
-    bpy.utils.register_class(addon_config.Blender2GodotPanel)
-    bpy.utils.register_class(godot_project_properties.GodotProjectPropertiesPanel)
-    bpy.utils.register_class(splash_properties.SplashPropertiesPanel)
-    bpy.utils.register_class(display_properties.DisplayPropertiesPanel)
-    bpy.utils.register_class(scene_properties.ScenePropertiesPanel)
-    bpy.utils.register_class(player_properties.PlayerPropertiesPanel)
-    bpy.utils.register_class(advanced_tools.B2G_ToolsPanel)
-    bpy.utils.register_class(test_project.TestGamePanel)
-    bpy.utils.register_class(game_export.GameExportPanel)
-    """
     init_handlers()
     print("Blender2Godot addon loaded.")
 
@@ -151,33 +128,7 @@ def unregister():
     player_properties.unregister()
     test_project.unregister()
     game_export.unregister()
-    """
-    bpy.utils.unregister_class(player_properties.PlayerPropertiesPanel)
-    bpy.utils.unregister_class(game_export.GameExportPanel)
-    bpy.utils.unregister_class(advanced_tools.B2G_ToolsPanel)
-    bpy.utils.unregister_class(scene_properties.ScenePropertiesPanel)
-    bpy.utils.unregister_class(display_properties.DisplayPropertiesPanel)
-    bpy.utils.unregister_class(splash_properties.SplashPropertiesPanel)
-    bpy.utils.unregister_class(godot_project_properties.GodotProjectPropertiesPanel)
-    bpy.utils.unregister_class(addon_config.Blender2GodotPanel)
-    bpy.utils.unregister_class(godot_project_properties.CreateGodotProjectOperator)
-    bpy.utils.unregister_class(test_project.TestGamePanel)
-    bpy.utils.unregister_class(test_project.TestGameOperator)
-    bpy.utils.unregister_class(advanced_tools.OpenGodotProjectOperator)
-    bpy.utils.unregister_class(advanced_tools.ExportGameOperator)
-    bpy.utils.unregister_class(godot_project_properties.DeleteProjectOperator)
-    bpy.utils.unregister_class(godot_project_properties.AreYouSureDeletingOperator)
-    bpy.utils.unregister_class(godot_project_properties.DeleteProjectButtonOperator)
-    bpy.utils.unregister_class(game_export.BuildGameOperator)
-    bpy.utils.unregister_class(general_tools.ExportProjectToGodotOperator)
-    bpy.utils.unregister_class(scene_properties.SetGodotProjectEnvironmentOperator)
-    bpy.utils.unregister_class(game_export.CompileSelectedVersionsOperator)
-    bpy.utils.unregister_class(game_export.MessageBoxOperator)
-    bpy.utils.unregister_class(game_export.OpenGodotProjectFolderOperator)
-    bpy.utils.unregister_class(game_export.OpenGodotBuildsFolderOperator)
-    bpy.utils.unregister_class(addon_config.CreateGameManagerOperator)
     print("Blender2Godot addon unloaded.")
-    """
 
 if __name__ == "__main__":
     register()

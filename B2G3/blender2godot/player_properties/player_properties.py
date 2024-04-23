@@ -56,7 +56,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
         self._gamemanager_added = (_gm_index > -1)
         self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
-        return (self._not_in_gamemanager and self._gamemanager_added)
+        return (self._not_in_gamemanager and self._gamemanager_added and (context.scene.scene_type == "character"))
     
     def draw(self, context):
         layout = self.layout
