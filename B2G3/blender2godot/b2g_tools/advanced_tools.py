@@ -41,11 +41,23 @@ class my_dictionary(dict):
         self[key] = value 
 
 class SCENES_UL_scenes_added(bpy.types.UIList):
+    """
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         custom_icon = 'SCENE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.scene_name, icon = custom_icon)
             layout.prop(item, "scene_exportable")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = custom_icon)
+    """
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        custom_icon = 'SCENE'
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name, icon = custom_icon)
+            if item.name != "B2G_GameManager":
+                layout.prop(item, "scene_type")
+                layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = custom_icon)
@@ -81,7 +93,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         # Game structure
@@ -89,15 +101,20 @@ class B2G_ToolsPanel(bpy.types.Panel):
         row.label(text="Check scenes to export:")
         row = layout.row()
         box = row.box()
-        if len(bpy.data.scenes["B2G_GameManager"].scenes_added) > 0:
-            box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
+        if len(bpy.data.scenes) > 0:
+            #box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
+            box.template_list("SCENES_UL_scenes_added", "The_List", bpy.data, "scenes", scene, "scenes_added_index")
+            box.prop(scene, "startup_scene")
         else:
             box.label(text="No scenes to add")
 
         # Export project to godot button
         row = layout.row()
         row.scale_y = 3.0
-        row.operator("scene.export_project_to_godot_operator")        
+        if scene.startup_scene == None:
+            row.operator("scene.export_project_to_godot_operator",)        
+        else:
+            row.operator("scene.export_project_to_godot_operator")        
         
         row = layout.row()
         row.prop(context.scene, 'advanced_tools')
@@ -136,10 +153,12 @@ class ExportGameOperator(bpy.types.Operator):
     colliders_filepath = ""
     player_info_filepath = ""
     lights_info_filepath = ""
+    godot_project_settings_filepath = ""
     
     dict_colliders = my_dictionary()
     dict_player_info = my_dictionary()
     dict_lights_info = my_dictionary()
+    dict_godot_project_settings = my_dictionary()
     
     def check_custom_icon(self, context):
         return (imghdr.what(context.scene.game_icon) == "png")
@@ -168,9 +187,9 @@ class ExportGameOperator(bpy.types.Operator):
         self.models_folder_path = os.path.join(self.assets_folder_path, self.models_folder_name)
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
-        for _sc_added in context.scene.scenes_added:
+        for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
-                _sc = bpy.data.scenes[_sc_added.scene_name]
+                _sc = bpy.data.scenes[_sc_added.name]
                 self.export_scene(context, _sc)
                 context.window.scene = bpy.data.scenes["B2G_GameManager"]
                 self.export_colliders(context, _sc)
@@ -183,6 +202,17 @@ class ExportGameOperator(bpy.types.Operator):
                 context.window.scene = bpy.data.scenes["B2G_GameManager"]
         bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_godot_project_settings(context)
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+    
+    def export_godot_project_settings(self, context):
+        print("Exporting project settings...")
+        self.find_godot_project_settings_file_path(context)
+        self.dict_godot_project_settings.add("application/run/main_scene", bpy.data.scenes["B2G_GameManager"].startup_scene.name)
+        print("Project settings exported.")
+        self.data_settings = json.dumps(self.dict_godot_project_settings, indent=1, ensure_ascii=True)
+        with open(self.godot_project_settings_filepath, 'w') as outfile:
+            outfile.write(self.data_settings + '\n')
     
     def export_icon(self, context):
         scene = context.scene
@@ -281,6 +311,10 @@ class ExportGameOperator(bpy.types.Operator):
     def find_player_info_file_path(self, context):
         self.player_info_filepath = os.path.join(context.scene.project_folder, "player_info", "player_info.json")
         print("Player info json filepath:", self.player_info_filepath)
+
+    def find_godot_project_settings_file_path(self, context):
+        self.godot_project_settings_filepath = os.path.join(context.scene.project_folder, "godot_project_settings_info", "godot_project_settings.json")
+        print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
 
     def fix_objects_names(self, context):
         print("Fixing objects names...(Godot can't use dots and other signs!)")

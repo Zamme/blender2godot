@@ -19,6 +19,7 @@
 """
 Building utils for exporting to different platforms
 """
+import os
 
 import bpy
 
@@ -30,7 +31,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved) and (len(context.scene.scenes_added) > 0))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved) and (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene != None))
     
     def execute(self, context):
         print("Deleting last export...")

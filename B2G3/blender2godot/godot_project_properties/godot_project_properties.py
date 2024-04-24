@@ -115,7 +115,7 @@ class CreateGodotProjectOperator(bpy.types.Operator):
         #print(godot_project_file_content)
         godot_project_file_content = self.add_lines_at_section(context, godot_project_file_content, "[application]\n", splash_lines_to_add)
 
-        print(godot_project_file_content)
+        #print(godot_project_file_content)
         
         # Save File
         os.remove(context.scene.godot_project_filepath)

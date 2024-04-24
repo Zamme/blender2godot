@@ -13,14 +13,11 @@ const PLAYER_SCENE_PATH = SCENES_PATH + "/Player_Template.tscn"
 const PLAYER_BEHAVIOR_PATH = "res://src/scripts/player_template.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "/Lights.tscn"
-
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
-
 const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
-
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
-
 const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
+const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
 
 var camera_instance : Camera = null
 var player_instance : KinematicBody = null
@@ -52,6 +49,8 @@ func _ready():
 		print("Stage template present!")
 		if get_child_count() == 0:
 			self.mount_stages()
+			yield(get_tree(),"idle_frame")
+			apply_new_config()
 #			yield(get_tree(),"idle_frame")
 #			get_tree().quit()
 		else:
@@ -387,6 +386,11 @@ func apply_import_changes_to_list(scenes_list, path):
 #func clear_imported_scenes():
 #	clear_lights()
 
+func apply_new_config():
+	var godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
+	var _stage_path : String = "res://src/scenes/stages/" + "Stage_" + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+	ProjectSettings.set_setting("application/run/main_scene", _stage_path)
+
 
 func clear_lights(_scene):
 	print("Clearing lights...")
@@ -530,7 +534,7 @@ func repack_scene(scene, filepath):
 
 func read_json_file(filepath):
 	var file = File.new()
-	if not file.file_exists(COLLIDERS_JSON_PATH):
+	if not file.file_exists(filepath):
 		print("Missing classes.json file.")
 	else:
 		file.open(filepath, file.READ)

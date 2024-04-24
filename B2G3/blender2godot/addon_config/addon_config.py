@@ -39,7 +39,7 @@ class ProjectTemplatesProperties(bpy.types.PropertyGroup):
 class SceneToAddItem(bpy.types.PropertyGroup):
     scene_name: bpy.props.StringProperty(name="Scene Name", default="Unknown")
     scene_exportable: bpy.props.BoolProperty(name="", default=False)
-    scene_type : bpy.props.IntProperty(name="", default=-1)
+    scene_type : bpy.props.IntProperty(name="", default=0)
 
 def init_properties():
     print("Initiating properties...")
@@ -56,9 +56,9 @@ def init_properties():
     bpy.types.Scene.android_template_filepath = bpy.props.StringProperty(name="Android Template", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.project_template = bpy.props.EnumProperty(items = fill_project_templates, name = "Project Template", description = "Project type")#, default = "blank_template")
-    bpy.types.Scene.scenes_added = bpy.props.CollectionProperty(type=SceneToAddItem)
     bpy.types.Scene.scenes_added_index = bpy.props.IntProperty(name = "Index for my_list", default = 0)
-
+    bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene")
+    
     # Display vars
     bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
     bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
@@ -73,6 +73,10 @@ def init_properties():
     bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
     bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
     bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
+
+    # Scene props
+    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="", default=False)
+    bpy.types.Scene.scene_type = bpy.props.IntProperty(name="Type", default=0)
 
     # Export vars
     # Checkboxes
@@ -107,7 +111,7 @@ def init_properties():
 
 def clear_properties():
     del bpy.types.Scene.player_object
-    del bpy.types.Scene.scenes_added
+    #del bpy.types.Scene.scenes_added
     del bpy.types.Scene.scenes_added_index
 
 """

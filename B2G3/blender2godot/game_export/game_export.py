@@ -250,7 +250,7 @@ class GameExportPanel(bpy.types.Panel):
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         # Export platforms box

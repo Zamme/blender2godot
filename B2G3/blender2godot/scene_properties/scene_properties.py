@@ -26,6 +26,9 @@ import bpy
 from bpy.app.handlers import persistent
 
 
+def scene_emptyobject_poll(self, object):
+    return object.type == 'EMPTY'
+
 class ColliderProperties(bpy.types.PropertyGroup):
     """ Collider properties """
     collider_options = [
@@ -38,7 +41,10 @@ class SceneTypeProperties(bpy.types.PropertyGroup):
     """ Scene Type properties """
     scene_type_options = [
         ("stage", "Stage", "", "STAGE", 0),
-        ("character", "Character", "", "CHARACTER", 1)]
+        ("player", "Player", "", "PLAYER", 1),
+        ("npc", "Npc", "", "NPC", 2),
+        ("menu", "Menu", "", "MENU", 3),
+        ("loading", "Loading", "", "LOADING", 4)]
 
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
@@ -75,12 +81,20 @@ class ScenePropertiesPanel(bpy.types.Panel):
         row.prop(context.scene, "scene_type")
 
         if context.scene.scene_type == "stage":
+            # Player spawner
+            row = layout.row()
+            row.prop(context.scene, "player_spawn_empty")
+            if context.scene.player_spawn_empty == None:
+                row = layout.row()
+                row.label(text="Select a spawn position!")
+
             # Environment Lighting
             # Sky
             row = layout.row()
-            row.label(text="Environment properties:")
-            row = layout.row()
             box = row.box()
+            box.label(text="Environment Properties")
+            #row = layout.row()
+            box = box.box()
             box.prop(context.scene, "sky_on")
             row1 = box.row()
             if context.scene.sky_on:
@@ -90,9 +104,9 @@ class ScenePropertiesPanel(bpy.types.Panel):
             # ACTIVE OBJECT PROPERTIES
             if context.active_object is not None:
                 row = layout.row()
-                row.label(text="Active object properties:")
-                row = layout.row()
-                box3 = row.box()
+                box = row.box()
+                box.label(text="Active Object")
+                box3 = box.box()
                 box3.label(text=context.active_object.name)
                 box3.prop(context.active_object, "godot_exportable")
                 if context.active_object.godot_exportable:
@@ -167,8 +181,12 @@ def init_properties():
         description = "Scene type",
         default = "stage")
 
+    bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
+
+    # Scene object properties
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True)
-    # Environment properties
+
+    # Scene Environment properties
     bpy.types.Scene.sky_on = bpy.props.BoolProperty(name="Sky", default=True)
     bpy.types.Scene.sky_energy = bpy.props.FloatProperty(name="Sky Energy", default=1.0, min=0.0, max=16.0, soft_min=0.0, soft_max=16.0)
 

@@ -64,9 +64,9 @@ bl_info = {
 
 def update_properties(dummy1, dummy2):
     print("Updating properties...")
-    update_scenes_added()
+    #update_scenes_added()
     print("Properties updated.")
-
+"""
 def update_scenes_added():
     # Add new scenes
     for _sc in bpy.data.scenes:
@@ -90,10 +90,11 @@ def update_scenes_added():
             _scenes_names_to_remove.append(_sca)
     for _scene_name in _scenes_names_to_remove:
         bpy.data.scenes["B2G_GameManager"].scenes_added.remove(_scene_name)
-
+"""
 def init_handlers():
-    bpy.app.handlers.depsgraph_update_post.append(update_properties)
-    bpy.app.handlers.save_post.append(update_properties)
+    pass
+    #bpy.app.handlers.depsgraph_update_post.append(update_properties)
+    #bpy.app.handlers.save_post.append(update_properties)
 
 def clear_handlers():
     pass
@@ -112,12 +113,12 @@ def register():
     player_properties.register()
     test_project.register()
     game_export.register()
-    init_handlers()
+    #init_handlers()
     print("Blender2Godot addon loaded.")
 
 
 def unregister():
-    clear_handlers()
+    #clear_handlers()
     addon_config.unregister()
     general_tools.unregister()
     godot_project_properties.unregister()
