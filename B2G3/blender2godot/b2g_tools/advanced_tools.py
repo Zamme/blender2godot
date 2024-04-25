@@ -144,11 +144,13 @@ class ExportGameOperator(bpy.types.Operator):
     player_info_filepath = ""
     lights_info_filepath = ""
     godot_project_settings_filepath = ""
+    stages_info_filepath = ""
     
     dict_colliders = my_dictionary()
     dict_player_info = my_dictionary()
     dict_lights_info = my_dictionary()
     dict_godot_project_settings = my_dictionary()
+    dict_stages_info = my_dictionary()
     
     def check_custom_icon(self, context):
         return (imghdr.what(context.scene.game_icon) == "png")
@@ -177,20 +179,28 @@ class ExportGameOperator(bpy.types.Operator):
         self.models_folder_path = os.path.join(self.assets_folder_path, self.models_folder_name)
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
+        _sc_index = 0
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
                 _sc = bpy.data.scenes[_sc_added.name]
                 self.export_scene(context, _sc)
                 context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                self.export_colliders(context, _sc)
-                context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                self.export_player_info(context)
-                context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                self.export_lights(context)
-                context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                self.export_icon(context)
-                context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                match _sc_added.scene_type:
+                    case "stage":
+                        self.export_colliders(context, _sc)
+                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                        self.export_lights(context)
+                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                        self.dict_stages_info.add(_sc_index, _sc_added.name)
+                        _sc_index += 1
+                    case "player":
+                        self.export_player_info(context, _sc)
+                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         bpy.ops.scene.set_godot_project_environment_operator()
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_stages_info(context)
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_icon(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_godot_project_settings(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -275,32 +285,15 @@ class ExportGameOperator(bpy.types.Operator):
         with open(self.lights_info_filepath, 'w') as outfile:
             outfile.write(self.data_lights + '\n')
     
-    def export_player_info(self, context):
+    def export_player_info(self, context, _player_scene):
         print("Exporting player...")
         self.find_player_info_file_path(context)
-        self.dict_player_info.add("GravityOn", context.scene.player_gravity_on)
-        if context.scene.player_object != "None":
-            camera_object = context.scene.objects[context.scene.player_object]
-            player_position = camera_object.location
-            player_rotation = camera_object.rotation_euler
-        else:
-            player_position = mathutils.Vector((0.0, 0.0, 0.0))
-            player_rotation = mathutils.Vector((0.0, 0.0, 0.0))
-        self.dict_player_info.add("PlayerObjectName", context.scene.player_object)
-        self.dict_player_info.add("InitialPositionX", player_position[0])
-        self.dict_player_info.add("InitialPositionY", player_position[1])
-        self.dict_player_info.add("InitialPositionZ", player_position[2])
-        self.dict_player_info.add("InitialRotationX", player_rotation[0])
-        self.dict_player_info.add("InitialRotationY", player_rotation[1])
-        self.dict_player_info.add("InitialRotationZ", player_rotation[2])
-        self.dict_player_info.add("CameraInverted", context.scene.camera_inverted)
+        self.dict_player_info.add("PlayerSceneName", _player_scene.name)
+        self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:
-            outfile.write(self.data_player_info + '\n')
-        with open(self.player_info_filepath, 'r') as fp:
-            data_file = json.load(fp)
-        print(data_file)        
-    
+            outfile.write(self.data_player_info + '\n')   
+
     def export_scene(self, context, _scene):
         print("Exporting scene", _scene.name)
         context.window.scene = _scene
@@ -309,8 +302,16 @@ class ExportGameOperator(bpy.types.Operator):
             ob.select_set(ob.godot_exportable)
         if len(_scene.objects) > 0:
             bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True, use_active_scene=True)
-        print("Scene", _scene.name, "exported.")
+            print("Scene", _scene.name, "exported.")
+        else:
+            print("Scene ", _scene.name, " empty!")
     
+    def export_stages_info(self, context):
+        self.find_stages_info_file_path(context)
+        self.data_stages_info = json.dumps(self.dict_stages_info, indent=1, ensure_ascii=True)
+        with open(self.stages_info_filepath, 'w') as outfile:
+            outfile.write(self.data_stages_info + '\n')   
+
     def find_colliders_file_path(self, context):
         self.colliders_filepath = os.path.join(context.scene.project_folder, "colliders_info", "colliders.json")
         print("Colliders json filepath:", self.colliders_filepath)
@@ -325,6 +326,10 @@ class ExportGameOperator(bpy.types.Operator):
 
     def find_godot_project_settings_file_path(self, context):
         self.godot_project_settings_filepath = os.path.join(context.scene.project_folder, "godot_project_settings_info", "godot_project_settings.json")
+        print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
+
+    def find_stages_info_file_path(self, context):
+        self.stages_info_filepath = os.path.join(context.scene.project_folder, "stages_info", "stages_info.json")
         print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
 
     def fix_objects_names(self, context):

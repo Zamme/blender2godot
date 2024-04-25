@@ -19,6 +19,7 @@ const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
 const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
+const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
 
 var camera_instance : Camera = null
 var player_instance : KinematicBody = null
@@ -284,10 +285,11 @@ func apply_import_changes(scene):
 	var colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 	#print(colliders_json)
 	var lights_json = self.read_json_file(LIGHTS_JSON_PATH)
-	var player_info_json = self.read_json_file(PLAYER_INFO_JSON_PATH)
+	#var player_info_json = self.read_json_file(PLAYER_INFO_JSON_PATH)
 	self.get_all_scene_objects(scene)
 	for ob in self.scene_objects_list:
 		print("Changes to " + ob.name)
+		"""
 		if ob.name == player_info_json["PlayerObjectName"]:
 			if player_info_json.has("GravityOn"):
 				self.player_gravity_on = player_info_json["GravityOn"]
@@ -299,7 +301,8 @@ func apply_import_changes(scene):
 			if player_info_json.has("InitialRotationX"):
 				self.initial_player_rotation = Vector3(0.0, player_info_json["InitialRotationZ"], player_info_json["InitialRotationY"])
 			self.add_player(self.initial_player_position, self.initial_player_rotation)
-		elif ob is MeshInstance: # MESHES
+		"""
+		if ob is MeshInstance: # MESHES
 			if colliders_json.has(ob.name):
 				if colliders_json[ob.name] == "none":
 					print("...without collider!")
@@ -365,6 +368,7 @@ func apply_import_changes(scene):
 #			lights_to_remove_from_scene.append(ob)
 #	self.clear_lights(scene)
 	#self.add_smart_collider(scene)
+	"""
 	if camera_instance == null:
 		if player_info_json.has("GravityOn"):
 			self.player_gravity_on = player_info_json["GravityOn"]
@@ -376,6 +380,7 @@ func apply_import_changes(scene):
 			if player_info_json.has("InitialRotationX"):
 				self.initial_player_rotation = Vector3(0.0, player_info_json["InitialRotationZ"], player_info_json["InitialRotationY"])
 		self.add_player(self.initial_player_position, self.initial_player_rotation)
+	"""
 	return scene
 
 
@@ -492,15 +497,22 @@ func mount_stages():
 	var files_to_import = self.dir_contents(MODELS_PATH)
 	import_files(files_to_import)
 	
+	var _stages_json = read_json_file(STAGES_INFO_JSON_PATH)
+	
 	# Create Stages
 	var _index : int = 0
 	for _file_to_import in files_to_import:
-		var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
-		_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
-		var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
-		var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
-		self.repack_scene(_new_stage, _new_stage_path)
-		_index += 1
+		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		for _key in _stages_json.keys():
+			print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key])
+			if str(_fn_without_ext) == (_stages_json[_key]):
+				var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
+				_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
+				var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+				var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
+				self.repack_scene(_new_stage, _new_stage_path)
+				_index += 1
+	
 	
 #	self.add_scenes(imported_scenes)
 #	if lights_instance != null:
