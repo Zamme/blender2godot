@@ -41,22 +41,12 @@ class my_dictionary(dict):
         self[key] = value 
 
 class SCENES_UL_scenes_added(bpy.types.UIList):
-    """
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        custom_icon = 'SCENE'
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.scene_name, icon = custom_icon)
-            layout.prop(item, "scene_exportable")
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon = custom_icon)
-    """
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         custom_icon = 'SCENE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon = custom_icon)
             if item.name != "B2G_GameManager":
-                layout.prop(item, "scene_type")
+                layout.prop(item, "scene_type", text="")
                 layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
@@ -207,12 +197,33 @@ class ExportGameOperator(bpy.types.Operator):
     
     def export_godot_project_settings(self, context):
         print("Exporting project settings...")
+
         self.find_godot_project_settings_file_path(context)
-        self.dict_godot_project_settings.add("application/run/main_scene", bpy.data.scenes["B2G_GameManager"].startup_scene.name)
-        print("Project settings exported.")
+
+        # Config name
+        self.dict_godot_project_settings.add("application/config/name", context.scene.game_name)
+        # Startup scene
+        self.dict_godot_project_settings.add("application/run/main_scene", context.scene.startup_scene.name)
+        # Display settings
+        self.dict_godot_project_settings.add("display/window/size/width", context.scene.display_width)
+        self.dict_godot_project_settings.add("display/window/size/height", context.scene.display_height)
+        self.dict_godot_project_settings.add("display/window/size/resizable", context.scene.display_resizable)
+        self.dict_godot_project_settings.add("display/window/size/borderless", context.scene.display_borderless)
+        self.dict_godot_project_settings.add("display/window/size/fullscreen", context.scene.display_fullscreen)
+        self.dict_godot_project_settings.add("display/window/size/always_on_top", context.scene.display_alwaysontop)
+        # Boot splash settings
+        self.dict_godot_project_settings.add("application/boot_splash/show_image", context.scene.splash_showimage)
+        self.dict_godot_project_settings.add("application/boot_splash/image", context.scene.splash_imagefilepath)
+        self.dict_godot_project_settings.add("application/boot_splash/fullsize", context.scene.splash_fullsize)
+        self.dict_godot_project_settings.add("application/boot_splash/use_filter", context.scene.splash_usefilter)
+        _color_string = str(context.scene.splash_bgcolor[0]) + "," + str(context.scene.splash_bgcolor[1]) + "," + str(context.scene.splash_bgcolor[2]) + "," + str(context.scene.splash_bgcolor[3])
+        self.dict_godot_project_settings.add("application/boot_splash/bg_color", _color_string)
+
         self.data_settings = json.dumps(self.dict_godot_project_settings, indent=1, ensure_ascii=True)
         with open(self.godot_project_settings_filepath, 'w') as outfile:
             outfile.write(self.data_settings + '\n')
+
+        print("Project settings exported.")
     
     def export_icon(self, context):
         scene = context.scene

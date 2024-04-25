@@ -59,22 +59,6 @@ class CreateGodotProjectOperator(bpy.types.Operator):
             shutil.copytree(self.godot_project_template_path, context.scene.project_folder)
             print("Godot project tree created.")
     
-    def add_lines(self, context, where, new_lines):
-        where.append("\n")
-        for nl in new_lines:
-            where.append(nl)
-            where.append("\n")
-        where.append("\n")
-        return where
-    
-    def add_lines_at_section(self, context, where, _section, new_lines):
-        #print("New lines to add:")
-        #print(new_lines)
-        section_index = where.index(_section)
-        for _new_line in new_lines:
-            where.insert(section_index + 2, _new_line)
-        return where
-    
     def find_project_template_dir_path(self, context):
         possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template),
         os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template)]
@@ -82,64 +66,12 @@ class CreateGodotProjectOperator(bpy.types.Operator):
             if os.path.isdir(p_path):
                 self.godot_project_template_path = p_path
         print("Godot project template directory:", self.godot_project_template_path)
-        
-    def modify_godot_project_file(self, context):
-        context.scene.godot_project_filepath = os.path.join(context.scene.project_folder, "project.godot")
-        godot_project_file = open(context.scene.godot_project_filepath, "r")
-        godot_project_file_content = godot_project_file.readlines()
-        godot_project_file.close()
-        #print("Content:", godot_project_file_content)
-        #print("Lines:", len(godot_project_file_content))
-
-        # Title
-        godot_project_file_content = self.replace(context, godot_project_file_content, "Godot_Project-name", context.scene.game_name)
-
-        # Display settings
-        print("Adding display lines ...")
-        display_lines_to_add = ["[display]"]
-        display_lines_to_add.append("window/size/width=" + str(context.scene.display_width))
-        display_lines_to_add.append("window/size/height=" + str(context.scene.display_height))
-        display_lines_to_add.append("window/size/resizable=" + str(context.scene.display_resizable).lower())
-        display_lines_to_add.append("window/size/borderless=" + str(context.scene.display_borderless).lower())
-        display_lines_to_add.append("window/size/fullscreen=" + str(context.scene.display_fullscreen).lower())
-        display_lines_to_add.append("window/size/always_on_top=" + str(context.scene.display_alwaysontop).lower())
-        print("Display lines added.")
-        godot_project_file_content = self.add_lines(context, godot_project_file_content, display_lines_to_add)
-
-        # Boot splash settings
-        splash_lines_to_add = ["boot_splash/show_image=" + str(context.scene.splash_showimage).lower() + "\n"]
-        splash_lines_to_add.append("boot_splash/image=" + '"' + context.scene.splash_imagefilepath + '"' + "\n")
-        splash_lines_to_add.append("boot_splash/fullsize=" + str(context.scene.splash_fullsize).lower() + "\n")
-        splash_lines_to_add.append("boot_splash/use_filter=" + str(context.scene.splash_usefilter).lower() + "\n")
-        splash_lines_to_add.append("boot_splash/bg_color=Color(" + str(context.scene.splash_bgcolor[0]) + ", " + str(context.scene.splash_bgcolor[1]) + ", " + str(context.scene.splash_bgcolor[2]) + ", " + str(context.scene.splash_bgcolor[3]) + ")" + "\n")
-        #print(godot_project_file_content)
-        godot_project_file_content = self.add_lines_at_section(context, godot_project_file_content, "[application]\n", splash_lines_to_add)
-
-        #print(godot_project_file_content)
-        
-        # Save File
-        os.remove(context.scene.godot_project_filepath)
-        f = open(context.scene.godot_project_filepath, "w")
-        f.writelines(godot_project_file_content)
-        f.close()
-    
-    def modify_project_information(self, context):
-        self.modify_godot_project_file(context)
-    
-    def replace(self, context, where, this, that):
-        for n_line in range(0, len(where)):
-            if where[n_line].find(this) > -1:
-                #print("Located")
-                where[n_line] = where[n_line].replace(this, that)
-                #print("Replaced by", that)
-        return where
-                
+           
     def main(self, context):
         context.scene.game_folder = bpy.path.abspath("//")
         self.find_project_template_dir_path(context)
         context.scene.project_folder = os.path.join(context.scene.game_folder, context.scene.game_name + "_Game")
         self.add_initial_files(context)
-        self.modify_project_information(context)
 
     def execute(self, context):
         self.main(context)
@@ -213,7 +145,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         row = layout.row()

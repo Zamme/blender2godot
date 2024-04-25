@@ -4,15 +4,16 @@ extends Spatial
 
 enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
-const MODELS_PATH = "res://assets/models"
-const SCENES_PATH = "res://src/scenes"
-const STAGES_PATH = SCENES_PATH + "/stages"
-const STAGE_TEMPLATE_PATH = STAGES_PATH + "/Stage_Template.tscn"
+const MODELS_PATH = "res://assets/models/"
+const SCENES_PATH = "res://src/scenes/"
+const STAGES_PATH = SCENES_PATH + "stages/"
+const STAGE_TEMPLATE_PATH = STAGES_PATH + "Stage_Template.tscn"
+const STAGE_SCENES_PREFIX = "Stage_"
 
-const PLAYER_SCENE_PATH = SCENES_PATH + "/Player_Template.tscn"
+const PLAYER_SCENE_PATH = SCENES_PATH + "Player_Template.tscn"
 const PLAYER_BEHAVIOR_PATH = "res://src/scripts/player_template.gd"
 
-const LIGHTS_SCENE_PATH = SCENES_PATH + "/Lights.tscn"
+const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
 const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
@@ -388,8 +389,17 @@ func apply_import_changes_to_list(scenes_list, path):
 
 func apply_new_config():
 	var godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
-	var _stage_path : String = "res://src/scenes/stages/" + "Stage_" + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
-	ProjectSettings.set_setting("application/run/main_scene", _stage_path)
+	for _key in godot_project_settings_json.keys():
+		match _key:
+			"application/run/main_scene":
+				var _stage_path : String = STAGES_PATH + STAGE_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+				ProjectSettings.set_setting("application/run/main_scene", _stage_path)
+			"application/boot_splash/bg_color":
+				var _splits = godot_project_settings_json["application/boot_splash/bg_color"].split(",")
+				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
+				ProjectSettings.set_setting("application/boot_splash/bg_color", _color)
+			_:
+				ProjectSettings.set_setting(_key, godot_project_settings_json[_key])
 
 
 func clear_lights(_scene):
@@ -456,13 +466,13 @@ func get_all_scene_objects(scene):
 			self.get_all_scene_objects(ob)
 
 func import_file(file_name):
-	var filename_path = MODELS_PATH + "/" + file_name
+	var filename_path = MODELS_PATH + file_name
 	print("Importing " + file_name)
 	var file_scene = load(filename_path).instance()
 	var modified_scene = self.apply_import_changes(file_scene)
 	var packed_scene = PackedScene.new()
 	packed_scene.pack(modified_scene)
-	var scene_file_path = SCENES_PATH + "/" + modified_scene.name + ".tscn"
+	var scene_file_path = SCENES_PATH + modified_scene.name + ".tscn"
 	ResourceSaver.save(scene_file_path, packed_scene)
 	file_scene.queue_free()
 	#modified_scene.queue_free()
@@ -488,7 +498,7 @@ func mount_stages():
 		var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
 		_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
 		var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
-		var _new_stage_path : String = STAGES_PATH + "/" + _new_stage_name + ".tscn"
+		var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 		self.repack_scene(_new_stage, _new_stage_path)
 		_index += 1
 	
