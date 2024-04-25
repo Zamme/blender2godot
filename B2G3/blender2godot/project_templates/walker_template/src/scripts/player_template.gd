@@ -22,14 +22,22 @@ var gravity_enabled : bool
 export var camera_inverted := true
 
 func _ready():
-	camera = $Rotation_Helper/Camera
-	rotation_helper = $Rotation_Helper
+	#camera = $Rotation_Helper/Camera
+	#rotation_helper = $Rotation_Helper
 	#rotation_helper = self
 	#camera = $Camera
 	home_spatial = get_parent()
 	
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	#Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
+func process_input(delta):
+	if Input.is_action_pressed("ui_cancel"):
+		get_tree().quit()
+
+func _physics_process(delta):
+	process_input(delta)
+
+"""
 func _physics_process(delta):
 	process_input(delta)
 	process_movement(delta)
@@ -130,3 +138,4 @@ func _input(event):
 		var camera_rot = rotation_helper.rotation_degrees
 		camera_rot.x = clamp(camera_rot.x, -70, 70)
 		rotation_helper.rotation_degrees = camera_rot
+"""

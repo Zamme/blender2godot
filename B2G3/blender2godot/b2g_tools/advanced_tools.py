@@ -191,7 +191,11 @@ class ExportGameOperator(bpy.types.Operator):
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
                         self.export_lights(context)
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                        self.dict_stages_info.add(_sc_index, _sc_added.name)
+                        _temp_dict = my_dictionary()
+                        _temp_dict.add("SceneName", _sc_added.name)
+                        _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
+                        self.dict_stages_info.add(_sc_index, _temp_dict)
+#                        self.dict_stages_info.add(_sc_index, _sc_added.name)
                         _sc_index += 1
                     case "player":
                         self.export_player_info(context, _sc)

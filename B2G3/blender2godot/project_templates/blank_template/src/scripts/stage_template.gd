@@ -6,6 +6,8 @@ enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
 const MODELS_PATH = "res://assets/models/"
 const SCENES_PATH = "res://src/scenes/"
+const SCRIPTS_PATH = "res://src/scripts/"
+const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
 const PLAYER_ENTITIES_PATH = SCENES_PATH + "players/"
 const STAGES_PATH = SCENES_PATH + "stages/"
 const STAGE_TEMPLATE_PATH = STAGES_PATH + "Stage_Template.tscn"
@@ -21,6 +23,8 @@ const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
 const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
+
+#const PLAYER_SPAWN_OBJECT_NAME = "B2G_PlayerSpawn"
 
 #var camera_instance : Camera = null
 #var player_instance : KinematicBody = null
@@ -518,12 +522,15 @@ func mount_scenes():
 	for _file_to_import in files_to_import:
 		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		for _key in _stages_json.keys():
-			print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key])
-			if str(_fn_without_ext) == (_stages_json[_key]):
+			print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
+			if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
 				var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
 				_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
 				var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
+#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
 				var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
+				_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 				self.repack_scene(_new_stage, _new_stage_path)
 				_index += 1
 	
