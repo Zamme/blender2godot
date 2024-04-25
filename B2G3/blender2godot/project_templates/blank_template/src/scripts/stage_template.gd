@@ -6,6 +6,7 @@ enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
 const MODELS_PATH = "res://assets/models/"
 const SCENES_PATH = "res://src/scenes/"
+const PLAYER_ENTITIES_PATH = SCENES_PATH + "players/"
 const STAGES_PATH = SCENES_PATH + "stages/"
 const STAGE_TEMPLATE_PATH = STAGES_PATH + "Stage_Template.tscn"
 const STAGE_SCENES_PREFIX = "Stage_"
@@ -21,19 +22,19 @@ const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
 
-var camera_instance : Camera = null
-var player_instance : KinematicBody = null
+#var camera_instance : Camera = null
+#var player_instance : KinematicBody = null
 var lights_instance : Spatial = null
-
-var player_height : float = 1.5
-var player_radius : float = 0.2
-var player_velocity : float = 1.0 # TODO: manage from blender
-
-#var minimum_collider_size = 0.1
-var initial_player_position : Vector3 = Vector3.ZERO
-var initial_player_rotation : Vector3 = Vector3.ZERO
-export var player_gravity_on : bool
-export var player_camera_inverted : bool
+#
+#var player_height : float = 1.5
+#var player_radius : float = 0.2
+#var player_velocity : float = 1.0 # TODO: manage from blender
+#
+##var minimum_collider_size = 0.1
+#var initial_player_position : Vector3 = Vector3.ZERO
+#var initial_player_rotation : Vector3 = Vector3.ZERO
+#export var player_gravity_on : bool
+#export var player_camera_inverted : bool
 
 var imported_scenes : Array
 var scene_objects_list : Array
@@ -50,7 +51,7 @@ func _ready():
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if get_child_count() == 0:
-			self.mount_stages()
+			self.mount_scenes()
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
 #			yield(get_tree(),"idle_frame")
@@ -139,28 +140,28 @@ func add_light_spot(scene_object, light_parameters):
 	new_spotlight.spot_range = light_parameters["range"]
 
 
-func add_player(position, rotation):
-	player_instance = KinematicBody.new()
-	var player_collision_shape : CollisionShape = CollisionShape.new()
-	player_instance.add_child(player_collision_shape)
-	player_collision_shape.set_owner(player_instance)
-	var caps_shape : CapsuleShape = CapsuleShape.new()
-	caps_shape.height = player_height
-	caps_shape.radius = player_radius
-	player_collision_shape.shape = caps_shape
-	add_child(player_instance)
-	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
-	player_instance.script = load(PLAYER_BEHAVIOR_PATH)
-	self.initial_player_position = position
-	player_instance.global_transform.origin = position
-	player_instance.global_transform.basis = Basis(rotation)
-	var camera_pos = position + Vector3(0, player_height/2,0)
-	self.create_camera(camera_pos, rotation)
-	
-	var packed_scene = PackedScene.new()
-	packed_scene.pack(player_instance)
-	ResourceSaver.save(PLAYER_SCENE_PATH, packed_scene)
-	player_instance.queue_free()
+#func add_player(position, rotation):
+#	player_instance = KinematicBody.new()
+#	var player_collision_shape : CollisionShape = CollisionShape.new()
+#	player_instance.add_child(player_collision_shape)
+#	player_collision_shape.set_owner(player_instance)
+#	var caps_shape : CapsuleShape = CapsuleShape.new()
+#	caps_shape.height = player_height
+#	caps_shape.radius = player_radius
+#	player_collision_shape.shape = caps_shape
+#	add_child(player_instance)
+#	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
+#	player_instance.script = load(PLAYER_BEHAVIOR_PATH)
+#	self.initial_player_position = position
+#	player_instance.global_transform.origin = position
+#	player_instance.global_transform.basis = Basis(rotation)
+#	var camera_pos = position + Vector3(0, player_height/2,0)
+#	self.create_camera(camera_pos, rotation)
+#
+#	var packed_scene = PackedScene.new()
+#	packed_scene.pack(player_instance)
+#	ResourceSaver.save(PLAYER_SCENE_PATH, packed_scene)
+#	player_instance.queue_free()
 
 
 func add_scene(scene_file_path, with_name = "Scene"):
@@ -171,10 +172,6 @@ func add_scene(scene_file_path, with_name = "Scene"):
 		scene_instance.name = with_name
 		add_child(scene_instance)
 		scene_instance.set_owner(self)
-		if scene_instance.name == "Player":
-			print("Positioning player at:")
-			print(self.initial_player_position)
-			scene_instance.global_transform.origin = self.initial_player_position
 	else:
 		print("Scene not found: ", scene_file_path)
 
@@ -415,18 +412,10 @@ func clear_lights(_scene):
 	print("End clearing lights.")
 #	repack_scene(_scene, MODELS_PATH)
 
-func create_camera(position, rotation):
-	var rotation_helper : Spatial = Spatial.new()
-	rotation_helper.name = "Rotation_Helper"
-	player_instance.add_child(rotation_helper)
-	rotation_helper.set_owner(player_instance)
-	camera_instance = Camera.new()
-	rotation_helper.add_child(camera_instance)
-	camera_instance.set_owner(player_instance)
-	camera_instance.make_current()
-	rotation_helper.global_transform.origin = position
-	#rotation_helper.rotate_x(deg2rad(-90.0))
-
+func create_camera(_camera_name):
+	var camera_instance = Camera.new()
+	camera_instance.name = _camera_name
+	return camera_instance
 
 #func create_collision_shape(scene_object, scene_to_save):
 func create_collision_shape(scene_object):
@@ -440,6 +429,30 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
+func create_player(_player_mesh_scene_name, _player_height, _player_radius):
+	print("Creating player...")
+	var player_entity_instance : KinematicBody = KinematicBody.new()
+	player_entity_instance.name = _player_mesh_scene_name + "Entity"
+	var player_collision_shape : CollisionShape = CollisionShape.new()
+	player_entity_instance.add_child(player_collision_shape)
+	player_collision_shape.set_owner(player_entity_instance)
+	var caps_shape : CapsuleShape = CapsuleShape.new()
+	caps_shape.height = _player_height
+	caps_shape.radius = _player_radius
+	player_collision_shape.shape = caps_shape
+	#player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
+	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
+	var _player_mesh_scene = load(SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
+	player_entity_instance.add_child(_player_mesh_scene)
+	_player_mesh_scene.set_owner(player_entity_instance)
+	var _player_camera = self.create_camera(_player_mesh_scene_name + "Camera")
+	player_entity_instance.add_child(_player_camera)
+	_player_camera.set_owner(player_entity_instance)
+	var packed_scene = PackedScene.new()
+	packed_scene.pack(player_entity_instance)
+	ResourceSaver.save(PLAYER_ENTITIES_PATH + _player_mesh_scene_name + "Entity" + ".tscn", packed_scene)
+	player_entity_instance.queue_free()
+	print("Player created.")
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
@@ -492,12 +505,13 @@ func import_files(files_to_import):
 		print("No files to import.")
 
 
-func mount_stages():
+func mount_scenes():
 	print("Mounting scene...")
 	var files_to_import = self.dir_contents(MODELS_PATH)
 	import_files(files_to_import)
 	
 	var _stages_json = read_json_file(STAGES_INFO_JSON_PATH)
+	var _player_json = read_json_file(PLAYER_INFO_JSON_PATH)
 	
 	# Create Stages
 	var _index : int = 0
@@ -513,6 +527,11 @@ func mount_stages():
 				self.repack_scene(_new_stage, _new_stage_path)
 				_index += 1
 	
+	# Create Player
+	for _file_to_import in files_to_import:
+		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _player_json["PlayerSceneName"] == _fn_without_ext:
+			create_player(_fn_without_ext, 1.0, 0.5)
 	
 #	self.add_scenes(imported_scenes)
 #	if lights_instance != null:
@@ -542,9 +561,9 @@ func output_matrix():
 
 func play_game():
 	print("Playing...")
-	player_instance = find_node("Player")
-	player_instance.gravity_enabled = self.player_gravity_on
-	player_instance.camera_inverted = self.player_camera_inverted
+#	player_instance = find_node("Player")
+#	player_instance.gravity_enabled = self.player_gravity_on
+#	player_instance.camera_inverted = self.player_camera_inverted
 
 
 func repack_scene(scene, filepath):
