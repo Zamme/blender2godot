@@ -23,19 +23,11 @@ For player behaviour
 import bpy
 
 
-class PlayerObjects(bpy.types.PropertyGroup):
-    """ Player Objects """
-    player_objects = [
-        ("none", "None", "", "NONE", 0),]
+def scene_camera_object_poll(self, object):
+    return object.type == 'CAMERA'
 
-def fill_camera_objects_menu(self, context):
-    player_objects = []
-    player_objects.clear()
-    for ob in bpy.context.scene.objects:
-        if ob.type == "CAMERA":
-            menu_item = (ob.name, ob.name, ob.name)
-            player_objects.append(menu_item)
-    return player_objects
+def scene_player_object_poll(self, object):
+    return (object.type == 'MESH' or object.type == 'ARMATURE') 
 
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
@@ -66,6 +58,8 @@ class PlayerPropertiesPanel(bpy.types.Panel):
             return
 
         # INITIAL PROPERTIES
+        row = layout.row()
+        row.prop(scene, "player_object")
         # Player animations
         row = layout.row()
         box = row.box()
@@ -84,16 +78,16 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row = layout.row()
         box = row.box()
         box.label(text="Camera Properties")
-        box.prop(scene, "camera_object_enum")
+        box.prop(scene, "camera_object")
         box.prop(scene, "camera_fov")
 
 def init_properties():
     # Player properties
     bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
     bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
-    bpy.types.Scene.camera_object_enum = bpy.props.EnumProperty(items=fill_camera_objects_menu, name="Camera Object", description="Camera Object")
-    #bpy.types.Scene.camera_object_name = bpy.props.StringProperty(name="CameraObjectName")
-    bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0)
+    bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll)
+    bpy.types.Scene.player_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Object", description="Player Object", poll=scene_player_object_poll)
+    bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0, min=1.0, max=180.0)
 
 def register():
     init_properties()

@@ -433,7 +433,7 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
-func create_player(_player_mesh_scene_name, _player_height, _player_radius):
+func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -441,17 +441,26 @@ func create_player(_player_mesh_scene_name, _player_height, _player_radius):
 	player_entity_instance.add_child(player_collision_shape)
 	player_collision_shape.set_owner(player_entity_instance)
 	var caps_shape : CapsuleShape = CapsuleShape.new()
-	caps_shape.height = _player_height
-	caps_shape.radius = _player_radius
+	caps_shape.height = _shape_props["DimZ"]/2.0
+	caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
 	player_collision_shape.shape = caps_shape
-	#player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
 	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
 	var _player_mesh_scene = load(SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
-#	var _player_camera = self.create_camera(_player_mesh_scene_name + "Camera")
-#	player_entity_instance.add_child(_player_camera)
-#	_player_camera.set_owner(player_entity_instance)
+	var _player_camera = self.create_camera(_camera_props["CameraName"])
+	player_entity_instance.add_child(_player_camera)
+	_player_camera.set_owner(player_entity_instance)
+	
+	add_child(player_entity_instance)
+	yield(get_tree(), "idle_frame")
+	# TRANSFORMATIONS
+	player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/4.0, 0.0))
+	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
+	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], _camera_props["PosY"]))
+	_player_camera.rotation_degrees = Vector3(_camera_props["RotX"], _camera_props["RotZ"], _camera_props["RotY"])
+	yield(get_tree(), "idle_frame")
+	
 	var packed_scene = PackedScene.new()
 	packed_scene.pack(player_entity_instance)
 	ResourceSaver.save(PLAYER_ENTITIES_PATH + _player_mesh_scene_name + "Entity" + ".tscn", packed_scene)
@@ -538,7 +547,9 @@ func mount_scenes():
 	for _file_to_import in files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		if _player_json["PlayerSceneName"] == _fn_without_ext:
-			create_player(_fn_without_ext, 1.0, 0.5)
+			var _cam_props = _player_json["PlayerCameraObject"]
+			var _shape_props = _player_json["PlayerDimensions"]
+			create_player(_fn_without_ext, _cam_props, _shape_props)
 	
 #	self.add_scenes(imported_scenes)
 #	if lights_instance != null:

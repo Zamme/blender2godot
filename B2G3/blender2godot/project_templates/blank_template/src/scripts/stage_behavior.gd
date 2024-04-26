@@ -4,7 +4,6 @@ class_name StageBehavior extends Spatial
 const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
 const STAGE_SCENES_PREFIX = "Stage_"
 
-var stages_json
 var player_spawn
 var player
 onready var scenario_scene = get_child(0)
@@ -12,19 +11,19 @@ onready var scenario_scene = get_child(0)
 
 func _ready():
 	print("Stage ", name, " loaded!")
-	stages_json = read_json_file(STAGES_INFO_JSON_PATH)
-	player_spawn = get_player_spawn()
+	var stages_json = read_json_file(STAGES_INFO_JSON_PATH)
+	player_spawn = get_player_spawn(stages_json)
 	add_player()
 
 func add_player():
 	player = load("res://src/scenes/players/Player1Entity.tscn").instance()
 	add_child(player)
 
-func get_player_spawn():
+func get_player_spawn(_stages_json):
 	var _node_name_to_found
 	var _stage_scenario_name = name.lstrip(STAGE_SCENES_PREFIX)
-	for _stage_key in stages_json.keys():
-		var _stage = stages_json[_stage_key]
+	for _stage_key in _stages_json.keys():
+		var _stage = _stages_json[_stage_key]
 		if _stage["SceneName"] == _stage_scenario_name:
 			_node_name_to_found = _stage["PlayerSpawnObjectName"]
 			return scenario_scene.find_node(_node_name_to_found)
