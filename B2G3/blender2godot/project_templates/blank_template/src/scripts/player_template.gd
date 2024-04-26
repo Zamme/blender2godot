@@ -11,33 +11,26 @@ var dir = Vector3()
 const DEACCEL= 16
 const MAX_SLOPE_ANGLE = 40
 
-var camera
-var rotation_helper
+var camera : Camera
 
 var MOUSE_SENSITIVITY = 0.05
 
-var home_spatial : Spatial
 var gravity_enabled : bool
 
 export var camera_inverted := true
 
 func _ready():
-	#camera = $Rotation_Helper/Camera
-	#rotation_helper = $Rotation_Helper
-	#rotation_helper = self
-	#camera = $Camera
-	home_spatial = get_parent()
-	
-	#Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	camera = find_camera()
+	camera.translate(Vector3(0,2.0,-2.0))
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
-func process_input(delta):
-	if Input.is_action_pressed("ui_cancel"):
-		get_tree().quit()
+func find_camera():
+	var _camera
+	for _node in get_children():
+		if _node is Camera:
+			_camera = _node
+	return _camera
 
-func _physics_process(delta):
-	process_input(delta)
-
-"""
 func _physics_process(delta):
 	process_input(delta)
 	process_movement(delta)
@@ -78,7 +71,7 @@ func process_input(delta):
 
 	# ----------------------------------
 	# Capturing/Freeing the cursor
-	if Input.is_action_just_pressed("ui_cancel"):
+	if Input.is_action_just_pressed("ui_focus_next"):
 		if Input.get_mouse_mode() == Input.MOUSE_MODE_VISIBLE:
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		else:
@@ -129,13 +122,10 @@ func process_movement(delta):
 func _input(event):
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if camera_inverted:
-			rotation_helper.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY))
+			camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY))
 		else:
-			rotation_helper.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0))
+			camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0))
 		
 		self.rotate_y(deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
 
-		var camera_rot = rotation_helper.rotation_degrees
-		camera_rot.x = clamp(camera_rot.x, -70, 70)
-		rotation_helper.rotation_degrees = camera_rot
-"""
+

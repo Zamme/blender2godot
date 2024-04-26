@@ -63,13 +63,13 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         # INITIAL PROPERTIES
         # Player object
         row = layout.row()
-        row.prop(scene, "player_object")
+        row.prop(scene, "player_object") # CANVIA AIXO!!!
         
         # Player properties
         row = layout.row()

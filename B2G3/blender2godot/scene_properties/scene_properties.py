@@ -80,37 +80,40 @@ class ScenePropertiesPanel(bpy.types.Panel):
         row = layout.row()
         row.prop(context.scene, "scene_type")
 
-        if context.scene.scene_type == "stage":
-            # Player spawner
-            row = layout.row()
-            row.prop(context.scene, "player_spawn_empty")
-            if context.scene.player_spawn_empty == None:
+        match context.scene.scene_type:
+            case "stage":
+                # Player spawner
                 row = layout.row()
-                row.label(text="Select a spawn position!")
+                row.prop(context.scene, "player_spawn_empty")
+                if context.scene.player_spawn_empty == None:
+                    row = layout.row()
+                    row.label(text="Select a spawn position!")
 
-            # Environment Lighting
-            # Sky
-            row = layout.row()
-            box = row.box()
-            box.label(text="Environment Properties")
-            #row = layout.row()
-            box = box.box()
-            box.prop(context.scene, "sky_on")
-            row1 = box.row()
-            if context.scene.sky_on:
-                box1 = row1.box()
-                box1.prop(context.scene, "sky_energy")
-            
-            # ACTIVE OBJECT PROPERTIES
-            if context.active_object is not None:
+                # Environment Lighting
+                # Sky
                 row = layout.row()
                 box = row.box()
-                box.label(text="Active Object")
-                box3 = box.box()
-                box3.label(text=context.active_object.name)
-                box3.prop(context.active_object, "godot_exportable")
-                if context.active_object.godot_exportable:
-                    box3.prop(context.active_object, "collider")
+                box.label(text="Environment Properties")
+                #row = layout.row()
+                box = box.box()
+                box.prop(context.scene, "sky_on")
+                row1 = box.row()
+                if context.scene.sky_on:
+                    box1 = row1.box()
+                    box1.prop(context.scene, "sky_energy")
+            
+                # ACTIVE OBJECT PROPERTIES
+                if context.active_object is not None:
+                    row = layout.row()
+                    box = row.box()
+                    box.label(text="Active Object")
+                    box3 = box.box()
+                    box3.label(text=context.active_object.name)
+                    box3.prop(context.active_object, "godot_exportable")
+                    if context.active_object.godot_exportable:
+                        box3.prop(context.active_object, "collider")
+            case "player":
+                pass
 
 
 class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
