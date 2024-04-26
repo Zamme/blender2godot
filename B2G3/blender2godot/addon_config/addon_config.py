@@ -110,7 +110,7 @@ def init_properties():
     print("Properties initiated.")
 
 def clear_properties():
-    del bpy.types.Scene.player_object
+    #del bpy.types.Scene.player_object
     #del bpy.types.Scene.scenes_added
     del bpy.types.Scene.scenes_added_index
 

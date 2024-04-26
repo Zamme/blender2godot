@@ -293,6 +293,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.find_player_info_file_path(context)
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
+        self.dict_player_info.add("PlayerCameraObject", _player_scene.camera_object_enum)
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:
             outfile.write(self.data_player_info + '\n')   
@@ -304,7 +305,7 @@ class ExportGameOperator(bpy.types.Operator):
         for ob in _scene.objects:
             ob.select_set(ob.godot_exportable)
         if len(_scene.objects) > 0:
-            bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True, use_active_scene=True)
+            bpy.ops.export_scene.gltf(filepath=model_path, use_selection=True, export_apply=True, export_lights=True, use_active_scene=True, export_cameras=True)
             print("Scene", _scene.name, "exported.")
         else:
             print("Scene ", _scene.name, " empty!")

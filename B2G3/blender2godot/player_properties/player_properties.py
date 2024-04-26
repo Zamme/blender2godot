@@ -28,10 +28,9 @@ class PlayerObjects(bpy.types.PropertyGroup):
     player_objects = [
         ("none", "None", "", "NONE", 0),]
 
-def fill_player_objects_menu(self, context):
+def fill_camera_objects_menu(self, context):
     player_objects = []
     player_objects.clear()
-    player_objects.append(("None", "None", "None"))
     for ob in bpy.context.scene.objects:
         if ob.type == "CAMERA":
             menu_item = (ob.name, ob.name, ob.name)
@@ -67,21 +66,34 @@ class PlayerPropertiesPanel(bpy.types.Panel):
             return
 
         # INITIAL PROPERTIES
-        # Player object
-        row = layout.row()
-        row.prop(scene, "player_object") # CANVIA AIXO!!!
-        
-        # Player properties
+        # Player animations
         row = layout.row()
         box = row.box()
+        box.label(text="Animations")
+
+        # Player motion
+        row = layout.row()
+        box = row.box()
+        box.label(text="Player Motion")
+        box2 = box.box()
+        box2.label(text="Controls")
         box.prop(scene, "player_gravity_on")
-        box.prop(scene, "camera_inverted")
+        box.prop(scene, "camera_control_inverted")
+
+        # Player camera
+        row = layout.row()
+        box = row.box()
+        box.label(text="Camera Properties")
+        box.prop(scene, "camera_object_enum")
+        box.prop(scene, "camera_fov")
 
 def init_properties():
     # Player properties
     bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
-    bpy.types.Scene.camera_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
-    bpy.types.Scene.player_object = bpy.props.EnumProperty(items=fill_player_objects_menu, name="Player", description="Player Object")  
+    bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
+    bpy.types.Scene.camera_object_enum = bpy.props.EnumProperty(items=fill_camera_objects_menu, name="Camera Object", description="Camera Object")
+    #bpy.types.Scene.camera_object_name = bpy.props.StringProperty(name="CameraObjectName")
+    bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0)
 
 def register():
     init_properties()
