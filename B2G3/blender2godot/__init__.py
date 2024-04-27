@@ -48,6 +48,8 @@ from blender2godot.test_project import test_project
 
 from blender2godot.game_export import game_export
 
+from blender2godot.help_and_docs import help_and_docs
+
 
 bl_info = {
     "name": "Blender2Godot",
@@ -66,31 +68,7 @@ def update_properties(dummy1, dummy2):
     print("Updating properties...")
     #update_scenes_added()
     print("Properties updated.")
-"""
-def update_scenes_added():
-    # Add new scenes
-    for _sc in bpy.data.scenes:
-        if _sc.name != "B2G_GameManager":
-            _sc_present = False
-            for _sca in bpy.data.scenes["B2G_GameManager"].scenes_added:
-                if _sc.name == _sca.scene_name:
-                    _sc_present = True
-            if not _sc_present:
-                _new_item = bpy.data.scenes["B2G_GameManager"].scenes_added.add()
-                _new_item.scene_name = _sc.name
-                _new_item.exportable = False
-    # Clean deleted scenes
-    _scenes_names_to_remove = []    
-    for _index, _sca in enumerate(bpy.data.scenes["B2G_GameManager"].scenes_added):
-        _sc_present = False
-        for _sc in bpy.data.scenes:
-            if _sc.name == _sca.scene_name:
-                _sc_present = True
-        if not _sc_present:
-            _scenes_names_to_remove.append(_sca)
-    for _scene_name in _scenes_names_to_remove:
-        bpy.data.scenes["B2G_GameManager"].scenes_added.remove(_scene_name)
-"""
+
 def init_handlers():
     pass
     #bpy.app.handlers.depsgraph_update_post.append(update_properties)
@@ -113,6 +91,7 @@ def register():
     player_properties.register()
     test_project.register()
     game_export.register()
+    help_and_docs.register()
     #init_handlers()
     print("Blender2Godot addon loaded.")
 
@@ -129,6 +108,7 @@ def unregister():
     player_properties.unregister()
     test_project.unregister()
     game_export.unregister()
+    help_and_docs.unregister()
     print("Blender2Godot addon unloaded.")
 
 if __name__ == "__main__":

@@ -108,6 +108,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
         row.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
         
         row = layout.row()
+        row.alignment="CENTER"
         row.prop(context.scene, 'advanced_tools', icon="PLUS")
         
         if context.scene.advanced_tools:

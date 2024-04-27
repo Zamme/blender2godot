@@ -70,6 +70,7 @@ class TestGamePanel(bpy.types.Panel):
         # Test game button
         row = layout.row()
         row.scale_y = 3.0
+        row.alignment="CENTER"
         box = row.box()
         box.operator("scene.test_game_operator", icon_value=495)
 

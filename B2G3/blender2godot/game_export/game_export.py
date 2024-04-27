@@ -277,15 +277,17 @@ class GameExportPanel(bpy.types.Panel):
             box3.prop(scene, "android_debug_keystore_filepath")
             box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
         row = box2.row()
+        row.alignment="CENTER"
         row.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
             
         # Build game button
         row = box1.row()
-        row.scale_y = 3.0
+        row.scale_y = 2.0
         row.operator("scene.build_game_operator", icon="MOD_BUILD")
 
         # Open folders buttons
         row = box1.row()
+        row.alignment="CENTER"
         row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
 
 
