@@ -78,6 +78,10 @@ class B2G_ToolsPanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=92, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -88,49 +92,34 @@ class B2G_ToolsPanel(bpy.types.Panel):
 
         # Game structure
         row = layout.row()
-        row.label(text="Check scenes to export:")
-        row = layout.row()
-        box = row.box()
+        box0 = row.box()
+        box1 = box0.box()
+        box1.label(text="Check scenes to export")
         if len(bpy.data.scenes) > 0:
             #box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
-            box.template_list("SCENES_UL_scenes_added", "The_List", bpy.data, "scenes", scene, "scenes_added_index")
-            box.prop(scene, "startup_scene")
+            box1.template_list("SCENES_UL_scenes_added", "The_List", bpy.data, "scenes", scene, "scenes_added_index")
+            box1.prop(scene, "startup_scene")
         else:
-            box.label(text="No scenes to add")
+            box1.label(text="No scenes to add")
 
         # Export project to godot button
-        row = layout.row()
-        row.scale_y = 3.0
-        if scene.startup_scene == None:
-            row.operator("scene.export_project_to_godot_operator",)        
-        else:
-            row.operator("scene.export_project_to_godot_operator")        
+        row = box0.row()
+        row.scale_y = 2.0
+        row.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
         
         row = layout.row()
-        row.prop(context.scene, 'advanced_tools')
+        row.prop(context.scene, 'advanced_tools', icon="PLUS")
         
         if context.scene.advanced_tools:
+            row2 = layout.row()
+            box2 = row2.box()
             # Delete project button
-            row = layout.row()
-            row.scale_y = 3.0
-            row.operator_context = 'INVOKE_DEFAULT' # TODO: not working!!!
-            #row.operator("scene.delete_project_button_operator")
-            row.operator("scene.delete_project_operator")
-            
+            box2.operator("scene.delete_project_operator", icon="TRASH")
             # Create project button
-            row = layout.row()
-            row.scale_y = 3.0
-            row.operator("scene.create_godot_project_operator")
-            
-            # Export project button
-            #row = layout.row()
-            #row.scale_y = 3.0
-            #row.operator("scene.export_game_operator")
-            
+            box2.operator("scene.create_godot_project_operator", icon="PRESET_NEW")
             # Open godot project button
-            row = layout.row()
-            row.scale_y = 3.0
-            row.operator("scene.open_godot_project_operator")
+            box2.operator("scene.open_godot_project_operator", icon="GHOST_ENABLED")
+            box2.operator("scene.open_godot_project_folder_operator", icon="FOLDER_REDIRECT")
 
 
 class ExportGameOperator(bpy.types.Operator):

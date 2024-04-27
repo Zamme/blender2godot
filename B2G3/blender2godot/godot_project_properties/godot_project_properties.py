@@ -24,6 +24,7 @@ import os
 import shutil
 
 import bpy
+from bpy.types import Context
 
 class AreYouSureDeletingOperator(bpy.types.Operator):
     """Really?"""
@@ -140,27 +141,26 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context: Context):
+        layout = self.layout
+        layout.template_icon(icon_value=67, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        blend_data = context.blend_data
         
         if not bpy.data.is_saved:       
             return
 
-        row = layout.row()
-        row.label(text="Project properties:")
-        row = layout.row()
-        box1 = row.box()
+        row0 = layout.row()
         # Project properties box
-        box1.prop(scene, "game_name")
-        box1.prop(scene, "game_folder")
-        row2 = layout.row()
-        box2 = row2.box()
-        box2.label(text="Icon must be a png image!")
-        box2.prop(scene, "game_icon")
-        row3 = layout.row()
-        row3.prop(scene, "project_template")
+        box1 = row0.box()
+        box1.prop(scene, "game_name", icon="TEXT")
+        box1.prop(scene, "game_folder", icon="FILE_FOLDER")
+        box1.prop(scene, "game_icon", icon="IMAGE")
+        if not scene.game_icon.endswith(".png"):
+            box1.label(text="Icon must be a png image!")
+        box1.prop(scene, "project_template", icon="SHADERFX")
        
 
 def register():

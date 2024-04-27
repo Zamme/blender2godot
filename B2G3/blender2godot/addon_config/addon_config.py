@@ -27,6 +27,7 @@ import json
 from fileinput import FileInput
 
 import bpy
+from bpy.types import Context
 
 
 class ProjectTemplatesProperties(bpy.types.PropertyGroup):
@@ -49,7 +50,7 @@ def init_properties():
     bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.game_icon_image = bpy.props.PointerProperty(name="Game Icon Image", type=bpy.types.Image)
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
-    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot", subtype="FILE_PATH", default="/usr/local/games/godot-engine")
+    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine")
     #bpy.types.Scene.custom_godot = bpy.props.BoolProperty(name="Custom Godot", default=False)
     #bpy.types.Scene.godot_executable_downloaded_zip = bpy.props.StringProperty(name="Godot zip", subtype="FILE_PATH", default=".")
     bpy.types.Scene.colliders_filepath = bpy.props.StringProperty(name="Colliders", subtype="FILE_PATH", default=" ")
@@ -171,22 +172,28 @@ class Blender2GodotPanel(bpy.types.Panel):
         self._in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
         return (self._in_gamemanager or not self._gamemanager_added)
 
+    def draw_header(self, context: Context):
+        layout = self.layout
+        layout.template_icon(icon_value=51, scale=1.2)        
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         blend_data = context.blend_data
         if not self._gamemanager_added:
             row = layout.row()
-            row.operator("scene.create_gamemanager_operator")
+            box = row.box()
+            box.operator("scene.create_gamemanager_operator")
         else:
             # Addon settings
             row = layout.row()
-            row.label(text="Addon properties:")
-            row = layout.row()
-            box0 = row.box()        
-            box0.prop(scene, "godot_executable")
+            box = row.box()
+            box.label(text="Main Config:")
+            row = box.row()
+            box = box.box()        
+            box.prop(scene, "godot_executable", icon="FILE")
             if not bpy.data.is_saved:       
-                row = layout.row()
+                row = box.row()
                 row.label(text="Save blend file to continue")		
 
 def register():

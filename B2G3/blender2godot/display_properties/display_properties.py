@@ -39,23 +39,26 @@ class DisplayPropertiesPanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=283, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
-        row = layout.row()
-        row.label(text="Display properties:")
-        row = layout.row()
-        box1 = row.box()
-        # Display properties box
+        row0 = layout.row()
+        box0 = row0.box()
+        box0.label(text="Resolution:")
+        box1 = box0.box()
         box1.prop(scene, "display_width")
         box1.prop(scene, "display_height")
-        row2 = layout.row()
-        box2 = row2.box()
+        box2 = box0.box()
+        box2.label(text="Options:")
         box2.prop(scene, "display_resizable")
         box2.prop(scene, "display_borderless")
         box2.prop(scene, "display_fullscreen")

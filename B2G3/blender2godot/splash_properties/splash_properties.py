@@ -39,20 +39,22 @@ class SplashPropertiesPanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=284, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         blend_data = context.blend_data
         
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         row = layout.row()
-        row.label(text="Splash properties:")
-        row = layout.row()
         box1 = row.box()
         # Splash properties box
-        box1.prop(scene, "splash_showimage")
+        box1.prop(scene, "splash_showimage", text="Image")
         if scene.splash_showimage:
             box1.prop(scene, "splash_imagefilepath")
         row2 = layout.row()

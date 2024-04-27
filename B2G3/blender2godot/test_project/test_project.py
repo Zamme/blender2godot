@@ -56,17 +56,22 @@ class TestGamePanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=495, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
 
-        if bpy.path.abspath("//") == "":       
+        if not bpy.data.is_saved:       
             return
 
         # Test game button
         row = layout.row()
         row.scale_y = 3.0
-        row.operator("scene.test_game_operator")
+        box = row.box()
+        box.operator("scene.test_game_operator", icon_value=495)
 
 
 def register():

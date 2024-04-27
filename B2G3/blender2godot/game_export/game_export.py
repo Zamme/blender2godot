@@ -245,6 +245,10 @@ class GameExportPanel(bpy.types.Panel):
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=292, scale=1.2)        
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -255,7 +259,8 @@ class GameExportPanel(bpy.types.Panel):
 
         # Export platforms box
         row = layout.row()
-        box2 = row.box()
+        box1 = row.box()
+        box2 = box1.box()
         box2.label(text="Export platforms:")
         box2.label(text="Be sure that godot export templates are installed!", icon="QUESTION")
         box2.prop(scene, "linux_export")
@@ -271,19 +276,17 @@ class GameExportPanel(bpy.types.Panel):
             box3.operator("wm.url_open", text="Help with JDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
             box3.prop(scene, "android_debug_keystore_filepath")
             box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-        row = layout.row()
-        row.operator("wm.url_open", text="Godot export templates link").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
+        row = box2.row()
+        row.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
             
         # Build game button
-        row = layout.row()
+        row = box1.row()
         row.scale_y = 3.0
-        row.operator("scene.build_game_operator")
+        row.operator("scene.build_game_operator", icon="MOD_BUILD")
 
         # Open folders buttons
-        row = layout.row()
-        row.operator("scene.open_godot_project_folder_operator")
-        row = layout.row()
-        row.operator("scene.open_godot_builds_folder_operator")
+        row = box1.row()
+        row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
 
 
 class CompileSelectedVersionsOperator(bpy.types.Operator):
