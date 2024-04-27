@@ -46,6 +46,18 @@ class SceneTypeProperties(bpy.types.PropertyGroup):
         ("menu", "Menu", "", "MENU", 3),
         ("loading", "Loading", "", "LOADING", 4)]
 
+class CreateMenuManagerOperator(bpy.types.Operator):
+    """Create Menu Manager Operator"""
+    bl_idname = "scene.create_menumanager_operator"
+    bl_label = "Create Menu Manager"
+
+
+    def execute(self, context):
+        print("Creating Menu Manager")
+        #_new_scene = bpy.data.scenes.new(context.scene.gamemanager_scene_name)
+        #context.window.scene = _new_scene
+        return {'FINISHED'}
+
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
     bl_label = "Scene Properties"
@@ -114,6 +126,9 @@ class ScenePropertiesPanel(bpy.types.Panel):
                         box3.prop(context.active_object, "collider")
             case "player":
                 pass
+            case "menu":
+                row = layout.row()
+                row.operator("scene.create_menumanager_operator")
 
 
 class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
@@ -195,11 +210,13 @@ def init_properties():
 
 def register():
     init_properties()
+    bpy.utils.register_class(CreateMenuManagerOperator)
     bpy.utils.register_class(ScenePropertiesPanel)
     bpy.utils.register_class(SetGodotProjectEnvironmentOperator)
 
 def unregister():
     bpy.utils.unregister_class(SetGodotProjectEnvironmentOperator)
     bpy.utils.unregister_class(ScenePropertiesPanel)
+    bpy.utils.unregister_class(CreateMenuManagerOperator)
 
 
