@@ -80,7 +80,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=92, scale=1.2)        
+        layout.label(icon="TOOL_SETTINGS")        
 
     def draw(self, context):
         layout = self.layout

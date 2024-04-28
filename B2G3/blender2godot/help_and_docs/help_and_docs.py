@@ -82,7 +82,7 @@ class HelpAndDocsPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=1, scale=1.2)        
+        layout.label(icon="QUESTION")        
 
     def draw(self, context):
         layout = self.layout

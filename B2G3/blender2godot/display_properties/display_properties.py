@@ -41,7 +41,7 @@ class DisplayPropertiesPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=283, scale=1.2)        
+        layout.label(icon="RESTRICT_VIEW_ON")        
 
     def draw(self, context):
         layout = self.layout

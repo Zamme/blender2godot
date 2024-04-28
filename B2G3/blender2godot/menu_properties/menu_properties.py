@@ -43,6 +43,10 @@ class MenuPropertiesPanel(bpy.types.Panel):
         self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
         return (self._not_in_gamemanager and self._gamemanager_added and (context.scene.scene_type == "menu"))
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="OUTLINER")        
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene

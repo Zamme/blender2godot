@@ -143,7 +143,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     
     def draw_header(self, context: Context):
         layout = self.layout
-        layout.template_icon(icon_value=67, scale=1.2)        
+        layout.label(icon="PRESET")        
 
     def draw(self, context):
         layout = self.layout

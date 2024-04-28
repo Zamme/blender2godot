@@ -58,7 +58,7 @@ class TestGamePanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=495, scale=1.2)        
+        layout.label(icon="PLAY")        
 
     def draw(self, context):
         layout = self.layout

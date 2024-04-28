@@ -247,7 +247,7 @@ class GameExportPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=292, scale=1.2)        
+        layout.label(icon="EXPORT")        
 
     def draw(self, context):
         layout = self.layout

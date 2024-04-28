@@ -41,7 +41,7 @@ class SplashPropertiesPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=284, scale=1.2)        
+        layout.label(icon="RESTRICT_VIEW_OFF")        
 
     def draw(self, context):
         layout = self.layout

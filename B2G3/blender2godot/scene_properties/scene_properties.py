@@ -78,6 +78,10 @@ class ScenePropertiesPanel(bpy.types.Panel):
         self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
         return (self._not_in_gamemanager and self._gamemanager_added)
     
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="SEQ_PREVIEW")        
+    
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -128,7 +132,8 @@ class ScenePropertiesPanel(bpy.types.Panel):
                 pass
             case "menu":
                 row = layout.row()
-                row.operator("scene.create_menumanager_operator")
+                box = row.box()
+                box.operator("scene.create_menumanager_operator")
 
 
 class SetGodotProjectEnvironmentOperator(bpy.types.Operator):

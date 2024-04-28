@@ -25,9 +25,9 @@ import subprocess
 import shutil
 import json
 from fileinput import FileInput
+from bpy_extras.io_utils import ImportHelper
 
 import bpy
-from bpy.types import Context
 
 
 class ProjectTemplatesProperties(bpy.types.PropertyGroup):
@@ -152,6 +152,19 @@ class CreateGameManagerOperator(bpy.types.Operator):
         context.window.scene = _new_scene
         return {'FINISHED'}
 
+
+class SaveBlendFileOperator(bpy.types.Operator, ImportHelper):
+    bl_idname = "scene.saveblendfile_operator"
+    bl_label = "Save Blend File"
+
+    def execute(self, context):
+        if self.filepath.endswith(".blend"):
+            pass
+        else:
+            self.filepath += ".blend"
+        bpy.ops.wm.save_as_mainfile(filepath=self.filepath, check_existing=True, filter_blender=True)
+        return {'FINISHED'}
+
 class Blender2GodotPanel(bpy.types.Panel):
     """Blender2Godot Panel"""
     bl_label = "B2G Configuration"
@@ -172,9 +185,9 @@ class Blender2GodotPanel(bpy.types.Panel):
         self._in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
         return (self._in_gamemanager or not self._gamemanager_added)
 
-    def draw_header(self, context: Context):
+    def draw_header(self, context):
         layout = self.layout
-        layout.template_icon(icon_value=51, scale=1.2)        
+        layout.label(icon="PLUGIN")        
     
     def draw(self, context):
         layout = self.layout
@@ -192,18 +205,22 @@ class Blender2GodotPanel(bpy.types.Panel):
             row = box.row()
             box = box.box()        
             box.prop(scene, "godot_executable", icon="FILE")
-            if not bpy.data.is_saved:       
-                row = box.row()
-                row.label(text="Save blend file to continue")		
+            if not bpy.data.is_saved:
+                box1 = box.box()     
+                box1.label(text="Save blend file to continue", icon="ERROR")
+                row2 = box1.row()
+                row2.operator("scene.saveblendfile_operator", text="Save File")	
 
 def register():
     bpy.utils.register_class(SceneToAddItem)
     init_properties()
+    bpy.utils.register_class(SaveBlendFileOperator)
     bpy.utils.register_class(CreateGameManagerOperator)
     bpy.utils.register_class(Blender2GodotPanel)
 
 def unregister():
     clear_properties()
+    bpy.utils.unregister_class(SaveBlendFileOperator)
     bpy.utils.unregister_class(Blender2GodotPanel)
     bpy.utils.unregister_class(CreateGameManagerOperator)
     bpy.utils.unregister_class(SceneToAddItem)
