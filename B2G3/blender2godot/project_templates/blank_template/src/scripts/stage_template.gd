@@ -15,6 +15,7 @@ const STAGE_SCENES_PREFIX = "Stage_"
 
 const PLAYER_SCENE_PATH = SCENES_PATH + "Player_Template.tscn"
 const PLAYER_BEHAVIOR_PATH = "res://src/scripts/player_template.gd"
+const PLAYER_MESH_BEHAVIOR_PATH = "res://src/scripts/player_mesh_behavior.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
@@ -448,6 +449,7 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	var _player_mesh_scene = load(SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
+	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
 	var _player_camera = self.create_camera(_camera_props["CameraName"])
 	player_entity_instance.add_child(_player_camera)
 	_player_camera.set_owner(player_entity_instance)
@@ -457,8 +459,8 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	# TRANSFORMATIONS
 	player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/4.0, 0.0))
 	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
-	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], _camera_props["PosY"]))
-	_player_camera.rotation_degrees = Vector3(_camera_props["RotX"], _camera_props["RotZ"], _camera_props["RotY"])
+	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], -_camera_props["PosY"]))
+	_player_camera.rotation_degrees = Vector3(rad2deg(_camera_props["RotX"]) - 90.0, rad2deg(_camera_props["RotZ"]), rad2deg(_camera_props["RotY"]))
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()

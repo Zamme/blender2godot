@@ -21,13 +21,18 @@ export var gravity_enabled : bool
 
 export var camera_inverted := true
 var player_json
+var player_mesh : PlayerMesh
 
 
 func _ready():
 	player_json = read_json_file(PLAYER_INFO_JSON_PATH)
 	gravity_enabled = player_json["GravityOn"]
+	player_mesh = find_player_mesh()
 	camera = find_camera(player_json["PlayerCameraObject"]["CameraName"])
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	
+	# TESTING
+	player_mesh._test_anim()
 
 func find_camera(_camera_object_name):
 	print("Searching ", _camera_object_name, " on ", self.name)
@@ -47,6 +52,14 @@ func find_child_by_name(root_node, _object_name):
 				break
 	return _object
 
+func find_player_mesh():
+	var _player_mesh = null
+	for _child in get_children():
+		if _child is PlayerMesh:
+			_player_mesh = _child
+			break
+	return _player_mesh
+
 func read_json_file(filepath):
 	var file = File.new()
 	if not file.file_exists(filepath):
@@ -62,7 +75,7 @@ func _physics_process(delta):
 	process_input(delta)
 	process_movement(delta)
 
-func process_input(delta):
+func process_input(_delta):
 
 	# ----------------------------------
 	# Walking
