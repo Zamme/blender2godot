@@ -5,7 +5,10 @@ onready var animation_player : AnimationPlayer = find_node("AnimationPlayer")
 
 
 func _ready():
-	print("Animation player found: ", animation_player.name)
+	pass
 
-func _test_anim():
-	animation_player.play("run-loop")
+func _play_animation(_name):
+	if animation_player.is_playing():
+		if animation_player.current_animation != _name:
+			if animation_player.has_animation(_name):
+				animation_player.play(_name)

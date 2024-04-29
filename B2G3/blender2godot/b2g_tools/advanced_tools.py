@@ -292,6 +292,10 @@ class ExportGameOperator(bpy.types.Operator):
                                                          "RotX" : _player_scene.camera_object.rotation_euler.x,
                                                          "RotY" : _player_scene.camera_object.rotation_euler.y,
                                                          "RotZ" : _player_scene.camera_object.rotation_euler.z})
+        _action_dictionary = my_dictionary()
+        for _player_action in bpy.data.actions:
+            _action_dictionary.add(_player_action.animation_type , _player_action.name)
+        self.dict_player_info.add("PlayerAnimations", _action_dictionary)
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:
             outfile.write(self.data_player_info + '\n')   

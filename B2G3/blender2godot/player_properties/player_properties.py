@@ -29,13 +29,21 @@ def scene_camera_object_poll(self, object):
 def scene_player_object_poll(self, object):
     return (object.type == 'MESH' or object.type == 'ARMATURE') 
 
+class AnimationTypeProperties(bpy.types.PropertyGroup):
+    """ Animation Type properties """
+    animation_type_options = [
+        ("none", "None", "", 0),
+        ("forward", "Forward", "", 1),
+        ("backward", "Backward", "", 2),
+        ("idle", "Idle", "", 3),
+        ("jump", "Jump", "", 4)]
+
 class ANIMATIONS_UL_armature_animations(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         custom_icon = 'OUTLINER_DATA_ARMATURE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, icon = custom_icon)
-            #if item.name != "B2G_GameManager":
-                #layout.prop(item, "scene_type", text="")
+            layout.label(text=item.name, icon=custom_icon)
+            layout.prop(item, "animation_type", text="", icon="NONE")
                 #layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
@@ -91,7 +99,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
                 _mess = "Player armature : " + scene.player_object.name
                 _ic = "OUTLINER_OB_ARMATURE"
                 box1 = box.box()
-                box1.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", scene.player_object.animation_data, "nla_tracks", scene, "player_animation_sel")
+                box1.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", bpy.data, "actions", scene, "player_animation_sel")
                 box.label(text=_mess, icon=_ic)
 
         # Player motion
@@ -112,6 +120,12 @@ class PlayerPropertiesPanel(bpy.types.Panel):
 
 def init_properties():
     # Player properties
+    bpy.types.Action.animation_type = bpy.props.EnumProperty(
+        items = AnimationTypeProperties.animation_type_options,
+        name = "Animation Type",
+        description = "Animation type",
+        default = "none")
+
     bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
     bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
     bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll)

@@ -23,6 +23,8 @@ export var camera_inverted := true
 var player_json
 var player_mesh : PlayerMesh
 
+var _animations = []
+
 
 func _ready():
 	player_json = read_json_file(PLAYER_INFO_JSON_PATH)
@@ -33,6 +35,9 @@ func _ready():
 	
 	# TESTING
 	player_mesh._test_anim()
+
+func animate():
+	pass
 
 func find_camera(_camera_object_name):
 	print("Searching ", _camera_object_name, " on ", self.name)
@@ -74,6 +79,7 @@ func read_json_file(filepath):
 func _physics_process(delta):
 	process_input(delta)
 	process_movement(delta)
+	animate()
 
 func process_input(_delta):
 
