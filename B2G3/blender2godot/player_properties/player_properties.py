@@ -29,6 +29,18 @@ def scene_camera_object_poll(self, object):
 def scene_player_object_poll(self, object):
     return (object.type == 'MESH' or object.type == 'ARMATURE') 
 
+class ANIMATIONS_UL_armature_animations(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        custom_icon = 'OUTLINER_DATA_ARMATURE'
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name, icon = custom_icon)
+            #if item.name != "B2G_GameManager":
+                #layout.prop(item, "scene_type", text="")
+                #layout.prop(item, "scene_exportable")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = custom_icon)
+
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
     bl_label = "Player Properties"
@@ -63,10 +75,24 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         # INITIAL PROPERTIES
         row = layout.row()
         row.prop(scene, "player_object")
+
         # Player animations
         row = layout.row()
         box = row.box()
         box.label(text="Animations")
+        if scene.player_object == None:
+            box.label(text="No player object assigned", icon="ERROR")
+        else:
+            if scene.player_object.type != "ARMATURE":
+                _mess = "No armature in player object."
+                _ic = "ERROR"
+                box.label(text=_mess, icon=_ic)
+            else:
+                _mess = "Player armature : " + scene.player_object.name
+                _ic = "OUTLINER_OB_ARMATURE"
+                box1 = box.box()
+                box1.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", scene.player_object.animation_data, "nla_tracks", scene, "player_animation_sel")
+                box.label(text=_mess, icon=_ic)
 
         # Player motion
         row = layout.row()
@@ -91,12 +117,15 @@ def init_properties():
     bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll)
     bpy.types.Scene.player_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Object", description="Player Object", poll=scene_player_object_poll)
     bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0, min=1.0, max=180.0)
+    bpy.types.Scene.player_animation_sel = bpy.props.IntProperty(name="Player Selected Animation", default=0)
 
 def register():
     init_properties()
+    bpy.utils.register_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
+    bpy.utils.unregister_class(ANIMATIONS_UL_armature_animations)
 
 

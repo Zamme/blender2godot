@@ -96,8 +96,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
         box1 = box0.box()
         box1.label(text="Check scenes to export")
         if len(bpy.data.scenes) > 0:
-            #box.template_list("SCENES_UL_scenes_added", "The_List", scene, "scenes_added", scene, "scenes_added_index")
-            box1.template_list("SCENES_UL_scenes_added", "The_List", bpy.data, "scenes", scene, "scenes_added_index")
+            box1.template_list("SCENES_UL_scenes_added", "ScenesAddedList", bpy.data, "scenes", scene, "scenes_added_index")
             box1.prop(scene, "startup_scene")
         else:
             box1.label(text="No scenes to add")
