@@ -280,11 +280,14 @@ class ExportGameOperator(bpy.types.Operator):
     def export_player_info(self, context, _player_scene):
         print("Exporting player...")
         self.find_player_info_file_path(context)
+        # GENERAL PROPS
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
+        # DIMENSIONS
         self.dict_player_info.add("PlayerDimensions", {"DimX" : _player_scene.player_object.dimensions.x,
                                                        "DimY" : _player_scene.player_object.dimensions.y,
                                                        "DimZ" : _player_scene.player_object.dimensions.z})
+        # PLAYER CAMERA
         self.dict_player_info.add("PlayerCameraObject", {"CameraName" : _player_scene.camera_object.name,
                                                          "PosX" : _player_scene.camera_object.location.x,
                                                          "PosY" : _player_scene.camera_object.location.y,
@@ -292,10 +295,17 @@ class ExportGameOperator(bpy.types.Operator):
                                                          "RotX" : _player_scene.camera_object.rotation_euler.x,
                                                          "RotY" : _player_scene.camera_object.rotation_euler.y,
                                                          "RotZ" : _player_scene.camera_object.rotation_euler.z})
+        # ANIMATIONS
         _action_dictionary = my_dictionary()
         for _player_action in bpy.data.actions:
             _action_dictionary.add(_player_action.animation_type , _player_action.name)
         self.dict_player_info.add("PlayerAnimations", _action_dictionary)
+        # CONTROLS
+        _controls_dictionary = my_dictionary()
+        for _control_setting in _player_scene.controls_settings:
+            _controls_dictionary.add(_control_setting.motion_input_blender, _control_setting.motion_input_godot)
+        self.dict_player_info.add("PlayerControls", _controls_dictionary)
+        # EXPORT JSON
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:
             outfile.write(self.data_player_info + '\n')   

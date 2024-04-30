@@ -1,0 +1,9 @@
+{
+ "TemplateName": "Walker",
+ "PlayerInputs": {
+  "none": "ready_to_shot",
+  "idle": "idle-loop",
+  "forward": "run-loop",
+  "backward": "walk-loop"
+ }
+}

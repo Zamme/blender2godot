@@ -29,13 +29,14 @@ from bpy_extras.io_utils import ImportHelper
 
 import bpy
 
-
+'''
 class ProjectTemplatesProperties(bpy.types.PropertyGroup):
     """ Project templates properties """
     project_templates_options = [
         ("blank_template", "Blank", "", "BLANK", 0),
         ("walker_template", "Walker", "", "WALKER", 1),
         ("fps_template", "Fps", "", "FPS", 2)]
+'''
 
 class SceneToAddItem(bpy.types.PropertyGroup):
     scene_name: bpy.props.StringProperty(name="Scene Name", default="Unknown")

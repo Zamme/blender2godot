@@ -1,0 +1,9 @@
+{
+ "TemplateName": "Blank",
+ "PlayerInputs": {
+  "Forward": ["UP_ARROW", "ui_up"],
+  "Backward": ["DOWN_ARROW", "ui_down"],
+  "Left": ["LEFT_ARROW", "ui_left"],
+  "Right": ["RIGHT_ARROW", "ui_right"]
+ }
+}

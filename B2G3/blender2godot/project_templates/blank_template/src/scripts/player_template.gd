@@ -25,6 +25,7 @@ var player_json
 var player_mesh : PlayerMesh
 
 var _animations = {}
+var _controls = {}
 
 
 func _ready():

@@ -468,6 +468,9 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	ResourceSaver.save(PLAYER_ENTITIES_PATH + _player_mesh_scene_name + "Entity" + ".tscn", packed_scene)
 	player_entity_instance.queue_free()
 	print("Player created.")
+	
+	print(InputMap.get_actions())
+	InputMap.erase_action("ui_end")
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
