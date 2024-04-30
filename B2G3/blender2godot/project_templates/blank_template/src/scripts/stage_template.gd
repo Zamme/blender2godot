@@ -551,6 +551,7 @@ func mount_scenes():
 		if _player_json["PlayerSceneName"] == _fn_without_ext:
 			var _cam_props = _player_json["PlayerCameraObject"]
 			var _shape_props = _player_json["PlayerDimensions"]
+			var _anims_props = _player_json["PlayerAnimations"]
 			create_player(_fn_without_ext, _cam_props, _shape_props)
 	
 #	self.add_scenes(imported_scenes)
