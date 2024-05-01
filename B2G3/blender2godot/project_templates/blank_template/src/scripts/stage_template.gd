@@ -56,7 +56,8 @@ func _ready():
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if get_child_count() == 0:
-			self.mount_scenes()
+			if !self.mount_scenes():
+				return
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
 #			yield(get_tree(),"idle_frame")
@@ -291,19 +292,6 @@ func apply_import_changes(scene):
 	self.get_all_scene_objects(scene)
 	for ob in self.scene_objects_list:
 		print("Changes to " + ob.name)
-		"""
-		if ob.name == player_info_json["PlayerObjectName"]:
-			if player_info_json.has("GravityOn"):
-				self.player_gravity_on = player_info_json["GravityOn"]
-				print("Player gravity enabled:" + str(self.player_gravity_on))
-				self.player_camera_inverted = player_info_json["CameraInverted"]
-				print("Player camera inverted:" + str(self.player_camera_inverted))
-			if player_info_json.has("InitialPositionX"):
-				self.initial_player_position = Vector3(player_info_json["InitialPositionX"], player_info_json["InitialPositionZ"], -player_info_json["InitialPositionY"])
-			if player_info_json.has("InitialRotationX"):
-				self.initial_player_rotation = Vector3(0.0, player_info_json["InitialRotationZ"], player_info_json["InitialRotationY"])
-			self.add_player(self.initial_player_position, self.initial_player_rotation)
-		"""
 		if ob is MeshInstance: # MESHES
 			if colliders_json.has(ob.name):
 				if colliders_json[ob.name] == "none":
@@ -469,8 +457,7 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	player_entity_instance.queue_free()
 	print("Player created.")
 	
-	print(InputMap.get_actions())
-	InputMap.erase_action("ui_end")
+	InputMap.action_erase_events("ui_end")
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
@@ -527,6 +514,9 @@ func mount_scenes():
 	print("Mounting scene...")
 	var files_to_import = self.dir_contents(MODELS_PATH)
 	import_files(files_to_import)
+	if (len(files_to_import) < 1):
+		print("Mount scenes finished with no imported files")
+		return false
 	
 	var _stages_json = read_json_file(STAGES_INFO_JSON_PATH)
 	var _player_json = read_json_file(PLAYER_INFO_JSON_PATH)
@@ -535,28 +525,35 @@ func mount_scenes():
 	var _index : int = 0
 	for _file_to_import in files_to_import:
 		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		for _key in _stages_json.keys():
-			print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
-			if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
-				var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
-				_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
-				var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
-#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
-#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
-				var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
-				_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
-				self.repack_scene(_new_stage, _new_stage_path)
-				_index += 1
+		if _stages_json:
+			for _key in _stages_json.keys():
+				print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
+				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
+					var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
+					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
+					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
+	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
+					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
+					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					self.repack_scene(_new_stage, _new_stage_path)
+					_index += 1
 	
 	# Create Player
 	for _file_to_import in files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _player_json["PlayerSceneName"] == _fn_without_ext:
-			var _cam_props = _player_json["PlayerCameraObject"]
-			var _shape_props = _player_json["PlayerDimensions"]
-			var _anims_props = _player_json["PlayerAnimations"]
-			create_player(_fn_without_ext, _cam_props, _shape_props)
+		if _player_json:
+			if not _player_json.empty():
+				if _player_json.has("PlayerSceneName"):
+					if _player_json["PlayerSceneName"] == _fn_without_ext:
+						var _cam_props = _player_json["PlayerCameraObject"]
+						var _shape_props = _player_json["PlayerDimensions"]
+						var _anims_props = _player_json["PlayerAnimations"]
+						create_player(_fn_without_ext, _cam_props, _shape_props)
+		else:
+			print("No player added")
 	
+	return true
 #	self.add_scenes(imported_scenes)
 #	if lights_instance != null:
 #		repack_scene(lights_instance, LIGHTS_SCENE_PATH)
@@ -604,6 +601,7 @@ func read_json_file(filepath):
 	else:
 		file.open(filepath, file.READ)
 		var json = file.get_as_text()
+		print("json ", filepath, " : ", json)
 		var json_result = JSON.parse(json)
 		file.close()
 		return json_result.result

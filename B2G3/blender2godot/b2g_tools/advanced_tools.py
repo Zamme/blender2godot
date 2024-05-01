@@ -41,13 +41,25 @@ class my_dictionary(dict):
         self[key] = value 
 
 class SCENES_UL_scenes_added(bpy.types.UIList):
+    def filter_items(self, context, data, propname):
+        _scenes = getattr(data, propname)
+
+        filter_flags = [0] * len(_scenes)
+        visible = 1 << 30
+
+        for i, me in enumerate(_scenes):
+            if me.name != "B2G_GameManager":
+                filter_flags[i] = visible
+
+        return filter_flags, ()
+
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         custom_icon = 'SCENE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon = custom_icon)
-            if item.name != "B2G_GameManager":
-                layout.prop(item, "scene_type", text="")
-                layout.prop(item, "scene_exportable")
+            #if item.name != "B2G_GameManager":
+            layout.prop(item, "scene_type", text="")
+            layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = custom_icon)
@@ -73,7 +85,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     bl_order = 4
     
     advanced_tools = False
-    
+
     @classmethod 
     def poll(self, context):
         return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
@@ -102,6 +114,16 @@ class B2G_ToolsPanel(bpy.types.Panel):
             box1.label(text="No scenes to add")
 
         # Export project to godot button
+        if (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene == None):
+            box1.label(text="Select startup scene", icon="ERROR")
+            return
+        elif (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.name == "B2G_GameManager"):
+            box1.label(text="Startup scene can't be Game Manager", icon="ERROR")
+            return
+        elif (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.scene_type == "player"):
+            box1.label(text="Startup scene can't be a player", icon="ERROR")
+            return
+
         row = box0.row()
         row.scale_y = 2.0
         row.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
@@ -113,13 +135,14 @@ class B2G_ToolsPanel(bpy.types.Panel):
         if context.scene.advanced_tools:
             row2 = layout.row()
             box2 = row2.box()
-            # Delete project button
-            box2.operator("scene.delete_project_operator", icon="TRASH")
             # Create project button
             box2.operator("scene.create_godot_project_operator", icon="PRESET_NEW")
-            # Open godot project button
-            box2.operator("scene.open_godot_project_operator", icon="GHOST_ENABLED")
-            box2.operator("scene.open_godot_project_folder_operator", icon="FOLDER_REDIRECT")
+            if os.path.isdir(context.scene.project_folder):
+                # Delete project button
+                box2.operator("scene.delete_project_operator", icon="TRASH")
+                # Open godot project button
+                box2.operator("scene.open_godot_project_operator", icon="GHOST_ENABLED")
+                box2.operator("scene.open_godot_project_folder_operator", icon="FOLDER_REDIRECT")
 
 
 class ExportGameOperator(bpy.types.Operator):
@@ -182,7 +205,10 @@ class ExportGameOperator(bpy.types.Operator):
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
                         _temp_dict = my_dictionary()
                         _temp_dict.add("SceneName", _sc_added.name)
-                        _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
+                        if not _sc_added.player_spawn_empty:
+                            _temp_dict.add("PlayerSpawnObjectName", "")
+                        else:
+                            _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
                         self.dict_stages_info.add(_sc_index, _temp_dict)
                         _sc_index += 1
                     case "player":

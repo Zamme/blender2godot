@@ -38,6 +38,7 @@ func _ready():
 	
 	# TESTING
 	#player_mesh._test_anim()
+	InputMap.action_erase_events("ui_end")
 
 func animate():
 	if vel.z > 0.1:

@@ -26,10 +26,10 @@ import os
 
 
 def scene_camera_object_poll(self, object):
-    return object.type == 'CAMERA'
+    return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
 
 def scene_player_object_poll(self, object):
-    return (object.type == 'MESH' or object.type == 'ARMATURE') 
+    return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'MESH' or object.type == 'ARMATURE'))
 
 def controls_update(self, context):
     _template_path = ""
@@ -165,6 +165,9 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row = layout.row()
         row.prop(scene, "player_object")
 
+        if not scene.player_object:
+            return
+
         # Player animations
         row = layout.row()
         box = row.box()
@@ -187,12 +190,16 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row = layout.row()
         box = row.box()
         box.label(text="Player Motion")
+        
+        ''' # TODO : controls settings unfinished
         box2 = box.box()
         box2.prop(scene, "controls_settings_type")
         if scene.controls_settings_type == "keyboard":
             box2.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
         else:
             box2.label(text="Inputs:")
+        '''
+
         box.prop(scene, "player_gravity_on")
         box.prop(scene, "camera_control_inverted")
 
@@ -201,6 +208,8 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         box = row.box()
         box.label(text="Camera Properties")
         box.prop(scene, "camera_object")
+        if scene.camera_object == None:
+            box.label(text="No camera object assigned", icon="ERROR")
         box.prop(scene, "camera_fov")
 
 def init_properties():
