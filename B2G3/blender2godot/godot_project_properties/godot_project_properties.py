@@ -26,6 +26,23 @@ import shutil
 import bpy
 from bpy.types import Context
 
+
+def fill_project_templates(self, context):
+    _templates = []
+    _templates.clear()
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _dirs_list = os.listdir(p_path)
+            _index = 0
+            for _dir_name in _dirs_list:
+                _name = _dir_name.removesuffix("_template")
+                _new_template = (_dir_name, _name.capitalize(), _name.upper())
+                _templates.append(_new_template)
+                _index += 1
+    return _templates
+
 class AreYouSureDeletingOperator(bpy.types.Operator):
     """Really?"""
     bl_idname = "scene.are_you_sure_deleting_operator"
@@ -161,9 +178,40 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         if not scene.game_icon.endswith(".png"):
             box1.label(text="Icon must be a png image!")
         box1.prop(scene, "project_template", icon="SHADERFX")
-       
+
+'''
+class SceneToAddItem(bpy.types.PropertyGroup):
+    scene_name: bpy.props.StringProperty(name="Scene Name", default="Unknown")
+    scene_exportable: bpy.props.BoolProperty(name="", default=False)
+    scene_type : bpy.props.IntProperty(name="", default=0)
+'''
+
+def clear_properties():
+    del bpy.types.Scene.scenes_added_index
+    del bpy.types.Scene.game_name
+    del bpy.types.Scene.game_folder
+    del bpy.types.Scene.game_icon
+    del bpy.types.Scene.project_folder
+    del bpy.types.Scene.godot_project_filepath
+    del bpy.types.Scene.project_template
+    #del bpy.types.Scene.game_icon_image
+
+def init_properties():
+    print("Initiating properties...")
+    # Project props
+    bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME")
+    bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.project_template = bpy.props.EnumProperty(items = fill_project_templates, name = "Project Template", description = "Project type")#, default = "blank_template")
+    #bpy.types.Scene.custom_godot = bpy.props.BoolProperty(name="Custom Godot", default=False)
+    #bpy.types.Scene.godot_executable_downloaded_zip = bpy.props.StringProperty(name="Godot zip", subtype="FILE_PATH", default=".")
+    #bpy.types.Scene.game_icon_image = bpy.props.PointerProperty(name="Game Icon Image", type=bpy.types.Image)
 
 def register():
+    #bpy.utils.register_class(SceneToAddItem)
+    init_properties()
     bpy.utils.register_class(DeleteProjectButtonOperator)
     bpy.utils.register_class(AreYouSureDeletingOperator)
     bpy.utils.register_class(DeleteProjectOperator)
@@ -176,5 +224,7 @@ def unregister():
     bpy.utils.unregister_class(DeleteProjectOperator)
     bpy.utils.unregister_class(CreateGodotProjectOperator)
     bpy.utils.unregister_class(GodotProjectPropertiesPanel)
+    clear_properties()
+    #bpy.utils.unregister_class(SceneToAddItem)
 
 

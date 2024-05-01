@@ -407,7 +407,19 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
 
         return {'FINISHED'}
 
+def init_properties():
+    bpy.types.Scene.scenes_added_index = bpy.props.IntProperty(name = "Index for my_list", default = 0)
+    bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene")
+    # Panels checkboxes
+    bpy.types.Scene.advanced_tools = bpy.props.BoolProperty(name="Advanced Tools", default=False)
+
+def clear_properties():
+    del bpy.types.Scene.startup_scene
+    del bpy.types.Scene.scenes_added_index
+    del bpy.types.Scene.advanced_tools
+
 def register():
+    init_properties()
     bpy.utils.register_class(SCENES_UL_scenes_added)
     bpy.utils.register_class(RemoveSceneFromListOperator)
     bpy.utils.register_class(ExportGameOperator)

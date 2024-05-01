@@ -192,6 +192,10 @@ class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def init_properties():
+    # Scene props
+    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="", default=False)
+    #bpy.types.Scene.scene_type = bpy.props.IntProperty(name="Type", default=0)
+
     bpy.types.Object.collider = bpy.props.EnumProperty(
         items = ColliderProperties.collider_options,
         name = "Collider Type",
@@ -213,6 +217,13 @@ def init_properties():
     bpy.types.Scene.sky_on = bpy.props.BoolProperty(name="Sky", default=True)
     bpy.types.Scene.sky_energy = bpy.props.FloatProperty(name="Sky Energy", default=1.0, min=0.0, max=16.0, soft_min=0.0, soft_max=16.0)
 
+def clear_properties():
+    del bpy.types.Scene.scene_exportable
+    del bpy.types.Scene.player_spawn_empty
+    del bpy.types.Object.godot_exportable
+    del bpy.types.Scene.sky_on
+    del bpy.types.Scene.sky_energy
+
 def register():
     init_properties()
     bpy.utils.register_class(CreateMenuManagerOperator)
@@ -223,5 +234,6 @@ def unregister():
     bpy.utils.unregister_class(SetGodotProjectEnvironmentOperator)
     bpy.utils.unregister_class(ScenePropertiesPanel)
     bpy.utils.unregister_class(CreateMenuManagerOperator)
+    clear_properties()
 
 

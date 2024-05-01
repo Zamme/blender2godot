@@ -63,11 +63,27 @@ class SplashPropertiesPanel(bpy.types.Panel):
         box2.prop(scene, "splash_usefilter")
         box2.prop(scene, "splash_bgcolor")
 
+def init_properties():
+    # Splash vars
+    bpy.types.Scene.splash_showimage = bpy.props.BoolProperty(name="Show splash image", default=True)
+    bpy.types.Scene.splash_imagefilepath = bpy.props.StringProperty(name="Splash Image Filepath", subtype="FILE_PATH", default="res://icon.png")
+    bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
+    bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
+    bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
+
+def clear_properties():
+    del bpy.types.Scene.splash_showimage
+    del bpy.types.Scene.splash_imagefilepath
+    del bpy.types.Scene.splash_fullsize
+    del bpy.types.Scene.splash_usefilter
+    del bpy.types.Scene.splash_bgcolor
+
 def register():
+    init_properties()
     bpy.utils.register_class(SplashPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(SplashPropertiesPanel)
-
+    clear_properties()
 
 

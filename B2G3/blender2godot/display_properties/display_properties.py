@@ -64,11 +64,29 @@ class DisplayPropertiesPanel(bpy.types.Panel):
         box2.prop(scene, "display_fullscreen")
         box2.prop(scene, "display_alwaysontop")
 
+def init_properties():
+    # Display vars
+    bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
+    bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
+    bpy.types.Scene.display_resizable = bpy.props.BoolProperty(name="Resizable", default=True)
+    bpy.types.Scene.display_borderless = bpy.props.BoolProperty(name="Borderless", default=False)
+    bpy.types.Scene.display_fullscreen = bpy.props.BoolProperty(name="Fullscreen", default=False)
+    bpy.types.Scene.display_alwaysontop = bpy.props.BoolProperty(name="Always on top", default=False)
+
+def clear_properties():
+    del bpy.types.Scene.display_width
+    del bpy.types.Scene.display_height
+    del bpy.types.Scene.display_resizable
+    del bpy.types.Scene.display_borderless
+    del bpy.types.Scene.display_fullscreen
+    del bpy.types.Scene.display_alwaysontop
+
 def register():
+    init_properties()
     bpy.utils.register_class(DisplayPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(DisplayPropertiesPanel)
-
+    clear_properties()
 
 

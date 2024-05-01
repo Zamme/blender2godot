@@ -435,7 +435,56 @@ class MessageBoxOperator(bpy.types.Operator):
         context.window_manager.popup_menu(draw, title="Compiling...", icon='INFO')
         return {'FINISHED'}
 
+def init_properties():
+    # Export vars
+    # Checkboxes
+    bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)
+    bpy.types.Scene.linux_export = bpy.props.BoolProperty(name="Linux", default=False)
+    bpy.types.Scene.windows_export = bpy.props.BoolProperty(name="Windows", default=False)
+    bpy.types.Scene.mac_export = bpy.props.BoolProperty(name="Mac", default=False)
+    bpy.types.Scene.web_export = bpy.props.BoolProperty(name="Web", default=False)
+    # Paths
+    bpy.types.Scene.android_exe_filepath = bpy.props.StringProperty(name="AndroidExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.linux_exe_filepath = bpy.props.StringProperty(name="LinuxExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.windows_exe_filepath = bpy.props.StringProperty(name="WindowsExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.mac_exe_filepath = bpy.props.StringProperty(name="MacExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.web_exe_filepath = bpy.props.StringProperty(name="WebExeFilepath", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.current_version_compiling = bpy.props.StringProperty(name="CurrentVersionCompiling", default=" ")
+    bpy.types.Scene.game_exports_path = bpy.props.StringProperty(name="GameExportsPath", default=" ")
+    bpy.types.Scene.android_exports_path = bpy.props.StringProperty(name="AndroidExportPath", default=" ")
+    bpy.types.Scene.linux_exports_path = bpy.props.StringProperty(name="LinuxExportPath", default=" ")
+    bpy.types.Scene.windows_exports_path = bpy.props.StringProperty(name="WindowsExportPath", default=" ")
+    bpy.types.Scene.mac_exports_path = bpy.props.StringProperty(name="MacExportPath", default=" ")
+    bpy.types.Scene.web_exports_path = bpy.props.StringProperty(name="WebExportPath", default=" ")
+    # Android environment vars
+    bpy.types.Scene.android_sdk_dirpath = bpy.props.StringProperty(name="Android SDK Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.android_jdk_dirpath = bpy.props.StringProperty(name="JDK Folder", subtype="DIR_PATH", default=" ")
+    bpy.types.Scene.android_debug_keystore_filepath = bpy.props.StringProperty(name="Debug Keystore", subtype="FILE_PATH", default=" ")
+
+def clear_properties():
+    del bpy.types.Scene.android_export
+    del bpy.types.Scene.linux_export
+    del bpy.types.Scene.windows_export
+    del bpy.types.Scene.mac_export
+    del bpy.types.Scene.web_export
+    del bpy.types.Scene.android_exe_filepath
+    del bpy.types.Scene.linux_exe_filepath
+    del bpy.types.Scene.windows_exe_filepath
+    del bpy.types.Scene.mac_exe_filepath
+    del bpy.types.Scene.web_exe_filepath
+    del bpy.types.Scene.current_version_compiling
+    del bpy.types.Scene.game_exports_path
+    del bpy.types.Scene.android_exports_path
+    del bpy.types.Scene.linux_exports_path
+    del bpy.types.Scene.windows_exports_path
+    del bpy.types.Scene.mac_exports_path
+    del bpy.types.Scene.web_exports_path
+    del bpy.types.Scene.android_sdk_dirpath
+    del bpy.types.Scene.android_jdk_dirpath
+    del bpy.types.Scene.android_debug_keystore_filepath
+
 def register():
+    init_properties()
     bpy.utils.register_class(MessageBoxOperator)
     bpy.utils.register_class(DailogBoxOperator)
     bpy.utils.register_class(CompileSelectedVersionsOperator)
@@ -452,3 +501,4 @@ def unregister():
     bpy.utils.unregister_class(CompileSelectedVersionsOperator)
     bpy.utils.unregister_class(DailogBoxOperator)
     bpy.utils.unregister_class(MessageBoxOperator)
+    clear_properties()
