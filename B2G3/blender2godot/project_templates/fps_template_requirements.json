@@ -2,12 +2,19 @@
   {
     "id": "scene_types",
     "value": [
-      "Stage"
+      "Stage",
+      "Player",
+      "Menu",
+      "Loading",
+      "Npc"
     ]
   },
   {
     "id": "project_export",
-    "value": []
+    "value": [
+      "Stage",
+      "Player"
+    ]
   },
   {
     "id": "game_export",

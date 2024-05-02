@@ -31,9 +31,7 @@ import bpy
 
 
 def init_properties():
-    print("Initiating properties...")
     bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine")  
-    print("Properties initiated.")
 
 def clear_properties():
     del bpy.types.Scene.godot_executable

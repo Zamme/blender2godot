@@ -19,7 +19,6 @@
 """
 Building utils for exporting to different platforms
 """
-import os
 
 import bpy
 
@@ -31,7 +30,20 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved) and (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene != None))
+        cond1 = (context.scene.name == context.scene.gamemanager_scene_name)
+        cond2 = (bpy.data.is_saved)
+        cond3 = (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene != None)
+        """
+        _min_scenes = []
+        _tr = context.scene.current_template_requirements.template_requirements
+        for _reqs in _tr:
+            if _reqs.name == "project_export":
+                for _index,_value in enumerate(_reqs.requirements):
+                    _min_scenes.append(_value.value.lower())
+            break
+        print("Minimum scenes:", _min_scenes)
+        """
+        return (cond1 and cond2 and cond3)
     
     def execute(self, context):
         print("Deleting last export...")

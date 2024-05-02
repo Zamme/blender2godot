@@ -432,4 +432,5 @@ def unregister():
     bpy.utils.unregister_class(ExportGameOperator)
     bpy.utils.unregister_class(RemoveSceneFromListOperator)
     bpy.utils.unregister_class(SCENES_UL_scenes_added)
+    clear_properties()
 

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "scene_types",
+    "value": [
+      "Stage",
+      "Player"
+    ]
+  },
+  {
+    "id": "project_export",
+    "value": [
+      "Stage",
+      "Player"
+    ]
+  },
+  {
+    "id": "game_export",
+    "value": []
+  }
+]

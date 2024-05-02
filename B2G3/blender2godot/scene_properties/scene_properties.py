@@ -37,15 +37,6 @@ class ColliderProperties(bpy.types.PropertyGroup):
         ("mesh", "Mesh", "", "MESH", 2),
         ("smart", "Smart", "", "SMART", 3)]
 
-class SceneTypeProperties(bpy.types.PropertyGroup):
-    """ Scene Type properties """
-    scene_type_options = [
-        ("stage", "Stage", "", "STAGE", 0),
-        ("player", "Player", "", "PLAYER", 1),
-        ("npc", "Npc", "", "NPC", 2),
-        ("menu", "Menu", "", "MENU", 3),
-        ("loading", "Loading", "", "LOADING", 4)]
-
 class CreateMenuManagerOperator(bpy.types.Operator):
     """Create Menu Manager Operator"""
     bl_idname = "scene.create_menumanager_operator"
@@ -201,12 +192,6 @@ def init_properties():
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
-
-    bpy.types.Scene.scene_type = bpy.props.EnumProperty(
-        items = SceneTypeProperties.scene_type_options,
-        name = "Scene Type",
-        description = "Scene type",
-        default = "stage")
 
     bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
 
