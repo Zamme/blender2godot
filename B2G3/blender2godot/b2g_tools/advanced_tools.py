@@ -58,8 +58,10 @@ class SCENES_UL_scenes_added(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon = custom_icon)
             #if item.name != "B2G_GameManager":
-            layout.prop(item, "scene_type", text="")
-            layout.prop(item, "scene_exportable")
+            if hasattr(context.scene, "scene_type"):
+                layout.prop(item, "scene_type", text="")
+                if item.scene_type != "none":
+                    layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = custom_icon)
@@ -120,9 +122,10 @@ class B2G_ToolsPanel(bpy.types.Panel):
         elif (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.name == "B2G_GameManager"):
             box1.label(text="Startup scene can't be Game Manager", icon="ERROR")
             return
-        elif (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.scene_type == "player"):
-            box1.label(text="Startup scene can't be a player", icon="ERROR")
-            return
+        elif hasattr(bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene, "scene_type"):
+            if (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.scene_type == "player"):
+                box1.label(text="Startup scene can't be a player", icon="ERROR")
+                return
 
         row = box0.row()
         row.scale_y = 2.0

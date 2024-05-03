@@ -85,46 +85,47 @@ class ScenePropertiesPanel(bpy.types.Panel):
         
         # SCENE PROPERTIES
         row = layout.row()
-        row.prop(context.scene, "scene_type")
+        if hasattr(context.scene, "scene_type"):
+            row.prop(context.scene, "scene_type")
 
-        match context.scene.scene_type:
-            case "stage":
-                # Player spawner
-                row = layout.row()
-                row.prop(context.scene, "player_spawn_empty")
-                if context.scene.player_spawn_empty == None:
+            match context.scene.scene_type:
+                case "stage":
+                    # Player spawner
                     row = layout.row()
-                    row.label(text="Select a spawn position!")
+                    row.prop(context.scene, "player_spawn_empty")
+                    if context.scene.player_spawn_empty == None:
+                        row = layout.row()
+                        row.label(text="Select a spawn position!", icon="ERROR")
 
-                # Environment Lighting
-                # Sky
-                row = layout.row()
-                box = row.box()
-                box.label(text="Environment Properties")
-                #row = layout.row()
-                box = box.box()
-                box.prop(context.scene, "sky_on")
-                row1 = box.row()
-                if context.scene.sky_on:
-                    box1 = row1.box()
-                    box1.prop(context.scene, "sky_energy")
-            
-                # ACTIVE OBJECT PROPERTIES
-                if context.active_object is not None:
+                    # Environment Lighting
+                    # Sky
                     row = layout.row()
                     box = row.box()
-                    box.label(text="Active Object")
-                    box3 = box.box()
-                    box3.label(text=context.active_object.name)
-                    box3.prop(context.active_object, "godot_exportable")
-                    if context.active_object.godot_exportable:
-                        box3.prop(context.active_object, "collider")
-            case "player":
-                pass
-            case "menu":
-                row = layout.row()
-                box = row.box()
-                box.operator("scene.create_menumanager_operator")
+                    box.label(text="Environment Properties")
+                    #row = layout.row()
+                    box = box.box()
+                    box.prop(context.scene, "sky_on")
+                    row1 = box.row()
+                    if context.scene.sky_on:
+                        box1 = row1.box()
+                        box1.prop(context.scene, "sky_energy")
+                
+                    # ACTIVE OBJECT PROPERTIES
+                    if context.active_object is not None:
+                        row = layout.row()
+                        box = row.box()
+                        box.label(text="Active Object")
+                        box3 = box.box()
+                        box3.label(text=context.active_object.name)
+                        box3.prop(context.active_object, "godot_exportable")
+                        if context.active_object.godot_exportable:
+                            box3.prop(context.active_object, "collider")
+                case "player":
+                    pass
+                case "menu":
+                    row = layout.row()
+                    box = row.box()
+                    box.operator("scene.create_menumanager_operator")
 
 
 class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
@@ -184,7 +185,7 @@ class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
 
 def init_properties():
     # Scene props
-    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="", default=False)
+    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False)
     #bpy.types.Scene.scene_type = bpy.props.IntProperty(name="Type", default=0)
 
     bpy.types.Object.collider = bpy.props.EnumProperty(

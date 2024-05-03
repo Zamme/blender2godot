@@ -145,10 +145,11 @@ class PlayerPropertiesPanel(bpy.types.Panel):
 
     @classmethod 
     def poll(self, context):
-        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
-        self._gamemanager_added = (_gm_index > -1)
-        self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
-        return (self._not_in_gamemanager and self._gamemanager_added and (context.scene.scene_type == "player"))
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                _ret = True
+        return _ret
     
     def draw_header(self, context):
         layout = self.layout
