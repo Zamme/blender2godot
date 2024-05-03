@@ -168,7 +168,11 @@ class ExportGameOperator(bpy.types.Operator):
     dict_stages_info = my_dictionary()
     
     def check_custom_icon(self, context):
-        return (imghdr.what(context.scene.game_icon) == "png")
+        _checked = False
+        if os.path.exists(context.scene.game_icon):
+            if (imghdr.what(context.scene.game_icon) == "png"):
+                _checked = True
+        return _checked
     
     def export_colliders(self, context, _scene):
         print("Exporting colliders...")

@@ -29,6 +29,14 @@ from bpy.app.handlers import persistent
 def scene_emptyobject_poll(self, object):
     return object.type == 'EMPTY'
 
+def update_scene_exportable(self, context):
+    if bpy.data.scenes[self.name].scene_type == "player":
+        print("Updating player scene exportable")
+        if bpy.data.scenes[self.name].camera_object == None:
+            if bpy.data.scenes[self.name].scene_exportable:
+                bpy.data.scenes[self.name].scene_exportable = False
+        
+
 class ColliderProperties(bpy.types.PropertyGroup):
     """ Collider properties """
     collider_options = [
@@ -75,8 +83,6 @@ class ScenePropertiesPanel(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-        blend_data = context.blend_data
         
         if not bpy.data.is_saved:       
             row = layout.row()
@@ -185,19 +191,16 @@ class SetGodotProjectEnvironmentOperator(bpy.types.Operator):
 
 def init_properties():
     # Scene props
-    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False)
-    #bpy.types.Scene.scene_type = bpy.props.IntProperty(name="Type", default=0)
+    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
+    bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
 
+    # Scene object properties
     bpy.types.Object.collider = bpy.props.EnumProperty(
         items = ColliderProperties.collider_options,
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
-
-    bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
-
-    # Scene object properties
-    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True)
+    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE
 
     # Scene Environment properties
     bpy.types.Scene.sky_on = bpy.props.BoolProperty(name="Sky", default=True)

@@ -31,6 +31,9 @@ def scene_camera_object_poll(self, object):
 def scene_player_object_poll(self, object):
     return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'MESH' or object.type == 'ARMATURE'))
 
+def camera_update(self, context):
+    context.scene.scene_exportable = (context.scene.camera_object != None)  
+
 def controls_update(self, context):
     _template_path = ""
     _template_properties_path = ""
@@ -223,7 +226,7 @@ def init_properties():
 
     bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
     bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
-    bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll)
+    bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll, update=camera_update)
     bpy.types.Scene.player_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Object", description="Player Object", poll=scene_player_object_poll)
     bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0, min=1.0, max=180.0)
     bpy.types.Scene.player_animation_sel = bpy.props.IntProperty(name="Player Selected Animation", default=0)

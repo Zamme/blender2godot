@@ -100,12 +100,15 @@ class Blender2GodotPanel(bpy.types.Panel):
             box.label(text="Main Config:")
             row = box.row()
             box = box.box()        
-            box.prop(scene, "godot_executable", icon="FILE")
             if not bpy.data.is_saved:
                 box1 = box.box()     
                 box1.label(text="Save blend file to continue", icon="ERROR")
                 row2 = box1.row()
-                row2.operator("scene.saveblendfile_operator", text="Save File")	
+                row2.operator("scene.saveblendfile_operator", text="Save File")
+            else:
+                box.prop(scene, "godot_executable", icon="FILE")
+                if not os.path.exists(scene.godot_executable):
+                    box.label(text="This executable does not exist!", icon="ERROR")
 
 def register():
     init_properties()

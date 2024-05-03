@@ -29,7 +29,7 @@ from bpy.app.handlers import persistent
 
 @persistent
 def load_handler(dummy):
-    print("Load Handler:", bpy.data.filepath)
+    #print("Load Handler:", bpy.data.filepath)
     bpy.ops.scene.update_current_template_operator()
 
 def get_project_templates(self, context):
@@ -109,8 +109,7 @@ def update_current_template(self, context):
         update=update_scene_exportable)
 
 def update_game_folder(self, context):
-    #context.scene.game_folder = context.scene
-    pass
+    context.scene.game_folder = bpy.path.abspath("//")
 
 class TemplateKey(bpy.types.PropertyGroup):
     value : bpy.props.StringProperty(name="Requirement key") # type: ignore
@@ -253,7 +252,9 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         # Project properties box
         box1 = row0.box()
         box1.prop(scene, "game_name", icon="TEXT")
-        box1.prop(scene, "game_folder", icon="FILE_FOLDER")
+        if len(scene.game_name) == 0:
+            box1.label(text="Give a name to your game!", icon="ERROR")
+        #box1.prop(scene, "game_folder", icon="FILE_FOLDER")
         box1.prop(scene, "game_icon", icon="IMAGE")
         if not scene.game_icon.endswith(".png"):
             box1.label(text="Icon must be a png image!")
