@@ -25,10 +25,9 @@ import bpy
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
-        self.layout.label(text="Errors detected!", icon="CANCEL")
         for _error in message:
            self.layout.label(text=_error, icon="ERROR")
-    bpy.context.window_manager.popup_menu(draw)
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 class ExportProjectToGodotOperator(bpy.types.Operator):
     """Export Project To Godot Operator"""
@@ -46,10 +45,14 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     def check_conditions(self, context):
         self._errors = []
+
+        _tr = context.scene.current_template_requirements.template_requirements
+
+        # Check game name
         if context.scene.game_name == "":
             self._errors.append("Game name not set")
+        # Check minimum scenes
         _min_scenes = []
-        _tr = context.scene.current_template_requirements.template_requirements
         for _reqs in _tr:
             print("Searching in:", _reqs.name)
             if _reqs.name == "project_export":
@@ -62,8 +65,26 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                     _min_scenes.remove(_scene.scene_type)
         if len(_min_scenes) > 0:
             for _min_scene in _min_scenes:
-                _lack = _min_scene.capitalize() + " scene type needed"
+                _lack = _min_scene.capitalize() + " type scene needed"
                 self._errors.append(_lack)
+        # Check one exportable player only
+        players_amount = 0
+        for _reqs in _tr:
+            print("Searching in:", _reqs.name)
+            if _reqs.name == "players_amount":
+                players_amount = int(_reqs.requirements[0].value)
+                print("Players amount:", players_amount)
+        for _scene in bpy.data.scenes:
+            if _scene.name == self.name:
+                        pass
+            else:
+                if _scene.scene_type == "player":
+                    if _scene.scene_exportable:
+                        players_amount -= 1
+        if players_amount > 0:
+            self._errors.append("Need more exportable players")
+        elif players_amount < 0:
+            self._errors.append("Too many exportable players")
         return self._errors
 
     def execute(self, context):
@@ -78,7 +99,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             bpy.ops.scene.open_godot_project_operator()
             print("Project exported!")
         else:
-            show_error_popup(self._errors)
+            show_error_popup(self._errors, "Errors detected", "CANCEL")
         return {'FINISHED'}
 
 

@@ -252,7 +252,6 @@ class GameExportPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        blend_data = context.blend_data
         
         if not bpy.data.is_saved:       
             return
@@ -261,35 +260,37 @@ class GameExportPanel(bpy.types.Panel):
         row = layout.row()
         box1 = row.box()
         box2 = box1.box()
-        box2.label(text="Export platforms:")
-        box2.label(text="Be sure that godot export templates are installed!", icon="QUESTION")
-        box2.prop(scene, "linux_export")
-        box2.prop(scene, "windows_export")
-        box2.prop(scene, "mac_export")
-        box2.prop(scene, "web_export")
-        box2.prop(scene, "android_export")
-        if scene.android_export:
-            box3 = box2.box()
-            box3.prop(scene, "android_sdk_dirpath")
-            box3.operator("wm.url_open", text="Help with Android SDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-            box3.prop(scene, "android_jdk_dirpath")
-            box3.operator("wm.url_open", text="Help with JDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-            box3.prop(scene, "android_debug_keystore_filepath")
-            box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-        row = box2.row()
-        row.alignment="CENTER"
-        row.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
-            
-        # Build game button
-        row = box1.row()
-        row.scale_y = 2.0
-        row.operator("scene.build_game_operator", icon="MOD_BUILD")
+        if os.path.exists(scene.project_folder):
+            box2.label(text="Export platforms:")
+            box2.label(text="Be sure that godot export templates are installed!", icon="QUESTION")
+            box2.prop(scene, "linux_export")
+            box2.prop(scene, "windows_export")
+            box2.prop(scene, "mac_export")
+            box2.prop(scene, "web_export")
+            box2.prop(scene, "android_export")
+            if scene.android_export:
+                box3 = box2.box()
+                box3.prop(scene, "android_sdk_dirpath")
+                box3.operator("wm.url_open", text="Help with Android SDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
+                box3.prop(scene, "android_jdk_dirpath")
+                box3.operator("wm.url_open", text="Help with JDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
+                box3.prop(scene, "android_debug_keystore_filepath")
+                box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
+            row = box2.row()
+            row.alignment="CENTER"
+            row.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
+                
+            # Build game button
+            row = box1.row()
+            row.scale_y = 2.0
+            row.operator("scene.build_game_operator", icon="MOD_BUILD")
 
-        # Open folders buttons
-        row = box1.row()
-        row.alignment="CENTER"
-        row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
-
+            # Open folders buttons
+            row = box1.row()
+            row.alignment="CENTER"
+            row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
+        else:
+            box2.label(text="Export to Godot before", icon="ERROR")
 
 class CompileSelectedVersionsOperator(bpy.types.Operator):
     bl_idname = "scene.compile_selected_versions_operator"

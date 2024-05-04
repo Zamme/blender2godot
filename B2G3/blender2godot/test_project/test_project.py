@@ -21,6 +21,7 @@ Testing game actions
 """
 
 import subprocess
+import os
 
 import bpy
 
@@ -54,7 +55,7 @@ class TestGamePanel(bpy.types.Panel):
     
     @classmethod 
     def poll(self, context):
-        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved))
+        return ((context.scene.name == context.scene.gamemanager_scene_name) and (bpy.data.is_saved) )
     
     def draw_header(self, context):
         layout = self.layout
@@ -72,7 +73,10 @@ class TestGamePanel(bpy.types.Panel):
         row.scale_y = 3.0
         row.alignment="CENTER"
         box = row.box()
-        box.operator("scene.test_game_operator", icon_value=495)
+        if os.path.exists(context.scene.project_folder):
+            box.operator("scene.test_game_operator", icon="PLAY")
+        else:
+            box.label(text="Export to godot before testing", icon="ERROR")
 
 
 def register():

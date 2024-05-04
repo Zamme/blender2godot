@@ -26,6 +26,12 @@ import bpy
 from bpy.app.handlers import persistent
 
 
+def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
+    def draw(self, context):
+        for _error in message:
+           self.layout.label(text=_error, icon="ERROR")
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
 def scene_emptyobject_poll(self, object):
     return object.type == 'EMPTY'
 
@@ -35,7 +41,18 @@ def update_scene_exportable(self, context):
         if bpy.data.scenes[self.name].camera_object == None:
             if bpy.data.scenes[self.name].scene_exportable:
                 bpy.data.scenes[self.name].scene_exportable = False
-        
+                show_error_popup(["Set camera object in player"], "Error detected", "CANCEL")
+        '''
+        else:
+            if bpy.data.scenes[self.name].scene_exportable:
+                for _scene in bpy.data.scenes:
+                    if _scene.name == self.name:
+                        pass
+                    else:
+                        if _scene.scene_type == "player":
+                            _scene.scene_exportable = False
+                            show_error_popup(["Only one exportable player"], "Error detected", "CANCEL")
+        '''
 
 class ColliderProperties(bpy.types.PropertyGroup):
     """ Collider properties """

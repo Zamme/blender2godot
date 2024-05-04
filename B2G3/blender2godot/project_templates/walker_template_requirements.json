@@ -16,5 +16,11 @@
   {
     "id": "game_export",
     "value": []
+  },
+  {
+    "id": "players_amount",
+    "value": [
+      "1"
+    ]
   }
 ]
