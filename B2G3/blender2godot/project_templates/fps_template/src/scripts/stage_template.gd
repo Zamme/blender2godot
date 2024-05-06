@@ -51,17 +51,24 @@ var matrix_offset : Vector3
 
 var lights_to_remove_from_scene = []
 
+var quit_timer : Timer
+
 
 func _ready():
 	if Engine.editor_hint:
 		print("Stage template present!")
-		if get_child_count() == 0:
+		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
 			if !self.mount_scenes():
 				return
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
-#			yield(get_tree(),"idle_frame")
-#			get_tree().quit()
+			yield(get_tree(),"idle_frame")
+#			quit_timer = Timer.new()
+#			quit_timer.a
+			yield(get_tree().create_timer(2.0), "timeout")
+#			add_child(quit_timer)
+#			quit_timer.start(3.0)
+			get_tree().quit()
 		else:
 			self.update_scene() # TODO
 	else:

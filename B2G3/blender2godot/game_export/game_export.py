@@ -290,7 +290,7 @@ class GameExportPanel(bpy.types.Panel):
             row.alignment="CENTER"
             row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
         else:
-            box2.label(text="Export to Godot before", icon="ERROR")
+            box2.label(text="Export to Godot project before build game", icon="ERROR")
 
 class CompileSelectedVersionsOperator(bpy.types.Operator):
     bl_idname = "scene.compile_selected_versions_operator"

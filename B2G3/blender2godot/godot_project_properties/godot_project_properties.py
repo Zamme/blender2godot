@@ -122,107 +122,6 @@ class TemplateStruct(bpy.types.PropertyGroup):
     template_name : bpy.props.StringProperty(name="Template name") # type: ignore
     template_requirements : bpy.props.CollectionProperty(type=TemplateRequirements) # type: ignore
 
-class AreYouSureDeletingOperator(bpy.types.Operator):
-    """Really?"""
-    bl_idname = "scene.are_you_sure_deleting_operator"
-    bl_label = "Are you sure?"
-    
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def execute(self, context):
-        bpy.ops.scene.delete_project_operator()
-        self.report({'INFO'}, "Project deleted!")
-        print("Project deleted.")
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event)
-
-class CreateGodotProjectOperator(bpy.types.Operator):
-    """Create Godot Project Operator"""
-    bl_idname = "scene.create_godot_project_operator"
-    bl_label = "Create Project"
-    
-    project_file = None
-    godot_project_template_path = ""
-    
-    def add_initial_files(self, context):
-        if os.path.isdir(context.scene.project_folder):
-            print("Folder exists...")
-        else:
-            print("Creating project tree from template...")
-            shutil.copytree(self.godot_project_template_path, context.scene.project_folder)
-            print("Godot project tree created.")
-    
-    def find_project_template_dir_path(self, context):
-        possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template),
-        os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template)]
-        for p_path in possible_paths:
-            if os.path.isdir(p_path):
-                self.godot_project_template_path = p_path
-        print("Godot project template directory:", self.godot_project_template_path)
-           
-    def main(self, context):
-        context.scene.game_folder = bpy.path.abspath("//")
-        self.find_project_template_dir_path(context)
-        context.scene.project_folder = os.path.join(context.scene.game_folder, context.scene.game_name + "_Game")
-        self.add_initial_files(context)
-
-    def execute(self, context):
-        self.main(context)
-        return {'FINISHED'}
-
-class DeleteProjectButtonOperator(bpy.types.Operator): # TODO: PENDING TO FIX PATHS!
-    """Delete Project Button Operator"""
-    bl_idname = "scene.delete_project_button_operator"
-    bl_label = "Delete Project"
-    
-    def delete_project(self, context):
-        if os.path.isdir(context.scene.project_folder):
-            print("Deleting project...", context.scene.project_folder)
-            bpy.ops.scene.are_you_sure_deleting_operator()
-            print("Project deleted")
-        else:
-            print("Project not found.")
-    
-    def main(self, context):
-        context.scene.game_folder = bpy.path.abspath("//")
-        context.scene.project_folder = os.path.join(context.scene.game_folder, context.scene.game_name + "_Game")
-        self.delete_project(context)        
-
-    def execute(self, context):
-        self.main(context)
-        return {'FINISHED'}
-
-class DeleteProjectOperator(bpy.types.Operator):
-    """Delete Project Operator"""
-    bl_idname = "scene.delete_project_operator"
-    bl_label = "Delete Project"
-    
-    def delete_project(self, context):
-        if os.path.isdir(context.scene.project_folder):
-            print("Deleting project...", context.scene.project_folder)
-            shutil.rmtree(context.scene.project_folder)
-            print("Project deleted")
-        else:
-            print("Project not found.")
-        executables_path = os.path.join(context.scene.game_folder, "builds")
-        if os.path.isdir(executables_path):
-            print("Deleting executables...", executables_path)
-            shutil.rmtree(executables_path)
-            print("Executables deleted")
-        else:
-            print("Executables not found.")
-    
-    def main(self, context):
-        self.delete_project(context)        
-
-    def execute(self, context):
-        self.main(context)
-        return {'FINISHED'}
-
 class GodotProjectPropertiesPanel(bpy.types.Panel):
     """Godot Project Properties Panel"""
     bl_label = "Godot Project Properties"
@@ -308,17 +207,9 @@ def register():
     bpy.utils.register_class(TemplateRequirements)
     bpy.utils.register_class(TemplateStruct)
     init_properties()
-    bpy.utils.register_class(DeleteProjectButtonOperator)
-    bpy.utils.register_class(AreYouSureDeletingOperator)
-    bpy.utils.register_class(DeleteProjectOperator)
-    bpy.utils.register_class(CreateGodotProjectOperator)
     bpy.utils.register_class(GodotProjectPropertiesPanel)
 
 def unregister():
-    bpy.utils.unregister_class(DeleteProjectButtonOperator)
-    bpy.utils.unregister_class(AreYouSureDeletingOperator)
-    bpy.utils.unregister_class(DeleteProjectOperator)
-    bpy.utils.unregister_class(CreateGodotProjectOperator)
     bpy.utils.unregister_class(GodotProjectPropertiesPanel)
     clear_properties()
     bpy.utils.unregister_class(TemplateStruct)

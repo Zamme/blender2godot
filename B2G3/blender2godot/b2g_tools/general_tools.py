@@ -96,7 +96,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             print("Exporting to godot project...")
             bpy.ops.scene.create_godot_project_operator()
             bpy.ops.scene.export_game_operator()
-            bpy.ops.scene.open_godot_project_operator()
+            bpy.ops.scene.open_godot_project_operator(no_window = True)
             print("Project exported!")
         else:
             show_error_popup(self._errors, "Errors detected", "CANCEL")

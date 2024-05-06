@@ -71,9 +71,9 @@ class TestGamePanel(bpy.types.Panel):
         # Test game button
         row = layout.row()
         row.scale_y = 3.0
-        row.alignment="CENTER"
         box = row.box()
         if os.path.exists(context.scene.project_folder):
+            row.alignment="CENTER"
             box.operator("scene.test_game_operator", icon="PLAY")
         else:
             box.label(text="Export to godot before testing", icon="ERROR")
