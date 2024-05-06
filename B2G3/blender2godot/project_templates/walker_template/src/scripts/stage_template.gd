@@ -63,11 +63,10 @@ func _ready():
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
 			yield(get_tree(),"idle_frame")
-#			quit_timer = Timer.new()
-#			quit_timer.a
 			yield(get_tree().create_timer(2.0), "timeout")
-#			add_child(quit_timer)
-#			quit_timer.start(3.0)
+			yield(get_tree(),"idle_frame")
+			push_warning("StageTemplateDone")
+			yield(get_tree(),"idle_frame")
 			get_tree().quit()
 		else:
 			self.update_scene() # TODO

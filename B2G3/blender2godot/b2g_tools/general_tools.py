@@ -21,6 +21,7 @@ Building utils for exporting to different platforms
 """
 
 import bpy
+from bpy.types import Context
 
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
@@ -35,6 +36,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     bl_label = "Export To Godot"
     
     _errors = []
+    _last_export_state = False
 
     @classmethod 
     def poll(self, context):
@@ -86,7 +88,35 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         elif players_amount < 0:
             self._errors.append("Too many exportable players")
         return self._errors
+        
+        '''
+    def modal(self, context, event):
+        return {'PASS_THROUGH'}
+    
+    def invoke(self, context, event):
+            return {'CANCELLED'}
+            return {'RUNNING_MODAL'}
+        else:
+            self.report({'WARNING'}, "No active object, could not finish")
+            return {'CANCELLED'}
+        '''
 
+    def cancel(self, context):
+        context.scene.godot_export_ok = self._last_export_state
+        context.scene.godot_exporting = False
+        return {'CANCELLED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="Godot project will be overwritten", icon="ERROR")
+    
+    def invoke(self, context, event):
+        self._last_export_state = context.scene.godot_export_ok
+        context.scene.godot_export_ok = False
+        context.scene.godot_exporting = True
+        return context.window_manager.invoke_props_dialog(self)
+    
     def execute(self, context):
         checked_errors = self.check_conditions(context)
         if len(checked_errors) == 0:
@@ -97,7 +127,6 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             bpy.ops.scene.create_godot_project_operator()
             bpy.ops.scene.export_game_operator()
             bpy.ops.scene.open_godot_project_operator(no_window = True)
-            print("Project exported!")
         else:
             show_error_popup(self._errors, "Errors detected", "CANCEL")
         return {'FINISHED'}

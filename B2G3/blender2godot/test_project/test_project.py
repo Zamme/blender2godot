@@ -72,7 +72,7 @@ class TestGamePanel(bpy.types.Panel):
         row = layout.row()
         row.scale_y = 3.0
         box = row.box()
-        if os.path.exists(context.scene.project_folder):
+        if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
             row.alignment="CENTER"
             box.operator("scene.test_game_operator", icon="PLAY")
         else:

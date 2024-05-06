@@ -260,7 +260,7 @@ class GameExportPanel(bpy.types.Panel):
         row = layout.row()
         box1 = row.box()
         box2 = box1.box()
-        if os.path.exists(scene.project_folder):
+        if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
             box2.label(text="Export platforms:")
             box2.label(text="Be sure that godot export templates are installed!", icon="QUESTION")
             box2.prop(scene, "linux_export")

@@ -40,6 +40,12 @@ class my_dictionary(dict):
     def add(self, key, value): 
         self[key] = value 
 
+def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
+    def draw(self, context):
+        for _error in message:
+           self.layout.label(text=_error, icon="ERROR")
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
 class SCENES_UL_scenes_added(bpy.types.UIList):
     def filter_items(self, context, data, propname):
         _scenes = getattr(data, propname)
@@ -244,7 +250,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
             box2 = row2.box()
             # Create project button
             box2.operator("scene.create_godot_project_operator", icon="PRESET_NEW")
-            if os.path.isdir(context.scene.project_folder):
+            if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
                 # Delete project button
                 box2.operator(AreYouSureDeletingOperator.bl_idname, icon="TRASH")
                 # Open godot project button
@@ -503,6 +509,7 @@ class ExportGameOperator(bpy.types.Operator):
 
     def execute(self, context):
         self.main(context)
+        print("Project exported!")
         return {'FINISHED'}
 
 
@@ -514,18 +521,38 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
     
 
     no_window : bpy.props.BoolProperty(name="no_window", default=False)
-    _no_window_parameter = ""
 
     def execute(self, context):
         print("Opening godot project...")
+        _no_window_parameter = ""
         if self.no_window:
-            self._no_window_parameter = "--no-window"
+            _no_window_parameter = "--no-window"
         # TODO: Pending to fix zombie processes
-        self.cmd = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--editor", self._no_window_parameter, "--path", context.scene.project_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+        try:
+            self.cmd = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--editor", _no_window_parameter, "--path", context.scene.project_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except:
+            print("Godot executable error!")
+            self.report({'INFO'}, "Godot executable error")
+            context.scene.godot_export_ok = False
+            context.scene.godot_exporting = False
+            show_error_popup(["Godot executable error"], "Errors detected", "CANCEL")
+            return {'FINISHED'}
+        stdout, stderr = self.cmd.communicate()
+        print("STDOUT:", stdout)
+        print("STDERR:", stderr)
+        if stdout.find("Godot Engine v3") < 0:
+            print("Godot executable path is not correct")
+            context.scene.godot_export_ok = False
+            context.scene.godot_exporting = False
+            show_error_popup(["Godot executable path is not correct"], "Errors detected", "CANCEL")
+        if stdout.find("StageTemplateDone"):
+            context.scene.godot_export_ok = True
+            context.scene.godot_exporting = False
         return {'FINISHED'}
 
 def init_properties():
+    bpy.types.Scene.godot_export_ok = bpy.props.BoolProperty(name="Godot Expot OK", default=False)
+    bpy.types.Scene.godot_exporting = bpy.props.BoolProperty(name="Godot Exporting", default=False)
     bpy.types.Scene.scenes_added_index = bpy.props.IntProperty(name = "Index for my_list", default = 0)
     bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene")
     # Panels checkboxes
