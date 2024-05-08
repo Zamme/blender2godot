@@ -87,6 +87,10 @@ class Blender2GodotPanel(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
+        if context.scene.is_game_exporting:
+            layout.enabled = False
+        else:
+            layout.enabled = True
         scene = context.scene
         blend_data = context.blend_data
         if not self._gamemanager_added:

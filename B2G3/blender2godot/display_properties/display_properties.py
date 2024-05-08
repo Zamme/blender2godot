@@ -51,6 +51,11 @@ class DisplayPropertiesPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
 
+        if context.scene.is_game_exporting:
+            layout.enabled = False
+        else:
+            layout.enabled = True
+
         row0 = layout.row()
         box0 = row0.box()
         box0.label(text="Resolution:")

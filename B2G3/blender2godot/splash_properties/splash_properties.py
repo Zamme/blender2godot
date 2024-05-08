@@ -51,6 +51,11 @@ class SplashPropertiesPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
 
+        if context.scene.is_game_exporting:
+            layout.enabled = False
+        else:
+            layout.enabled = True
+
         row = layout.row()
         box1 = row.box()
         # Splash properties box

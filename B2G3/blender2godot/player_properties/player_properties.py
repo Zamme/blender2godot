@@ -225,7 +225,7 @@ def init_properties():
         default = "none")
 
     bpy.types.Scene.player_gravity_on = bpy.props.BoolProperty(name="Gravity", default=True)
-    bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Inverted", default=True)
+    bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Y Inverted", default=True)
     bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll, update=camera_update)
     bpy.types.Scene.player_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Object", description="Player Object", poll=scene_player_object_poll)
     bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0, min=1.0, max=180.0)

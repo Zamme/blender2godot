@@ -47,6 +47,10 @@ class OpenGodotBuildsFolderOperator(bpy.types.Operator):
     bl_idname = "scene.open_godot_builds_folder_operator"
     bl_label = "Open Godot Builds Folder"
 
+    @classmethod 
+    def poll(self, context):
+        return os.path.isdir(context.scene.game_exports_path)
+        
     def main(self, context):
         print("Open folder")
         bpy.ops.wm.path_open(filepath=context.scene.game_exports_path)     
@@ -311,7 +315,8 @@ class GameExportPanel(bpy.types.Panel):
                 box3.operator("wm.url_open", text="Help with JDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
                 box3.prop(scene, "android_debug_keystore_filepath")
                 box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-                
+            box7.enabled = False # TODO: Android export disabled
+
             # Build game button
             row = box1.row()
             row.scale_y = 2.0
@@ -437,6 +442,8 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
     def modal(self, context, event):
         if self.all_compiled == True:
             print("Processes completed")
+            context.window.cursor_set(cursor="DEFAULT")
+            context.window.cursor_modal_restore()
             context.scene.is_game_exporting = False
             return {'FINISHED'}
         
@@ -458,10 +465,14 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
         else:
             self.all_compiled = True
             print("Processes completed")
+            context.window.cursor_set(cursor="DEFAULT")
+            context.window.cursor_modal_restore()
             context.scene.is_game_exporting = False
             return {'FINISHED'}
 
     def invoke(self, context, event):
+        context.window.cursor_set(cursor="WAIT")
+        context.window.cursor_modal_set(cursor="WAIT")
         context.scene.is_game_exporting = True
         self.all_compiled = False
         self.process = None

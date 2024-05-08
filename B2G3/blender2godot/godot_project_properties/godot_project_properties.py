@@ -147,6 +147,11 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
 
+        if context.scene.is_game_exporting:
+            layout.enabled = False
+        else:
+            layout.enabled = True
+
         row0 = layout.row()
         # Project properties box
         box1 = row0.box()
