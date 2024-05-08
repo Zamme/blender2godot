@@ -23,8 +23,10 @@ Building utils for exporting to different platforms
 import os
 import subprocess
 import time
+from typing import Set
 
 import bpy
+from bpy.types import Context
 
 
 class OpenGodotProjectFolderOperator(bpy.types.Operator):
@@ -169,6 +171,7 @@ class BuildGameOperator(bpy.types.Operator):
         self.export_presets_filepath = os.path.join(context.scene.project_folder, "export_presets.cfg")
         self.add_selected_export_presets(context)
         print("Compiling...")
+        #bpy.ops.scene.compile_selected_versions_operator()
         bpy.ops.scene.compile_selected_versions_operator('INVOKE_DEFAULT')
         
     def config_presets(self, context):
@@ -276,15 +279,30 @@ class GameExportPanel(bpy.types.Panel):
         # Export platforms box
         row = layout.row()
         box1 = row.box()
+        box1.alignment = "CENTER"
         box2 = box1.box()
+        box2.alignment = "LEFT"
         if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
             box2.label(text="Export platforms:")
             box2.label(text="Be sure that godot export templates are installed!", icon="QUESTION")
-            box2.prop(scene, "linux_export")
-            box2.prop(scene, "windows_export")
-            box2.prop(scene, "mac_export")
-            box2.prop(scene, "web_export")
-            box2.prop(scene, "android_export")
+            row1 = box2.row()
+            row1.alignment = "LEFT"
+            grid1 = row1.grid_flow()
+            box3 = grid1.box()
+            box3.alignment = "LEFT"
+            box3.prop(scene, "linux_export")
+            box4 = grid1.box()
+            box4.alignment = "LEFT"
+            box4.prop(scene, "windows_export")
+            box5 = grid1.box()
+            box5.alignment = "LEFT"
+            box5.prop(scene, "mac_export")
+            box6 = grid1.box()
+            box6.alignment = "LEFT"
+            box6.prop(scene, "web_export")
+            box7 = grid1.box()
+            box7.alignment = "LEFT"
+            box7.prop(scene, "android_export")
             if scene.android_export:
                 box3 = box2.box()
                 box3.prop(scene, "android_sdk_dirpath")
@@ -293,9 +311,6 @@ class GameExportPanel(bpy.types.Panel):
                 box3.operator("wm.url_open", text="Help with JDK").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
                 box3.prop(scene, "android_debug_keystore_filepath")
                 box3.operator("wm.url_open", text="Help with Debug Keystore").url = "https://www.zammedev.com/home/wip_projects/blender2godot"
-            row = box2.row()
-            row.alignment="CENTER"
-            row.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
                 
             # Build game button
             row = box1.row()
@@ -303,12 +318,20 @@ class GameExportPanel(bpy.types.Panel):
             row.operator_context = "INVOKE_DEFAULT"
             row.operator("scene.build_game_operator", icon="MOD_BUILD")
 
+            # Godot Templates Link
+            row2 = box1.row()
+            row2.alignment="CENTER"
+            row2.operator("wm.url_open", text="Godot export templates link", icon="URL").url = "https://www.zammedev.com/home/wip_projects/blender2godot#h.z8i36npe1lzc"
+
             # Open folders buttons
-            row = box1.row()
-            row.alignment="CENTER"
-            row.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
+            row2.operator("scene.open_godot_builds_folder_operator", icon="FOLDER_REDIRECT")
         else:
             box2.label(text="Export to Godot project before build game", icon="ERROR")
+        if context.scene.is_game_exporting:
+            box1.enabled = False
+            box2.label(text="Exporting game ...")
+        else:
+            box1.enabled = True
 
 class CompileSelectedVersionsOperator(bpy.types.Operator):
     bl_idname = "scene.compile_selected_versions_operator"
@@ -341,7 +364,8 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
                 os.mkdir(context.scene.linux_exports_path)
             print("Linux version...OK")
             context.scene.linux_exe_filepath = os.path.join(context.scene.linux_exports_path, context.scene.game_name)
-            self.process = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--no-window", "--path", context.scene.project_folder, "--export", "Linux/X11", context.scene.linux_exe_filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.process = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "-v", "--no-window", "--path", context.scene.project_folder, "--export", "Linux/X11", context.scene.linux_exe_filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #print("STDOUT:", self.process.stdout)
             print("Linux version exported at :", context.scene.linux_exports_path)
         elif context.scene.current_version_compiling == "Windows":
             #bpy.ops.b2g_message.messagebox(message="Compiling Windows Version ...")
@@ -350,7 +374,7 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
             print("Windows version...OK")
             context.scene.windows_exe_filepath = os.path.join(context.scene.windows_exports_path, context.scene.game_name)
             context.scene.windows_exe_filepath = context.scene.windows_exe_filepath + ".exe"
-            self.process = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--no-window", "--path", context.scene.project_folder, "--export", "Windows Desktop", context.scene.windows_exe_filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.process = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "-v", "--no-window", "--path", context.scene.project_folder, "--export", "Windows Desktop", context.scene.windows_exe_filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print("Windows version exported at :", context.scene.windows_exports_path)
         elif context.scene.current_version_compiling == "Mac":
             #bpy.ops.b2g_message.messagebox(message="Compiling Mac Version ...")
@@ -389,9 +413,31 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
             self.pending_platforms.append(self.available_platforms[4])
         print("Pending versions: ", self.pending_platforms)
 
+    '''
+    def execute(self, context):
+        self.all_compiled = False
+        self.process = None
+        self.create_builds_folder(context)
+        self.set_pending_platforms(context)
+        while (len(self.pending_platforms) > 0):
+            if self.process is None:
+                print("Process None")
+                context.scene.current_version_compiling = self.pending_platforms.pop()
+                self.compile_exe(context)
+            else:
+                if self.process.poll() == 0:
+                    print("Process Next")
+                    context.scene.current_version_compiling = self.pending_platforms.pop()
+                    self.compile_exe(context)
+        self.all_compiled = True
+        print("Processes completed")
+        return {'FINISHED'}
+    '''
+
     def modal(self, context, event):
         if self.all_compiled == True:
             print("Processes completed")
+            context.scene.is_game_exporting = False
             return {'FINISHED'}
         
         if event.type == "ESC":
@@ -412,9 +458,11 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
         else:
             self.all_compiled = True
             print("Processes completed")
+            context.scene.is_game_exporting = False
             return {'FINISHED'}
 
     def invoke(self, context, event):
+        context.scene.is_game_exporting = True
         self.all_compiled = False
         self.process = None
         self.create_builds_folder(context)
@@ -422,8 +470,6 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
         #self.execute(context)
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
-    
-        print("Processes Finished")
 
 class ExportConfirmDailogBoxOperator(bpy.types.Operator):
     bl_idname = "b2g_message.export_confirm_dialogbox"
@@ -433,14 +479,14 @@ class ExportConfirmDailogBoxOperator(bpy.types.Operator):
         name = "b2g_message",
         description = "message",
         default = ''
-    )
+    ) # type: ignore
  
     _platforms_array = []
     _platforms_string = ""
 
     def execute(self, context):
         context.scene.export_action_confirmed = True
-        bpy.ops.b2g_message.export_state_dialogbox('INVOKE_DEFAULT')
+        #bpy.ops.b2g_message.export_state_dialogbox('INVOKE_DEFAULT')
         return {'FINISHED'}
  
     def invoke(self, context, event):
@@ -473,7 +519,7 @@ class ExportConfirmDailogBoxOperator(bpy.types.Operator):
         box0.label(text="Platforms", icon="INFO")
         box1 = box0.box()
         box1.label(text=self._platforms_string)
-        box0.label(text="Are you sure? All past builds will be deleted.", icon="ERROR")
+        box0.label(text="Are you sure? Past builds will be overwritten.", icon="ERROR")
 
 class ExportStateDailogBoxOperator(bpy.types.Operator):
     bl_idname = "b2g_message.export_state_dialogbox"
@@ -520,6 +566,7 @@ class CompilingStateMessageBoxOperator(bpy.types.Operator):
 '''
 def init_properties():
     bpy.types.Scene.export_action_confirmed = bpy.props.BoolProperty("ExportActionConfirmed", default=False)
+    bpy.types.Scene.is_game_exporting = bpy.props.BoolProperty("Is Game Exporting", default=False)
     # Export vars
     # Checkboxes
     bpy.types.Scene.android_export = bpy.props.BoolProperty(name="Android", default=False)
