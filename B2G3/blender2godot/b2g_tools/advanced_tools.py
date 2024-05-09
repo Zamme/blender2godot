@@ -255,6 +255,7 @@ class ExportGameOperator(bpy.types.Operator):
     dict_lights_info = my_dictionary()
     dict_godot_project_settings = my_dictionary()
     dict_stages_info = my_dictionary()
+    dict_menus_info = my_dictionary()
     
     def check_custom_icon(self, context):
         _checked = False
@@ -288,6 +289,7 @@ class ExportGameOperator(bpy.types.Operator):
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
         _sc_index = 0
+        _menu_index = 0
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
                 _sc = bpy.data.scenes[_sc_added.name]
@@ -310,9 +312,28 @@ class ExportGameOperator(bpy.types.Operator):
                     case "player":
                         self.export_player_info(context, _sc)
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                    case "menu":
+                        _temp_dict = my_dictionary()
+                        _temp_dict.add("MenuName", _sc_added.name)
+                        if not _sc_added.menu_camera_object:
+                            _temp_dict.add("MenuCameraObjectDict", my_dictionary())
+                        else:
+                            _cam_dict = my_dictionary()
+                            _cam_dict.add("MenuCameraObjectName", _sc_added.menu_camera_object.name)
+                            _cam_dict.add("Position", {"PosX" : _sc_added.menu_camera_object.location.x,
+                                                         "PosY" : _sc_added.menu_camera_object.location.y,
+                                                         "PosZ" : _sc_added.menu_camera_object.location.z})
+                            _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
+                                                         "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
+                                                         "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
+                            _temp_dict.add("MenuCameraObjectDict", _cam_dict)
+                        self.dict_menus_info.add(_menu_index, _temp_dict)
+                        _menu_index += 1
         #bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_menus_info(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_icon(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -327,6 +348,7 @@ class ExportGameOperator(bpy.types.Operator):
         # Config name
         self.dict_godot_project_settings.add("application/config/name", context.scene.game_name)
         # Startup scene
+        self.dict_godot_project_settings.add("startup_scene_type", context.scene.startup_scene.scene_type)
         self.dict_godot_project_settings.add("application/run/main_scene", context.scene.startup_scene.name)
         # Display settings
         self.dict_godot_project_settings.add("display/window/size/width", context.scene.display_width)
@@ -399,6 +421,13 @@ class ExportGameOperator(bpy.types.Operator):
         with open(self.lights_info_filepath, 'w') as outfile:
             outfile.write(self.data_lights + '\n')
     
+    def export_menus_info(self, context):
+        self.find_menus_info_file_path(context)
+        self.data_menus_info = json.dumps(self.dict_menus_info, indent=1, ensure_ascii=True)
+        with open(self.menus_info_filepath, 'w') as outfile:
+            outfile.write(self.data_menus_info + '\n')   
+
+
     def export_player_info(self, context, _player_scene):
         print("Exporting player...")
         self.find_player_info_file_path(context)
@@ -468,7 +497,11 @@ class ExportGameOperator(bpy.types.Operator):
 
     def find_stages_info_file_path(self, context):
         self.stages_info_filepath = os.path.join(context.scene.project_folder, "stages_info", "stages_info.json")
-        print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
+        print("Godot stages settings info json filepath:", self.stages_info_filepath)
+
+    def find_menus_info_file_path(self, context):
+        self.menus_info_filepath = os.path.join(context.scene.project_folder, "menus_info", "menus_info.json")
+        print("Godot menus settings info json filepath:", self.menus_info_filepath)
 
     def fix_objects_names(self, context):
         print("Fixing objects names...(Godot can't use dots and other signs!)")

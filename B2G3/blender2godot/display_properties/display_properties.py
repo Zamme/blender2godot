@@ -46,7 +46,6 @@ class DisplayPropertiesPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        blend_data = context.blend_data
         
         if not bpy.data.is_saved:       
             return

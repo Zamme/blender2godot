@@ -23,6 +23,12 @@ For menus
 import bpy
 
 
+def button_scene_object_poll(self, scene):
+    return (scene.name != "B2G_GameManager")
+
+def scene_camera_object_poll(self, object):
+    return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
+
 class MenuPropertiesPanel(bpy.types.Panel):
     """Menu Properties Panel"""
     bl_label = "Menu Properties"
@@ -55,10 +61,41 @@ class MenuPropertiesPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
 
-        # INITIAL PROPERTIES
+        # PROPERTIES
+        row1 = layout.row()
+        box1 = row1.box()
+        # CAMERA
+        box2 = box1.box()
+        box2.prop(scene, "menu_camera_object")
 
+        # ACTIVE OBJECT PROPERTIES
+        if context.active_object is not None:
+            row2 = box1.row()
+            box3 = row2.box()
+            _nl = "Active Object: " + context.active_object.name
+            box3.label(text=_nl)
+            box4 = box3.box()
+            box4.prop(context.active_object, "menu_object_type")
+            if context.active_object.menu_object_type == "button":
+                box4.prop(context.active_object, "button_action_on_click")
+                if context.active_object.button_action_on_click == "load_scene":
+                    box4.prop(context.active_object, "button_action_parameter", text="")
+            box4.prop(context.active_object, "godot_exportable")
+                 
 
 def init_properties():
+    bpy.types.Scene.menu_camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Menu Camera", poll=scene_camera_object_poll)
+    bpy.types.Object.menu_object_type = bpy.props.EnumProperty(items=[("none", "None", "NONE"), 
+                                                                      ("button", "Button", "BUTTON"),
+                                                                      ("checkbox", "Checkbox", "CHECKBOX")],
+                                                                        name="Type")
+    bpy.types.Object.button_action_on_click = bpy.props.EnumProperty(items=[("none", "None", "NONE"), 
+                                                                      ("load_scene", "Load Scene", "LOAD_SCENE"),
+                                                                      ("quit_game", "Quit Game", "QUIT_GAME")],
+                                                                        name="Action On Click")
+    bpy.types.Object.button_action_parameter = bpy.props.PointerProperty(type=bpy.types.Scene, name="Parameter", poll=button_scene_object_poll)
+
+def clear_properties():
     pass
 
 def register():
@@ -67,5 +104,6 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(MenuPropertiesPanel)
+    clear_properties()
 
 

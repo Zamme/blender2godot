@@ -17,10 +17,14 @@ const PLAYER_SCENE_PATH = SCENES_PATH + "Player_Template.tscn"
 const PLAYER_BEHAVIOR_PATH = "res://src/scripts/player_template.gd"
 const PLAYER_MESH_BEHAVIOR_PATH = "res://src/scripts/player_mesh_behavior.gd"
 
+const MENUS_PATH = SCENES_PATH + "menus/"
+const MENU_SCENES_PREFIX = "Menu_"
+
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
 const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
+const MENUS_INFO_JSON_PATH = "res://menus_info/menus_info.json"
 const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
@@ -389,12 +393,20 @@ func apply_import_changes_to_list(scenes_list, path):
 #	clear_lights()
 
 func apply_new_config():
+	var startup_scene_type : String
 	var godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
 	for _key in godot_project_settings_json.keys():
 		match _key:
+			"startup_scene_type":
+				startup_scene_type = godot_project_settings_json["startup_scene_type"]
 			"application/run/main_scene":
-				var _stage_path : String = STAGES_PATH + STAGE_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
-				ProjectSettings.set_setting("application/run/main_scene", _stage_path)
+				var _start_scene_path : String
+				match startup_scene_type:
+					"stage":
+						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+					"menu":
+						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
 			"application/boot_splash/bg_color":
 				var _splits = godot_project_settings_json["application/boot_splash/bg_color"].split(",")
 				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
@@ -526,6 +538,7 @@ func mount_scenes():
 	
 	var _stages_json = read_json_file(STAGES_INFO_JSON_PATH)
 	var _player_json = read_json_file(PLAYER_INFO_JSON_PATH)
+	var _menus_json = read_json_file(MENUS_INFO_JSON_PATH)
 	
 	# Create Stages
 	var _index : int = 0
@@ -535,7 +548,7 @@ func mount_scenes():
 			for _key in _stages_json.keys():
 				print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
 				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
-					var _new_stage_name : String = "Stage_" + _file_to_import.get_file()
+					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
 					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
 					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
 	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
@@ -556,8 +569,33 @@ func mount_scenes():
 						var _shape_props = _player_json["PlayerDimensions"]
 						var _anims_props = _player_json["PlayerAnimations"]
 						create_player(_fn_without_ext, _cam_props, _shape_props)
+						_index += 1
 		else:
 			print("No player added")
+	
+	# Create Menus
+	for _file_to_import in files_to_import:
+		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _menus_json:
+			for _key in _menus_json.keys():
+				print("In mount menus: ", _fn_without_ext, " vs ", _menus_json[_key]["MenuName"])
+				if str(_fn_without_ext) == (_menus_json[_key]["MenuName"]):
+					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
+					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
+					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.imported_scenes[_index]])
+					var _new_menu_path : String = MENUS_PATH + _new_menu_name + ".tscn"
+					var _new_camera : Camera = Camera.new()
+					var _new_camera_dict = _menus_json[_key]["MenuCameraObjectDict"]
+					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
+					_new_menu.add_child(_new_camera)
+					_new_camera.set_owner(_new_menu)
+					yield(get_tree(),"idle_frame")
+					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
+					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
+					yield(get_tree(), "idle_frame")
+					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					self.repack_scene(_new_menu, _new_menu_path)
+					_index += 1
 	
 	return true
 #	self.add_scenes(imported_scenes)
