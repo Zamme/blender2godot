@@ -42,6 +42,8 @@ from blender2godot.b2g_tools import (
 
 from blender2godot.scene_properties import scene_properties
 
+from blender2godot.stage_properties import stage_properties
+
 from blender2godot.player_properties import player_properties
 
 from blender2godot.menu_properties import menu_properties
@@ -90,6 +92,7 @@ def register():
     splash_properties.register()
     advanced_tools.register()
     scene_properties.register()
+    stage_properties.register()
     player_properties.register()
     menu_properties.register()
     test_project.register()
@@ -107,6 +110,7 @@ def unregister():
     display_properties.unregister()
     splash_properties.unregister()
     advanced_tools.unregister()
+    stage_properties.unregister()
     scene_properties.unregister()
     menu_properties.unregister()
     player_properties.unregister()

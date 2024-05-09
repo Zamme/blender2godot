@@ -83,17 +83,18 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.motion_name, icon="POSE_HLT")
-            layout.label(text=item.motion_input_blender, icon="VIEW_PAN")
+            layout.prop(item, "motion_input_blender", text="", event=True)
+            #layout.label(text=item.motion_input_blender, icon="VIEW_PAN")
 #            layout.prop(item, "motion_input", text="", icon="NONE")
-            layout.operator("scene.process_input").control_index = index
+            #layout.operator("scene.process_input").control_index = index
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = "POSE_HLT")
 
 class ControlsProperties(bpy.types.PropertyGroup):
-    motion_name: bpy.props.StringProperty(name="Motion Name", default="Unknown")
-    motion_input_blender: bpy.props.StringProperty(name="Blender Input", default="None")
-    motion_input_godot: bpy.props.StringProperty(name="Godot Input", default="None")
+    motion_name: bpy.props.StringProperty(name="Motion Name", default="Unknown") # type: ignore
+    motion_input_blender: bpy.props.StringProperty(name="Blender Input", default="None") # type: ignore
+    motion_input_godot: bpy.props.StringProperty(name="Godot Input", default="None") # type: ignore
 
 class ControlSettingsType(bpy.types.PropertyGroup):
     """ Control settings type """
@@ -115,7 +116,7 @@ class SCENE_OT_get_input(bpy.types.Operator):
     bl_label = 'Edit'
     bl_options = {'REGISTER'}
 
-    control_index : bpy.props.IntProperty(name="ControlIndex")
+    control_index : bpy.props.IntProperty(name="ControlIndex") # type: ignore
 
     def modal(self, context, event):
         if event.type == 'ESC':
@@ -195,14 +196,13 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         box = row.box()
         box.label(text="Player Motion")
         
-        ''' # TODO : controls settings unfinished
+        # TODO : controls settings unfinished
         box2 = box.box()
         box2.prop(scene, "controls_settings_type")
         if scene.controls_settings_type == "keyboard":
             box2.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
         else:
             box2.label(text="Inputs:")
-        '''
 
         box.prop(scene, "player_gravity_on")
         box.prop(scene, "camera_control_inverted")

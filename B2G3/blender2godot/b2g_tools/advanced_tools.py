@@ -27,7 +27,6 @@ import shutil
 import imghdr
 
 import bpy
-import mathutils
 
 
 class my_dictionary(dict): 
@@ -134,30 +133,6 @@ class CreateGodotProjectOperator(bpy.types.Operator):
     def execute(self, context):
         self.main(context)
         return {'FINISHED'}
-
-'''
-class DeleteProjectButtonOperator(bpy.types.Operator):
-    """Delete Project Button Operator"""
-    bl_idname = "scene.delete_project_button_operator"
-    bl_label = "Delete Project"
-    
-    def delete_project(self, context):
-        if os.path.isdir(context.scene.project_folder):
-            print("Deleting project...", context.scene.project_folder)
-            bpy.ops.scene.are_you_sure_deleting_operator('INVOKE_DEFAULT')
-            print("Project deleted")
-        else:
-            print("Project not found.")
-    
-    def main(self, context):
-        context.scene.game_folder = bpy.path.abspath("//")
-        context.scene.project_folder = os.path.join(context.scene.game_folder, context.scene.game_name + "_Game")
-        self.delete_project(context)        
-
-    def execute(self, context):
-        self.main(context)
-        return {'FINISHED'}
-'''
 
 class DeleteProjectOperator(bpy.types.Operator):
     """Delete Project Operator"""
@@ -335,7 +310,7 @@ class ExportGameOperator(bpy.types.Operator):
                     case "player":
                         self.export_player_info(context, _sc)
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
-        bpy.ops.scene.set_godot_project_environment_operator()
+        #bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -525,7 +500,7 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
     bl_label = "Open Godot Project"
     
 
-    no_window : bpy.props.BoolProperty(name="no_window", default=False)
+    no_window : bpy.props.BoolProperty(name="no_window", default=False) # type: ignore
 
     def execute(self, context):
         print("Opening godot project...")
@@ -570,7 +545,6 @@ def clear_properties():
 
 def register():
     init_properties()
-    #bpy.utils.register_class(DeleteProjectButtonOperator)
     bpy.utils.register_class(AreYouSureDeletingOperator)
     bpy.utils.register_class(DeleteProjectOperator)
     bpy.utils.register_class(CreateGodotProjectOperator)
@@ -581,7 +555,6 @@ def register():
     bpy.utils.register_class(OpenGodotProjectOperator)
 
 def unregister():
-    #bpy.utils.unregister_class(DeleteProjectButtonOperator)
     bpy.utils.unregister_class(AreYouSureDeletingOperator)
     bpy.utils.unregister_class(DeleteProjectOperator)
     bpy.utils.unregister_class(CreateGodotProjectOperator)

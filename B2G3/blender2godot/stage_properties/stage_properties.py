@@ -17,7 +17,7 @@
 
 
 """
-Scene properties panel
+Stage properties panel
 """
 
 import bpy
@@ -41,25 +41,34 @@ def update_scene_exportable(self, context):
                     bpy.data.scenes[self.name].scene_exportable = False
                     show_error_popup(["Set camera object in player"], "Error detected", "CANCEL")
 
-class ScenePropertiesPanel(bpy.types.Panel):
-    """Scene Properties Panel"""
-    bl_label = "Scene Properties"
-    bl_idname = "SCENEPROPERTIES_PT_layout"
+class ColliderProperties(bpy.types.PropertyGroup):
+    """ Collider properties """
+    collider_options = [
+        ("none", "None", "", "NONE", 0),
+        ("convex", "Convex", "", "CONVEX", 1),
+        ("mesh", "Mesh", "", "MESH", 2),
+        ("smart", "Smart", "", "SMART", 3)]
+
+class StagePropertiesPanel(bpy.types.Panel):
+    """Stage Properties Panel"""
+    bl_label = "Stage Properties"
+    bl_idname = "STAGEPROPERTIES_PT_layout"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}
-    bl_order = 2
+    bl_order = 3
 
     _gamemanager_added = False
     _not_in_gamemanager = False
 
     @classmethod 
     def poll(self, context):
-        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
-        self._gamemanager_added = (_gm_index > -1)
-        self._not_in_gamemanager = (context.scene.name != context.scene.gamemanager_scene_name)
-        return (self._not_in_gamemanager and self._gamemanager_added)
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "stage"):
+                _ret = True
+        return _ret
     
     def draw_header(self, context):
         layout = self.layout
@@ -71,24 +80,48 @@ class ScenePropertiesPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
         
-        # SCENE PROPERTIES
+        # STAGE PROPERTIES
         row = layout.row()
-        if hasattr(context.scene, "scene_type"):
-            row.prop(context.scene, "scene_type")
+        # Player spawner
+        row = layout.row()
+        row.prop(context.scene, "player_spawn_empty")
+        if context.scene.player_spawn_empty == None:
+            row = layout.row()
+            row.label(text="Select a spawn position!", icon="ERROR")
+       
+        # ACTIVE OBJECT PROPERTIES
+        if context.active_object is not None:
+            row = layout.row()
+            box = row.box()
+            box.label(text="Active Object")
+            box3 = box.box()
+            box3.label(text=context.active_object.name)
+            box3.prop(context.active_object, "godot_exportable")
+            if context.active_object.godot_exportable:
+                box3.prop(context.active_object, "collider")
 
 def init_properties():
     # Scene props
-    bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
+    bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
+
+    # Scene object properties
+    bpy.types.Object.collider = bpy.props.EnumProperty(
+        items = ColliderProperties.collider_options,
+        name = "Collider Type",
+        description = "Collider type",
+        default = "convex")
+    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE
 
 def clear_properties():
-    del bpy.types.Scene.scene_exportable
+    del bpy.types.Scene.player_spawn_empty
+    del bpy.types.Object.godot_exportable
 
 def register():
     init_properties()
-    bpy.utils.register_class(ScenePropertiesPanel)
+    bpy.utils.register_class(StagePropertiesPanel)
 
 def unregister():
-    bpy.utils.unregister_class(ScenePropertiesPanel)
+    bpy.utils.unregister_class(StagePropertiesPanel)
     clear_properties()
 
 
