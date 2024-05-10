@@ -592,6 +592,14 @@ func mount_scenes():
 					yield(get_tree(),"idle_frame")
 					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
 					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
+					_new_camera.fov = rad2deg(_new_camera_dict["FOV"])
+					match _new_camera_dict["KeepFOV"]:
+						"AUTO":
+							_new_camera.keep_aspect = Camera.KEEP_WIDTH
+						"VERTICAL":
+							_new_camera.keep_aspect = Camera.KEEP_HEIGHT
+						"HORIZONTAL":
+							_new_camera.keep_aspect = Camera.KEEP_WIDTH
 					yield(get_tree(), "idle_frame")
 					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 					self.repack_scene(_new_menu, _new_menu_path)

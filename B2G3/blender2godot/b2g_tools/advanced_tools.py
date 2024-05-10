@@ -324,6 +324,8 @@ class ExportGameOperator(bpy.types.Operator):
                             _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
                                                          "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
                                                          "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
+                            _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
+                            _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
                             _temp_dict.add("MenuCameraObjectDict", _cam_dict)
                         self.dict_menus_info.add(_menu_index, _temp_dict)
                         _menu_index += 1
@@ -424,7 +426,6 @@ class ExportGameOperator(bpy.types.Operator):
         self.data_menus_info = json.dumps(self.dict_menus_info, indent=1, ensure_ascii=True)
         with open(self.menus_info_filepath, 'w') as outfile:
             outfile.write(self.data_menus_info + '\n')   
-
 
     def export_player_info(self, context, _player_scene):
         print("Exporting player...")

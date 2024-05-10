@@ -75,11 +75,14 @@ class MenuPropertiesPanel(bpy.types.Panel):
             _nl = "Active Object: " + context.active_object.name
             box3.label(text=_nl)
             box4 = box3.box()
-            box4.prop(context.active_object, "menu_object_type")
-            if context.active_object.menu_object_type == "button":
-                box4.prop(context.active_object, "button_action_on_click")
-                if context.active_object.button_action_on_click == "load_scene":
-                    box4.prop(context.active_object, "button_action_parameter", text="")
+            if context.active_object.type == 'CAMERA':
+                box4.prop(context.active_object.data, "angle")
+            else:
+                box4.prop(context.active_object, "menu_object_type")
+                if context.active_object.menu_object_type == "button":
+                    box4.prop(context.active_object, "button_action_on_click")
+                    if context.active_object.button_action_on_click == "load_scene":
+                        box4.prop(context.active_object, "button_action_parameter", text="")
             box4.prop(context.active_object, "godot_exportable")
                  
 
