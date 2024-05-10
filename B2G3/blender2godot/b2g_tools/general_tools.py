@@ -88,23 +88,11 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         elif players_amount < 0:
             self._errors.append("Too many exportable players")
         return self._errors
-        
-        '''
-    def modal(self, context, event):
-        return {'PASS_THROUGH'}
-    
-    def invoke(self, context, event):
-            return {'CANCELLED'}
-            return {'RUNNING_MODAL'}
-        else:
-            self.report({'WARNING'}, "No active object, could not finish")
-            return {'CANCELLED'}
-        '''
 
     def cancel(self, context):
         context.scene.godot_export_ok = self._last_export_state
         context.scene.godot_exporting = False
-        return {'CANCELLED'}
+        #return {'CANCELLED'}
     
     def draw(self, context):
         layout = self.layout
@@ -113,11 +101,11 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     def invoke(self, context, event):
         self._last_export_state = context.scene.godot_export_ok
-        context.scene.godot_export_ok = False
         context.scene.godot_exporting = True
         return context.window_manager.invoke_props_dialog(self)
     
     def execute(self, context):
+        context.scene.godot_export_ok = False
         checked_errors = self.check_conditions(context)
         if len(checked_errors) == 0:
             print("Deleting last export...")

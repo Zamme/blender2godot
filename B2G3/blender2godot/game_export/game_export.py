@@ -280,6 +280,11 @@ class GameExportPanel(bpy.types.Panel):
         if not bpy.data.is_saved:       
             return
 
+        if context.scene.godot_exporting:       
+            layout.enabled = False
+        else:
+            layout.enabled = True
+
         # Export platforms box
         row = layout.row()
         box1 = row.box()
