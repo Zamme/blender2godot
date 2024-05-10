@@ -17,7 +17,7 @@ _global_script_class_icons={
 
 config/name="Godot_Project-name"
 config/description="Godot_Project-desc"
-run/main_scene="res://src/scenes/stages/Stage_Template.tscn"
+run/main_scene="res://b2g_tools/Stage_Template.tscn"
 config/icon="res://icon.png"
 
 [input]

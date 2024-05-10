@@ -19,6 +19,8 @@ const PLAYER_MESH_BEHAVIOR_PATH = "res://src/scripts/player_mesh_behavior.gd"
 
 const MENUS_PATH = SCENES_PATH + "menus/"
 const MENU_SCENES_PREFIX = "Menu_"
+const MENU_BEHAVIOR_PATH = "res://src/scripts/menu_behavior.gd"
+const BUTTON_BEHAVIOR_PATH = "res://src/scripts/menu_button_class.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
@@ -57,11 +59,24 @@ var lights_to_remove_from_scene = []
 
 var quit_timer : Timer
 
+# JSONS
+var _stages_json
+var _player_json
+var _menus_json
+var _colliders_json
+var _lights_json
+
+
 
 func _ready():
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
+			_stages_json = read_json_file(STAGES_INFO_JSON_PATH)
+			_player_json = read_json_file(PLAYER_INFO_JSON_PATH)
+			_menus_json = read_json_file(MENUS_INFO_JSON_PATH)
+			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
+			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			if !self.mount_scenes():
 				return
 			yield(get_tree(),"idle_frame")
@@ -295,43 +310,44 @@ func add_smart_collider(scene):
 
 func apply_import_changes(scene):
 	print("Aplying changes to " + scene.name)
-	var colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
-	#print(colliders_json)
-	var lights_json = self.read_json_file(LIGHTS_JSON_PATH)
-	#var player_info_json = self.read_json_file(PLAYER_INFO_JSON_PATH)
 	self.get_all_scene_objects(scene)
 	for ob in self.scene_objects_list:
 		print("Changes to " + ob.name)
 		if ob is MeshInstance: # MESHES
-			if colliders_json.has(ob.name):
-				if colliders_json[ob.name] == "none":
+			if _colliders_json.has(ob.name):# ON SCENARIOS
+				if _colliders_json[ob.name] == "none":
 					print("...without collider!")
-				elif colliders_json[ob.name] == "convex":
+				elif _colliders_json[ob.name] == "convex":
 					print("...with convex collider!")
 					self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
-				elif colliders_json[ob.name] == "mesh":
+				elif _colliders_json[ob.name] == "mesh":
 					print("...with mesh collider!")
 					self.add_collider(ob, COLLIDER_TYPE.MESH, scene)
-				elif colliders_json[ob.name] == "smart":
+				elif _colliders_json[ob.name] == "smart":
 					print("...with smart collider!")
 					self.add_collider(ob, COLLIDER_TYPE.SMART, scene)
-		elif lights_json.has(ob.name):
+			elif _menus_json.has(scene.name):
+				if _menus_json[scene.name]["SpecialObjects"].has(ob.name):
+					print("Special Object", ob.name, "found")
+					self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
+					ob.script = load(BUTTON_BEHAVIOR_PATH)
+		elif _lights_json.has(ob.name):
 			if lights_instance == null:
 				lights_instance = Spatial.new()
 				lights_instance.name = "Lights"
 				self.add_child(lights_instance)
 				#lights_instance.set_owner(self)
 			print("Adding light on :" + ob.name)
-			var new_light_color : Color = Color(lights_json[ob.name + "ColorR"], lights_json[ob.name + "ColorG"], lights_json[ob.name + "ColorB"])
-			var new_light_position : Vector3 = Vector3(lights_json[ob.name + "PositionX"], lights_json[ob.name + "PositionZ"], -lights_json[ob.name + "PositionY"])
-			var new_light_rotation : Vector3 = Vector3(lights_json[ob.name + "RotationX"] -90.0, lights_json[ob.name + "RotationZ"], -lights_json[ob.name + "RotationY"])
-			var new_light_energy : float = lights_json[ob.name + "Energy"]
-			match lights_json[ob.name]:
+			var new_light_color : Color = Color(_lights_json[ob.name + "ColorR"], _lights_json[ob.name + "ColorG"], _lights_json[ob.name + "ColorB"])
+			var new_light_position : Vector3 = Vector3(_lights_json[ob.name + "PositionX"], _lights_json[ob.name + "PositionZ"], -_lights_json[ob.name + "PositionY"])
+			var new_light_rotation : Vector3 = Vector3(_lights_json[ob.name + "RotationX"] -90.0, _lights_json[ob.name + "RotationZ"], -_lights_json[ob.name + "RotationY"])
+			var new_light_energy : float = _lights_json[ob.name + "Energy"]
+			match _lights_json[ob.name]:
 				"POINT":
 					var light_params_dict = {
 						"color" : new_light_color,
 						"energy" : new_light_energy,
-						"range" : lights_json[ob.name + "Range"],
+						"range" : _lights_json[ob.name + "Range"],
 						"position" : new_light_position,
 						"rotation" : new_light_rotation
 					}
@@ -340,7 +356,7 @@ func apply_import_changes(scene):
 					var light_params_dict = {
 						"color" : new_light_color,
 						"energy" : new_light_energy,
-						"range" : lights_json[ob.name + "Range"],
+						"range" : _lights_json[ob.name + "Range"],
 						"position" : new_light_position,
 						"rotation" : new_light_rotation
 					}
@@ -349,7 +365,7 @@ func apply_import_changes(scene):
 					var light_params_dict = {
 						"color" : new_light_color,
 						"energy" : new_light_energy,
-						"range" : lights_json[ob.name + "Range"],
+						"range" : _lights_json[ob.name + "Range"],
 						"position" : new_light_position,
 						"rotation" : new_light_rotation
 					}
@@ -358,7 +374,7 @@ func apply_import_changes(scene):
 					var light_params_dict = {
 						"color" : new_light_color,
 						"energy" : new_light_energy,
-						"range" : lights_json[ob.name + "Range"],
+						"range" : _lights_json[ob.name + "Range"],
 						"position" : new_light_position,
 						"rotation" : new_light_rotation
 					}
@@ -535,10 +551,8 @@ func mount_scenes():
 	if (len(files_to_import) < 1):
 		print("Mount scenes finished with no imported files")
 		return false
-	
-	var _stages_json = read_json_file(STAGES_INFO_JSON_PATH)
-	var _player_json = read_json_file(PLAYER_INFO_JSON_PATH)
-	var _menus_json = read_json_file(MENUS_INFO_JSON_PATH)
+	else:
+		print("Imported files: ", len(files_to_import))
 	
 	# Create Stages
 	var _index : int = 0
@@ -578,12 +592,13 @@ func mount_scenes():
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		if _menus_json:
 			for _key in _menus_json.keys():
-				print("In mount menus: ", _fn_without_ext, " vs ", _menus_json[_key]["MenuName"])
-				if str(_fn_without_ext) == (_menus_json[_key]["MenuName"]):
+				print("In mount menus: ", _fn_without_ext, " vs ", _key)
+				if str(_fn_without_ext) == _key:
 					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
 					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
 					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.imported_scenes[_index]])
 					var _new_menu_path : String = MENUS_PATH + _new_menu_name + ".tscn"
+					_new_menu.script = load(MENU_BEHAVIOR_PATH)
 					var _new_camera : Camera = Camera.new()
 					var _new_camera_dict = _menus_json[_key]["MenuCameraObjectDict"]
 					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]

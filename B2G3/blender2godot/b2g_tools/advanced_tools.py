@@ -287,7 +287,6 @@ class ExportGameOperator(bpy.types.Operator):
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
         _sc_index = 0
-        _menu_index = 0
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
                 _sc = bpy.data.scenes[_sc_added.name]
@@ -311,8 +310,8 @@ class ExportGameOperator(bpy.types.Operator):
                         self.export_player_info(context, _sc)
                         context.window.scene = bpy.data.scenes["B2G_GameManager"]
                     case "menu":
+                        # MENUS'S CAMERA
                         _temp_dict = my_dictionary()
-                        _temp_dict.add("MenuName", _sc_added.name)
                         if not _sc_added.menu_camera_object:
                             _temp_dict.add("MenuCameraObjectDict", my_dictionary())
                         else:
@@ -327,8 +326,17 @@ class ExportGameOperator(bpy.types.Operator):
                             _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
                             _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
                             _temp_dict.add("MenuCameraObjectDict", _cam_dict)
-                        self.dict_menus_info.add(_menu_index, _temp_dict)
-                        _menu_index += 1
+                        # MENU'S SPECIAL OBJECTS
+                        _special_objects = my_dictionary()
+                        for _obj in _sc_added.objects:
+                            if _obj.menu_object_type != "none":
+                                _special_objects.add(_obj.name, {
+                                    "ObjectType" : _obj.menu_object_type,
+                                    "ActionOnClick" : _obj.button_action_on_click
+                                })
+                        _temp_dict.add("SpecialObjects", _special_objects)
+                        # ADD DICT TO INFO
+                        self.dict_menus_info.add(_sc_added.name, _temp_dict)
         #bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)

@@ -11,6 +11,10 @@ var player
 
 onready var scenario_scene = get_child(0)
 
+# DEBUG
+const B2G_HUD_FILEPATH = "res://b2g_tools/B2G_HUD.tscn"
+var b2g_hud
+
 
 func _ready():
 	print("Stage ", name, " loaded!")
@@ -19,6 +23,8 @@ func _ready():
 	player_spawn = get_player_spawn(stages_json)
 	var _player_name : String = player_json["PlayerSceneName"]
 	add_player(_player_name)
+	# DEBUG
+	add_b2g_hud()
 
 func add_player(_player_name : String):
 	var _player_entity_path : String = PLAYERS_DIRPATH + _player_name + "Entity.tscn"
@@ -44,3 +50,14 @@ func read_json_file(filepath):
 		var json_result = JSON.parse(json)
 		file.close()
 		return json_result.result
+
+
+
+	# DEBUG
+func add_b2g_hud():
+	b2g_hud = load(B2G_HUD_FILEPATH).instance()
+	add_child(b2g_hud)
+
+func show_message(_text):
+	b2g_hud.show_message(_text)
+
