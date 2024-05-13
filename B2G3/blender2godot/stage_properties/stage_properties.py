@@ -96,9 +96,9 @@ class StagePropertiesPanel(bpy.types.Panel):
             box.label(text="Active Object")
             box3 = box.box()
             box3.label(text=context.active_object.name)
-            box3.prop(context.active_object, "godot_exportable")
             if context.active_object.godot_exportable:
                 box3.prop(context.active_object, "collider")
+            box.prop(context.active_object, "godot_exportable")
 
 def init_properties():
     # Scene props

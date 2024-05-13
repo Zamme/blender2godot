@@ -329,8 +329,10 @@ func apply_import_changes(scene):
 			elif _menus_json.has(scene.name):
 				if _menus_json[scene.name]["SpecialObjects"].has(ob.name):
 					print("Special Object", ob.name, "found")
-					self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
-					ob.script = load(BUTTON_BEHAVIOR_PATH)
+					match _menus_json[scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
+						"button":
+							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
+							ob.script = load(BUTTON_BEHAVIOR_PATH)
 		elif _lights_json.has(ob.name):
 			if lights_instance == null:
 				lights_instance = Spatial.new()

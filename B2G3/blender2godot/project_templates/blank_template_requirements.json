@@ -2,7 +2,11 @@
   {
     "id": "scene_types",
     "value": [
-      "Stage"
+      "Stage",
+      "Player",
+      "Menu",
+      "Loading",
+      "Npc"
     ]
   },
   {

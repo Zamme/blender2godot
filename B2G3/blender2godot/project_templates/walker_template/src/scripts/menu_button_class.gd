@@ -1,24 +1,36 @@
 class_name Menu_Button extends MeshInstance
 
 
+var action_to_do : String = "None"
+var action_parameter = "None"
+
 var _button_collider : StaticBody
 
 
 func _ready():
 	_button_collider = get_collider()
 	add_on_click_event()
+	setup_functionality()
 
 func add_on_click_event():
 	_button_collider.connect("input_event", self, "_on_click_event")
 
 func do_click_action():
-	print("Action!")
-	get_tree().current_scene.show_message("Action!")
+	var _msg : String = action_to_do + " " + action_parameter
+	print(_msg)
+	get_tree().current_scene.show_message(_msg)
 
 func get_collider():
 	for _child in get_children():
 		if _child is StaticBody:
 			return _child
+
+func setup_functionality():
+	var _info = get_tree().current_scene.get_special_object_info(name)
+	if _info.has("ActionOnClick"):
+		action_to_do = _info["ActionOnClick"]
+	if _info.has("AcitonParameter"):
+		action_parameter = _info["ActionParameter"]
 
 func _on_click_event(_cam, _event, _pos, _norm, _s_idx):
 	if _event is InputEventMouseButton:

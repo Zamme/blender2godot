@@ -329,11 +329,16 @@ class ExportGameOperator(bpy.types.Operator):
                         # MENU'S SPECIAL OBJECTS
                         _special_objects = my_dictionary()
                         for _obj in _sc_added.objects:
-                            if _obj.menu_object_type != "none":
-                                _special_objects.add(_obj.name, {
-                                    "ObjectType" : _obj.menu_object_type,
-                                    "ActionOnClick" : _obj.button_action_on_click
-                                })
+                            _special_objects.add(_obj.name, {
+                                "ObjectType" : _obj.special_object_info.menu_object_type,
+                                "ActionOnClick" : _obj.special_object_info.button_action_on_click
+                            })
+                            _action_parameter_rename = ""
+                            if _obj.special_object_info.button_action_on_click == "load_stage":
+                                _action_parameter_rename = "Stage_" + _obj.special_object_info.button_action_parameter
+                            elif _obj.special_object_info.button_action_on_click == "load_menu":
+                                _action_parameter_rename = "Menu_" + _obj.special_object_info.button_action_parameter
+                            _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
                         _temp_dict.add("SpecialObjects", _special_objects)
                         # ADD DICT TO INFO
                         self.dict_menus_info.add(_sc_added.name, _temp_dict)

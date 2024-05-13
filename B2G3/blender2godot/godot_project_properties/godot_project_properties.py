@@ -27,6 +27,7 @@ import json
 import bpy
 from bpy.app.handlers import persistent
 
+
 @persistent
 def load_handler(dummy):
     #print("Load Handler:", bpy.data.filepath)
@@ -162,7 +163,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         box1.prop(scene, "game_icon", icon="IMAGE")
         if not scene.game_icon.endswith(".png"):
             box1.label(text="Icon must be a png image!")
-        box1.prop(scene, "project_template", icon="SHADERFX")
+        #box1.prop(scene, "project_template", icon="SHADERFX")
 
 
 class UpdateCurrentTemplateOperator(bpy.types.Operator):
@@ -197,7 +198,12 @@ def init_properties():
     bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
-    bpy.types.Scene.project_template = bpy.props.EnumProperty(items = get_project_templates, name = "Project Template", description = "Project type", update=update_current_template)#, default = "blank_template")
+    bpy.types.Scene.project_template = bpy.props.EnumProperty(
+                                                    items = get_project_templates,
+                                                    name = "Project Template",
+                                                    description = "Project type",
+                                                    update=update_current_template,
+                                                    default = 0)
     bpy.types.Scene.current_template_requirements = bpy.props.PointerProperty(type=TemplateStruct, name="Current Template Requirements")
     bpy.types.Scene.b2g_templates = bpy.props.CollectionProperty(type=TemplateStruct, name="Templates")
 
@@ -221,5 +227,6 @@ def unregister():
     bpy.utils.unregister_class(TemplateRequirements)
     bpy.utils.unregister_class(TemplateKey)
     bpy.utils.unregister_class(UpdateCurrentTemplateOperator)
+    bpy.app.handlers.load_post.remove(load_handler)
 
 
