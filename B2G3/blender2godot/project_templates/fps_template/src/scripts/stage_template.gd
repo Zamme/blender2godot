@@ -5,6 +5,7 @@ extends Spatial
 enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
 const MODELS_PATH = "res://assets/models/"
+const HUDS_SVGS_PATH = "res://assets/huds/"
 const SCENES_PATH = "res://src/scenes/"
 const SCRIPTS_PATH = "res://src/scripts/"
 const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
@@ -22,11 +23,15 @@ const MENU_SCENES_PREFIX = "Menu_"
 const MENU_BEHAVIOR_PATH = "res://src/scripts/menu_behavior.gd"
 const BUTTON_BEHAVIOR_PATH = "res://src/scripts/menu_button_class.gd"
 
+const HUDS_PATH = SCENES_PATH + "huds/"
+const HUD_SCENES_PREFIX = "Hud_"
+
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
 const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
 const MENUS_INFO_JSON_PATH = "res://menus_info/menus_info.json"
+const HUDS_JSON_PATH = "res://huds_info/huds_info.json"
 const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
@@ -65,7 +70,7 @@ var _player_json
 var _menus_json
 var _colliders_json
 var _lights_json
-
+var _huds_json
 
 
 func _ready():
@@ -77,6 +82,7 @@ func _ready():
 			_menus_json = read_json_file(MENUS_INFO_JSON_PATH)
 			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
+			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			if !self.mount_scenes():
 				return
 			yield(get_tree(),"idle_frame")
@@ -621,6 +627,23 @@ func mount_scenes():
 					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 					self.repack_scene(_new_menu, _new_menu_path)
 					_index += 1
+	
+	# Create HUDs
+	for _key in _huds_json.keys():
+		var _new_hud_name : String = HUD_SCENES_PREFIX + _key
+		var _new_hud_path : String = HUDS_PATH + _new_hud_name + ".tscn"
+		var _new_hud : Control = Control.new()
+		_new_hud.name = _new_hud_name
+		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
+		var _new_texture_rect : TextureRect = TextureRect.new()
+		_new_texture_rect.name = "TextureRect_" + _new_hud_name
+		_new_hud.add_child(_new_texture_rect)
+		_new_texture_rect.set_owner(_new_hud)
+		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+		var _svg_path : String = HUDS_SVGS_PATH + _key + ".svg"
+		_new_texture_rect.texture = load(_svg_path)
+		_new_texture_rect.expand = true
+		self.repack_scene(_new_hud, _new_hud_path)
 	
 	return true
 #	self.add_scenes(imported_scenes)

@@ -242,6 +242,7 @@ class ExportGameOperator(bpy.types.Operator):
     
     assets_folder_name = "assets"
     models_folder_name = "models"
+    huds_folder_name = "huds"
     colliders_filepath = ""
     player_info_filepath = ""
     lights_info_filepath = ""
@@ -254,6 +255,7 @@ class ExportGameOperator(bpy.types.Operator):
     dict_godot_project_settings = my_dictionary()
     dict_stages_info = my_dictionary()
     dict_menus_info = my_dictionary()
+    dict_huds_info = my_dictionary()
     
     def check_custom_icon(self, context):
         _checked = False
@@ -291,7 +293,14 @@ class ExportGameOperator(bpy.types.Operator):
             if _sc_added.scene_exportable:
                 _sc = bpy.data.scenes[_sc_added.name]
                 if _sc.scene_type == "hud":
-                    pass
+                    self.export_hud(context, _sc)
+                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                    _hud_dict = my_dictionary()
+                    _hud_obj_dict = my_dictionary()
+                    for _hud_obj in _sc.objects:
+                        _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
+                    _hud_dict.add("Objects", _hud_obj_dict)
+                    self.dict_huds_info.add(_sc.name, _hud_dict)
                 else:
                     self.export_scene(context, _sc)
                     context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -351,6 +360,8 @@ class ExportGameOperator(bpy.types.Operator):
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_menus_info(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_huds_info(context)
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_icon(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_godot_project_settings(context)
@@ -397,6 +408,28 @@ class ExportGameOperator(bpy.types.Operator):
         else:
             print("Custom icon is not a png image. Loading default icon.")
     
+    def export_hud(self, context, _hud_scene):
+        self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
+        if not os.path.isdir(self.huds_folder_path):
+            os.mkdir(self.huds_folder_path)
+        print("Exporting hud scene", _hud_scene.name)
+        context.window.scene = _hud_scene
+        hud_path = os.path.join(self.huds_folder_path, _hud_scene.name + ".svg")
+        if len(_hud_scene.objects) > 0:
+            bpy.ops.wm.gpencil_export_svg(filepath=hud_path, check_existing=True, 
+                                          use_fill=True,
+                                          selected_object_type="VISIBLE", stroke_sample=0.0,
+                                          use_normalized_thickness=False, use_clip_camera=True)
+            print("Scene", _hud_scene.name, "exported.")
+        else:
+            print("Scene ", _hud_scene.name, " empty!")
+
+    def export_huds_info(self, context):
+        self.find_huds_info_file_path(context)
+        self.data_huds_info = json.dumps(self.dict_huds_info, indent=1, ensure_ascii=True)
+        with open(self.huds_info_filepath, 'w') as outfile:
+            outfile.write(self.data_huds_info + '\n')   
+
     def export_lights(self, context):
         print("Exporting lights...")
         self.find_lights_file_path(context)
@@ -498,6 +531,10 @@ class ExportGameOperator(bpy.types.Operator):
         self.colliders_filepath = os.path.join(context.scene.project_folder, "colliders_info", "colliders.json")
         print("Colliders json filepath:", self.colliders_filepath)
     
+    def find_huds_info_file_path(self, context):
+        self.huds_info_filepath = os.path.join(context.scene.project_folder, "huds_info", "huds_info.json")
+        print("Godot huds settings info json filepath:", self.huds_info_filepath)
+
     def find_lights_file_path(self, context):
         self.lights_info_filepath = os.path.join(context.scene.project_folder, "lights_info", "lights_info.json")
         print("Lights json filepath:", self.lights_info_filepath)
