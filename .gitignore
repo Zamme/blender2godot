@@ -13,3 +13,6 @@ Test_Svmres/
 
 *.vscode/
 *.pyc
+gp/test_001.svg
+gp/gp_test_001.svg
+gp/gp_test_001.blend

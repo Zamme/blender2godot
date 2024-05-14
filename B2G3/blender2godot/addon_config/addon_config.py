@@ -122,7 +122,7 @@ def register():
     bpy.utils.register_class(Blender2GodotPanel)
 
 def unregister():
-    clear_properties()
     bpy.utils.unregister_class(SaveBlendFileOperator)
     bpy.utils.unregister_class(Blender2GodotPanel)
     bpy.utils.unregister_class(CreateGameManagerOperator)
+    clear_properties()

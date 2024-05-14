@@ -108,6 +108,8 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         context.scene.godot_export_ok = False
         checked_errors = self.check_conditions(context)
         if len(checked_errors) == 0:
+            context.window.cursor_set(cursor="WAIT")
+            context.window.cursor_modal_set(cursor="WAIT")
             print("Deleting last export...")
             bpy.ops.scene.delete_project_operator()
             print("Last export deleted!")
@@ -117,6 +119,8 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             bpy.ops.scene.open_godot_project_operator(no_window = True)
         else:
             show_error_popup(self._errors, "Errors detected", "CANCEL")
+        context.window.cursor_set(cursor="DEFAULT")
+        context.window.cursor_modal_restore()
         return {'FINISHED'}
 
 

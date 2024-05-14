@@ -5,6 +5,7 @@
       "Stage",
       "Player",
       "Menu",
+      "HUD",
       "Loading",
       "Npc"
     ]

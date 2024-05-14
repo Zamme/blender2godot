@@ -290,58 +290,61 @@ class ExportGameOperator(bpy.types.Operator):
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
                 _sc = bpy.data.scenes[_sc_added.name]
-                self.export_scene(context, _sc)
-                context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                match _sc_added.scene_type:
-                    case "stage":
-                        self.export_colliders(context, _sc)
-                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                        self.export_lights(context)
-                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                        _temp_dict = my_dictionary()
-                        _temp_dict.add("SceneName", _sc_added.name)
-                        if not _sc_added.player_spawn_empty:
-                            _temp_dict.add("PlayerSpawnObjectName", "")
-                        else:
-                            _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
-                        self.dict_stages_info.add(_sc_index, _temp_dict)
-                        _sc_index += 1
-                    case "player":
-                        self.export_player_info(context, _sc)
-                        context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                    case "menu":
-                        # MENUS'S CAMERA
-                        _temp_dict = my_dictionary()
-                        if not _sc_added.menu_camera_object:
-                            _temp_dict.add("MenuCameraObjectDict", my_dictionary())
-                        else:
-                            _cam_dict = my_dictionary()
-                            _cam_dict.add("MenuCameraObjectName", _sc_added.menu_camera_object.name)
-                            _cam_dict.add("Position", {"PosX" : _sc_added.menu_camera_object.location.x,
-                                                         "PosY" : _sc_added.menu_camera_object.location.y,
-                                                         "PosZ" : _sc_added.menu_camera_object.location.z})
-                            _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
-                                                         "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
-                                                         "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
-                            _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
-                            _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
-                            _temp_dict.add("MenuCameraObjectDict", _cam_dict)
-                        # MENU'S SPECIAL OBJECTS
-                        _special_objects = my_dictionary()
-                        for _obj in _sc_added.objects:
-                            _special_objects.add(_obj.name, {
-                                "ObjectType" : _obj.special_object_info.menu_object_type,
-                                "ActionOnClick" : _obj.special_object_info.button_action_on_click
-                            })
-                            _action_parameter_rename = ""
-                            if _obj.special_object_info.button_action_on_click == "load_stage":
-                                _action_parameter_rename = "Stage_" + _obj.special_object_info.button_action_parameter
-                            elif _obj.special_object_info.button_action_on_click == "load_menu":
-                                _action_parameter_rename = "Menu_" + _obj.special_object_info.button_action_parameter
-                            _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
-                        _temp_dict.add("SpecialObjects", _special_objects)
-                        # ADD DICT TO INFO
-                        self.dict_menus_info.add(_sc_added.name, _temp_dict)
+                if _sc.scene_type == "hud":
+                    pass
+                else:
+                    self.export_scene(context, _sc)
+                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                    match _sc_added.scene_type:
+                        case "stage":
+                            self.export_colliders(context, _sc)
+                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                            self.export_lights(context)
+                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                            _temp_dict = my_dictionary()
+                            _temp_dict.add("SceneName", _sc_added.name)
+                            if not _sc_added.player_spawn_empty:
+                                _temp_dict.add("PlayerSpawnObjectName", "")
+                            else:
+                                _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
+                            self.dict_stages_info.add(_sc_index, _temp_dict)
+                            _sc_index += 1
+                        case "player":
+                            self.export_player_info(context, _sc)
+                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                        case "menu":
+                            # MENUS'S CAMERA
+                            _temp_dict = my_dictionary()
+                            if not _sc_added.menu_camera_object:
+                                _temp_dict.add("MenuCameraObjectDict", my_dictionary())
+                            else:
+                                _cam_dict = my_dictionary()
+                                _cam_dict.add("MenuCameraObjectName", _sc_added.menu_camera_object.name)
+                                _cam_dict.add("Position", {"PosX" : _sc_added.menu_camera_object.location.x,
+                                                            "PosY" : _sc_added.menu_camera_object.location.y,
+                                                            "PosZ" : _sc_added.menu_camera_object.location.z})
+                                _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
+                                                            "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
+                                                            "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
+                                _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
+                                _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
+                                _temp_dict.add("MenuCameraObjectDict", _cam_dict)
+                            # MENU'S SPECIAL OBJECTS
+                            _special_objects = my_dictionary()
+                            for _obj in _sc_added.objects:
+                                _special_objects.add(_obj.name, {
+                                    "ObjectType" : _obj.special_object_info.menu_object_type,
+                                    "ActionOnClick" : _obj.special_object_info.button_action_on_click
+                                })
+                                _action_parameter_rename = ""
+                                if _obj.special_object_info.button_action_on_click == "load_stage":
+                                    _action_parameter_rename = "Stage_" + _obj.special_object_info.button_action_parameter
+                                elif _obj.special_object_info.button_action_on_click == "load_menu":
+                                    _action_parameter_rename = "Menu_" + _obj.special_object_info.button_action_parameter
+                                _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
+                            _temp_dict.add("SpecialObjects", _special_objects)
+                            # ADD DICT TO INFO
+                            self.dict_menus_info.add(_sc_added.name, _temp_dict)
         #bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)

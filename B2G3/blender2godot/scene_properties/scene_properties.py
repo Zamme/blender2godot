@@ -21,9 +21,12 @@ Scene properties panel
 """
 
 import bpy
+from bpy.app.handlers import persistent
 
 
-def on_depsgraph_update(scene):
+@persistent
+def on_depsgraph_update(scene, depsgraph):
+    #pass
     #print("DEPSGRAPH!!!")
     bpy.ops.scene.update_scene_resolution_operator()
 
@@ -100,9 +103,12 @@ class ScenePropertiesPanel(bpy.types.Panel):
 def init_properties():
     # Scene props
     bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
+    # Object props
+    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE
 
 def clear_properties():
     del bpy.types.Scene.scene_exportable
+    del bpy.types.Object.godot_exportable
 
 def register():
     bpy.app.handlers.depsgraph_update_post.append(on_depsgraph_update)
@@ -114,5 +120,6 @@ def unregister():
     bpy.utils.unregister_class(ScenePropertiesPanel)
     bpy.utils.unregister_class(UpdateSceneResolutionOperator)
     clear_properties()
+    bpy.app.handlers.depsgraph_update_post.remove(on_depsgraph_update)
 
 

@@ -110,11 +110,9 @@ def init_properties():
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
-    bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE
 
 def clear_properties():
     del bpy.types.Scene.player_spawn_empty
-    del bpy.types.Object.godot_exportable
 
 def register():
     init_properties()
