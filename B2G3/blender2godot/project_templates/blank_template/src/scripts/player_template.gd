@@ -2,6 +2,7 @@ extends KinematicBody
 
 
 const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
+const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 
 const GRAVITY = -24.8
 var vel = Vector3()
@@ -35,10 +36,18 @@ func _ready():
 	player_mesh = find_player_mesh()
 	camera = find_camera(player_json["PlayerCameraObject"]["CameraName"])
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	add_hud()
 	
 	# TESTING
 	#player_mesh._test_anim()
 	InputMap.action_erase_events("ui_end")
+
+func add_hud():
+	if player_json.has("PlayerHUD"):
+		var _hud_scene_name = player_json["PlayerHUD"]["HudSceneName"]
+		var _hud_scene_path : String = HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
+		var _hud_instance = load(_hud_scene_path).instance()
+		add_child(_hud_instance)
 
 func animate():
 	if vel.z > 0.1:

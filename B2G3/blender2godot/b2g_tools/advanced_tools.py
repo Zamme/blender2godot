@@ -273,14 +273,10 @@ class ExportGameOperator(bpy.types.Operator):
                 new_name = ob.name.replace(".", "")
                 print("Exporting", new_name)
                 self.dict_colliders.add(new_name, ob.collider)
-                #self.dict_colliders.add(ob.name, ob.collider)
         print("Colliders exporting finished.")
         self.data_colliders = json.dumps(self.dict_colliders, indent=1, ensure_ascii=True)
         with open(self.colliders_filepath, 'w') as outfile:
             outfile.write(self.data_colliders + '\n')
-        #with open(self.colliders_filepath, 'r') as fp:
-            #data_file = json.load(fp)
-        #print(data_file)
     
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
@@ -504,6 +500,10 @@ class ExportGameOperator(bpy.types.Operator):
         for _control_setting in _player_scene.controls_settings:
             _controls_dictionary.add(_control_setting.motion_input_blender, _control_setting.motion_input_godot)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
+        # HUD
+        _hud_dictionary = my_dictionary()
+        _hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
+        self.dict_player_info.add("PlayerHUD", _hud_dictionary)
         # EXPORT JSON
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:
