@@ -24,11 +24,6 @@ import bpy
 from bpy.app.handlers import persistent
 
 
-@persistent
-def on_depsgraph_update(scene, depsgraph):
-    #pass
-    #print("DEPSGRAPH!!!")
-    bpy.ops.scene.update_scene_resolution_operator()
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
@@ -47,23 +42,6 @@ def update_scene_exportable(self, context):
                 if bpy.data.scenes[self.name].scene_exportable:
                     bpy.data.scenes[self.name].scene_exportable = False
                     show_error_popup(["Set camera object in player"], "Error detected", "CANCEL")
-
-
-class UpdateSceneResolutionOperator(bpy.types.Operator):
-    bl_idname = "scene.update_scene_resolution_operator"
-    bl_label = "Update Scene Resolution"
-
-    def execute(self, context):
-        # WATCH FOR CAMERAS RESOLUTION
-        if context.active_object:
-            if context.active_object.type == 'CAMERA':
-                if context.scene.render.resolution_x != bpy.data.scenes["B2G_GameManager"].display_width:
-                    context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].display_width
-                if context.scene.render.resolution_y != bpy.data.scenes["B2G_GameManager"].display_height:
-                    context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].display_height
-                #context.active_object.data.sensor_fit = 'VERTICAL'
-                #context.active_object.data.sensor_height = 35.0
-        return {'FINISHED'}
 
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
@@ -111,15 +89,10 @@ def clear_properties():
     del bpy.types.Object.godot_exportable
 
 def register():
-    bpy.app.handlers.depsgraph_update_post.append(on_depsgraph_update)
     init_properties()
-    bpy.utils.register_class(UpdateSceneResolutionOperator)
     bpy.utils.register_class(ScenePropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(ScenePropertiesPanel)
-    bpy.utils.unregister_class(UpdateSceneResolutionOperator)
     clear_properties()
-    bpy.app.handlers.depsgraph_update_post.remove(on_depsgraph_update)
-
 

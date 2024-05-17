@@ -487,7 +487,7 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	add_child(player_entity_instance)
 	yield(get_tree(), "idle_frame")
 	# TRANSFORMATIONS
-	player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/4.0, 0.0))
+	player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/2.5, 0.0))
 	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
 	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], -_camera_props["PosY"]))
 	_player_camera.rotation_degrees = Vector3(rad2deg(_camera_props["RotX"]) - 90.0, rad2deg(_camera_props["RotZ"]), rad2deg(_camera_props["RotY"]))

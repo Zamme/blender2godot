@@ -374,8 +374,8 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_godot_project_settings.add("startup_scene_type", context.scene.startup_scene.scene_type)
         self.dict_godot_project_settings.add("application/run/main_scene", context.scene.startup_scene.name)
         # Display settings
-        self.dict_godot_project_settings.add("display/window/size/width", context.scene.display_width)
-        self.dict_godot_project_settings.add("display/window/size/height", context.scene.display_height)
+        self.dict_godot_project_settings.add("display/window/size/width", bpy.data.scenes["B2G_GameManager"].render.resolution_x)
+        self.dict_godot_project_settings.add("display/window/size/height", bpy.data.scenes["B2G_GameManager"].render.resolution_y)
         self.dict_godot_project_settings.add("display/window/size/resizable", context.scene.display_resizable)
         self.dict_godot_project_settings.add("display/window/size/borderless", context.scene.display_borderless)
         self.dict_godot_project_settings.add("display/window/size/fullscreen", context.scene.display_fullscreen)

@@ -59,8 +59,9 @@ class DisplayPropertiesPanel(bpy.types.Panel):
         box0 = row0.box()
         box0.label(text="Resolution:")
         box1 = box0.box()
-        box1.prop(scene, "display_width")
-        box1.prop(scene, "display_height")
+        box1.alignment="CENTER"
+        box1.prop(scene.render, "resolution_x", text="Width")
+        box1.prop(scene.render, "resolution_y", text="Height")
         box2 = box0.box()
         box2.label(text="Options:")
         box2.prop(scene, "display_resizable")
@@ -70,16 +71,12 @@ class DisplayPropertiesPanel(bpy.types.Panel):
 
 def init_properties():
     # Display vars
-    bpy.types.Scene.display_width = bpy.props.IntProperty(name="Width", default=1024)
-    bpy.types.Scene.display_height = bpy.props.IntProperty(name="Height", default=768)
     bpy.types.Scene.display_resizable = bpy.props.BoolProperty(name="Resizable", default=True)
     bpy.types.Scene.display_borderless = bpy.props.BoolProperty(name="Borderless", default=False)
     bpy.types.Scene.display_fullscreen = bpy.props.BoolProperty(name="Fullscreen", default=False)
     bpy.types.Scene.display_alwaysontop = bpy.props.BoolProperty(name="Always on top", default=False)
 
 def clear_properties():
-    del bpy.types.Scene.display_width
-    del bpy.types.Scene.display_height
     del bpy.types.Scene.display_resizable
     del bpy.types.Scene.display_borderless
     del bpy.types.Scene.display_fullscreen

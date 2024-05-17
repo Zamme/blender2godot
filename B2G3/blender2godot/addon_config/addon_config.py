@@ -21,14 +21,17 @@ Editor main panel
 """
 
 import os
-import subprocess
-import shutil
-import json
-from fileinput import FileInput
 from bpy_extras.io_utils import ImportHelper
 
 import bpy
 
+
+handle = object()
+subscribe_to = bpy.types.Window, "scene"
+
+def msgbus_callback(*args):
+    bpy.context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
+    bpy.context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
 
 def init_properties():
     bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine")  
@@ -116,6 +119,14 @@ class Blender2GodotPanel(bpy.types.Panel):
                     box.label(text="This executable does not exist!", icon="ERROR")
 
 def register():
+    bpy.msgbus.subscribe_rna(
+        key=subscribe_to,
+        owner=handle,
+        args=(1, 2, 3),
+        notify=msgbus_callback,
+        options={"PERSISTENT"}
+    )
+
     init_properties()
     bpy.utils.register_class(SaveBlendFileOperator)
     bpy.utils.register_class(CreateGameManagerOperator)
@@ -126,3 +137,4 @@ def unregister():
     bpy.utils.unregister_class(Blender2GodotPanel)
     bpy.utils.unregister_class(CreateGameManagerOperator)
     clear_properties()
+    bpy.msgbus.clear_by_owner(handle)
