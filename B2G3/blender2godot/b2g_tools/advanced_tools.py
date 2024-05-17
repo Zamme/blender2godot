@@ -410,6 +410,7 @@ class ExportGameOperator(bpy.types.Operator):
             os.mkdir(self.huds_folder_path)
         print("Exporting hud scene", _hud_scene.name)
         context.window.scene = _hud_scene
+        bpy.ops.view3d.view_camera()
         hud_path = os.path.join(self.huds_folder_path, _hud_scene.name + ".svg")
         if len(_hud_scene.objects) > 0:
             bpy.ops.wm.gpencil_export_svg(filepath=hud_path, check_existing=True, 
