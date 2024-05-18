@@ -296,6 +296,13 @@ class ExportGameOperator(bpy.types.Operator):
                     for _hud_obj in _sc.objects:
                         _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
                     _hud_dict.add("Objects", _hud_obj_dict)
+                    _hud_settings_dict = my_dictionary()
+                    _hud_settings_dict.add("VisibilityType", _sc.hud_settings.visibility_type)
+                    _hud_settings_dict.add("ShowTransitionType", _sc.hud_settings.show_transition_type)
+                    _hud_settings_dict.add("ShowTransitionTime", _sc.hud_settings.show_transition_time)
+                    _hud_settings_dict.add("HideTransitionType", _sc.hud_settings.hide_transition_type)
+                    _hud_settings_dict.add("HideTransitionTime", _sc.hud_settings.hide_transition_time)
+                    _hud_dict.add("Settings", _hud_settings_dict)
                     self.dict_huds_info.add(_sc.name, _hud_dict)
                 else:
                     self.export_scene(context, _sc)

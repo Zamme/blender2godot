@@ -236,7 +236,6 @@ def clear_properties():
     del bpy.types.Scene.camera_control_inverted
     del bpy.types.Scene.camera_object
     del bpy.types.Scene.player_object
-    #del bpy.types.Scene.camera_fov
     del bpy.types.Scene.player_animation_sel
 
 def init_properties():
@@ -251,7 +250,6 @@ def init_properties():
     bpy.types.Scene.camera_control_inverted = bpy.props.BoolProperty(name="Camera Y Inverted", default=True)
     bpy.types.Scene.camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Camera Object", description="Camera Object", poll=scene_camera_object_poll, update=camera_update)
     bpy.types.Scene.player_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Object", description="Player Object", poll=scene_player_object_poll)
-    #bpy.types.Scene.camera_fov = bpy.props.FloatProperty(name="FOV", default=30.0, min=1.0, max=180.0)
     bpy.types.Scene.player_animation_sel = bpy.props.IntProperty(name="Player Selected Animation", default=0)
     bpy.types.Scene.player_hud_scene = bpy.props.EnumProperty(items=get_hud_scenes)
 
