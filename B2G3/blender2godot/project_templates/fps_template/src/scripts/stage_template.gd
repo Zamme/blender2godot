@@ -491,6 +491,14 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
 	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], -_camera_props["PosY"]))
 	_player_camera.rotation_degrees = Vector3(rad2deg(_camera_props["RotX"]) - 90.0, rad2deg(_camera_props["RotZ"]), rad2deg(_camera_props["RotY"]))
+	_player_camera.fov = rad2deg(_camera_props["FOV"])
+	match _camera_props["KeepFOV"]:
+		"AUTO":
+			_player_camera.keep_aspect = Camera.KEEP_WIDTH
+		"VERTICAL":
+			_player_camera.keep_aspect = Camera.KEEP_HEIGHT
+		"HORIZONTAL":
+			_player_camera.keep_aspect = Camera.KEEP_WIDTH
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()

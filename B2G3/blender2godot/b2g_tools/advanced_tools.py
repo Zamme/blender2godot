@@ -490,7 +490,9 @@ class ExportGameOperator(bpy.types.Operator):
                                                          "PosZ" : _player_scene.camera_object.location.z,
                                                          "RotX" : _player_scene.camera_object.rotation_euler.x,
                                                          "RotY" : _player_scene.camera_object.rotation_euler.y,
-                                                         "RotZ" : _player_scene.camera_object.rotation_euler.z})
+                                                         "RotZ" : _player_scene.camera_object.rotation_euler.z,
+                                                         "FOV" : _player_scene.camera_object.data.angle,
+                                                         "KeepFOV" : _player_scene.camera_object.data.sensor_fit})
         # ANIMATIONS
         _action_dictionary = my_dictionary()
         for _player_action in bpy.data.actions:
