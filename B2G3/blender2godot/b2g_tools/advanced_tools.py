@@ -304,6 +304,7 @@ class ExportGameOperator(bpy.types.Operator):
                     _hud_settings_dict.add("ShowTransitionTime", _sc.hud_settings.show_transition_time)
                     _hud_settings_dict.add("HideTransitionType", _sc.hud_settings.hide_transition_type)
                     _hud_settings_dict.add("HideTransitionTime", _sc.hud_settings.hide_transition_time)
+                    _hud_settings_dict.add("ExportFormat", _sc.hud_settings.hud_export_format)
                     _hud_dict.add("Settings", _hud_settings_dict)
                     self.dict_huds_info.add(_sc.name, _hud_dict)
                 else:
@@ -423,12 +424,20 @@ class ExportGameOperator(bpy.types.Operator):
             _obj.select_set(_obj.godot_exportable)
             bpy.ops.object.mode_set(mode = 'OBJECT')
         bpy.ops.view3d.view_camera()
-        hud_path = os.path.join(self.huds_folder_path, _hud_scene.name + ".svg")
+        hud_path = os.path.join(self.huds_folder_path, _hud_scene.name)
         if len(_hud_scene.objects) > 0:
-            bpy.ops.wm.gpencil_export_svg(filepath=hud_path, check_existing=True, 
-                                          use_fill=True,
-                                          selected_object_type="VISIBLE", stroke_sample=0.0,
-                                          use_normalized_thickness=False, use_clip_camera=True)
+            match _hud_scene.hud_settings.hud_export_format:
+                case "svg":
+                    hud_path = hud_path + ".svg"
+                    bpy.ops.wm.gpencil_export_svg(filepath=hud_path, check_existing=True, 
+                                                use_fill=True,
+                                                selected_object_type="SELECTED", stroke_sample=0.0,
+                                                use_normalized_thickness=True, use_clip_camera=True)
+                case "png":
+                    hud_path = hud_path + ".png"
+                    _hud_scene.render.engine = "BLENDER_EEVEE"
+                    bpy.context.scene.render.filepath = hud_path
+                    bpy.ops.render.render(write_still = True)
             print("Scene", _hud_scene.name, "exported.")
         else:
             print("Scene ", _hud_scene.name, " empty!")

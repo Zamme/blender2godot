@@ -38,6 +38,10 @@ class HudSettings(bpy.types.PropertyGroup):
                                     ("fade_in", "Fade In", "FADE IN", "", 1)
                                         ], name="Hiding HUD effect")
     hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time")
+    hud_export_format : bpy.props.EnumProperty(items=[
+                                                ("png", "PNG", "PNG", "", 0),
+                                                ("svg", "SVG", "SVG", "", 1)
+                                                ], name="Format", description="HUD export format")
 
 class CreateHUDViewOperator(bpy.types.Operator):
     bl_idname = "scene.create_hud_view_operator"
@@ -97,6 +101,7 @@ class HUDPropertiesPanel(bpy.types.Panel):
         box1.prop(context.scene.hud_settings, "hide_transition_type")
         if context.scene.hud_settings.hide_transition_type == "fade_in":
             box1.prop(context.scene.hud_settings, "hide_transition_time")
+        box1.prop(context.scene.hud_settings, "hud_export_format")
        
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
@@ -114,11 +119,11 @@ def init_properties():
                                                 ("frame", "Frame", "FRAME", "", 1),
                                                 ("container", "Container", "CONTAINER", "", 2)
                                                 ], name="Type", description="HUD object type")
-
     bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
 
 def clear_properties():
-    pass
+    del bpy.types.Object.hud_object_type
+    del bpy.types.Scene.hud_settings
 
 def register():
     bpy.utils.register_class(HudSettings)

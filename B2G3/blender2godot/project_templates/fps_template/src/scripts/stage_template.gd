@@ -649,7 +649,8 @@ func mount_scenes():
 		_new_hud.add_child(_new_texture_rect)
 		_new_texture_rect.set_owner(_new_hud)
 		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
-		var _svg_path : String = HUDS_SVGS_PATH + _key + ".svg"
+		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
+		var _svg_path : String = HUDS_SVGS_PATH + _key + "." + _texture_format
 		_new_texture_rect.texture = load(_svg_path)
 		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
