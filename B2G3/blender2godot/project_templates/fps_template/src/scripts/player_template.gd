@@ -27,6 +27,7 @@ var player_mesh : PlayerMesh
 
 var _animations = {}
 var _controls = {}
+var _hud
 
 
 func _ready():
@@ -46,8 +47,8 @@ func add_hud():
 	if player_json.has("PlayerHUD"):
 		var _hud_scene_name = player_json["PlayerHUD"]["HudSceneName"]
 		var _hud_scene_path : String = HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
-		var _hud_instance = load(_hud_scene_path).instance()
-		add_child(_hud_instance)
+		_hud = load(_hud_scene_path).instance()
+		add_child(_hud)
 
 func animate():
 	if vel.z > 0.1:

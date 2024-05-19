@@ -29,7 +29,7 @@ import bpy
 class TestGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
     """Test Game Operator"""
     bl_idname = "scene.test_game_operator"
-    bl_label = "Test Game"
+    bl_label = "Test Last Exported Game"
     
     def start_game(self, context):
         print("Starting game", context.scene.project_folder)

@@ -30,7 +30,6 @@ import bpy
 
 
 class my_dictionary(dict): 
-  
     # __init__ function 
     def __init__(self): 
         self = dict() 
@@ -38,6 +37,9 @@ class my_dictionary(dict):
     # Function to add key:value 
     def add(self, key, value): 
         self[key] = value 
+
+def poll_startupable_scenes(self, _scene):
+    return ((_scene.scene_type == "stage") or (_scene.scene_type == "menu"))
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
@@ -417,6 +419,9 @@ class ExportGameOperator(bpy.types.Operator):
             os.mkdir(self.huds_folder_path)
         print("Exporting hud scene", _hud_scene.name)
         context.window.scene = _hud_scene
+        for _obj in _hud_scene.objects:
+            _obj.select_set(_obj.godot_exportable)
+            bpy.ops.object.mode_set(mode = 'OBJECT')
         bpy.ops.view3d.view_camera()
         hud_path = os.path.join(self.huds_folder_path, _hud_scene.name + ".svg")
         if len(_hud_scene.objects) > 0:
@@ -629,7 +634,7 @@ def init_properties():
     bpy.types.Scene.godot_export_ok = bpy.props.BoolProperty(name="Godot Expot OK", default=False)
     bpy.types.Scene.godot_exporting = bpy.props.BoolProperty(name="Godot Exporting", default=False)
     bpy.types.Scene.scenes_added_index = bpy.props.IntProperty(name = "Index for my_list", default = 0)
-    bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene")
+    bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene", poll=poll_startupable_scenes)
     # Panels checkboxes
     bpy.types.Scene.advanced_tools = bpy.props.BoolProperty(name="Advanced Tools", default=False)
 

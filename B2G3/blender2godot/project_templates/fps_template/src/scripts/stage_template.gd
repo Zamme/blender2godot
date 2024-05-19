@@ -25,6 +25,7 @@ const BUTTON_BEHAVIOR_PATH = "res://src/scripts/menu_button_class.gd"
 
 const HUDS_PATH = SCENES_PATH + "huds/"
 const HUD_SCENES_PREFIX = "Hud_"
+const HUD_BEHAVIOR_FILEPATH = "res://src/scripts/hud_behavior.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
@@ -651,6 +652,7 @@ func mount_scenes():
 		var _svg_path : String = HUDS_SVGS_PATH + _key + ".svg"
 		_new_texture_rect.texture = load(_svg_path)
 		_new_texture_rect.expand = true
+		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		self.repack_scene(_new_hud, _new_hud_path)
 	
 	return true
