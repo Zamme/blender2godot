@@ -46,9 +46,10 @@ func _ready():
 func add_hud():
 	if player_json.has("PlayerHUD"):
 		var _hud_scene_name = player_json["PlayerHUD"]["HudSceneName"]
-		var _hud_scene_path : String = HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
-		_hud = load(_hud_scene_path).instance()
-		add_child(_hud)
+		if _hud_scene_name != "none":
+			var _hud_scene_path : String = HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
+			_hud = load(_hud_scene_path).instance()
+			add_child(_hud)
 
 func animate():
 	if vel.z > 0.1:
