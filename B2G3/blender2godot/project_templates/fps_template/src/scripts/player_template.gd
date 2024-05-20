@@ -41,7 +41,6 @@ func _ready():
 	
 	# TESTING
 	#player_mesh._test_anim()
-	InputMap.action_erase_events("ui_end")
 
 func add_hud():
 	if player_json.has("PlayerHUD"):

@@ -41,7 +41,7 @@ func read_json_file(filepath):
 	else:
 		file.open(filepath, file.READ)
 		var json = file.get_as_text()
-		print("json ", filepath, " : ", json)
+#		print("json ", filepath, " : ", json)
 		var json_result = JSON.parse(json)
 		file.close()
 		return json_result.result

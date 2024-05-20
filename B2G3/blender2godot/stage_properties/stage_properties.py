@@ -30,7 +30,7 @@ def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 def scene_emptyobject_poll(self, object):
-    return object.type == 'EMPTY'
+    return ((object.type == 'EMPTY') and (bpy.context.scene == object.users_scene[0]))
 
 def update_scene_exportable(self, context):
     if bpy.data.scenes[self.name].scene_type == "player":

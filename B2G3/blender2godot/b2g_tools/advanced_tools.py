@@ -553,31 +553,31 @@ class ExportGameOperator(bpy.types.Operator):
 
     def find_colliders_file_path(self, context):
         self.colliders_filepath = os.path.join(context.scene.project_folder, "colliders_info", "colliders.json")
-        print("Colliders json filepath:", self.colliders_filepath)
+        #print("Colliders json filepath:", self.colliders_filepath)
     
     def find_huds_info_file_path(self, context):
         self.huds_info_filepath = os.path.join(context.scene.project_folder, "huds_info", "huds_info.json")
-        print("Godot huds settings info json filepath:", self.huds_info_filepath)
+        #print("Godot huds settings info json filepath:", self.huds_info_filepath)
 
     def find_lights_file_path(self, context):
         self.lights_info_filepath = os.path.join(context.scene.project_folder, "lights_info", "lights_info.json")
-        print("Lights json filepath:", self.lights_info_filepath)
+        #print("Lights json filepath:", self.lights_info_filepath)
         
     def find_player_info_file_path(self, context):
         self.player_info_filepath = os.path.join(context.scene.project_folder, "player_info", "player_info.json")
-        print("Player info json filepath:", self.player_info_filepath)
+        #print("Player info json filepath:", self.player_info_filepath)
 
     def find_godot_project_settings_file_path(self, context):
         self.godot_project_settings_filepath = os.path.join(context.scene.project_folder, "godot_project_settings_info", "godot_project_settings.json")
-        print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
+        #print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
 
     def find_stages_info_file_path(self, context):
         self.stages_info_filepath = os.path.join(context.scene.project_folder, "stages_info", "stages_info.json")
-        print("Godot stages settings info json filepath:", self.stages_info_filepath)
+        #print("Godot stages settings info json filepath:", self.stages_info_filepath)
 
     def find_menus_info_file_path(self, context):
         self.menus_info_filepath = os.path.join(context.scene.project_folder, "menus_info", "menus_info.json")
-        print("Godot menus settings info json filepath:", self.menus_info_filepath)
+        #print("Godot menus settings info json filepath:", self.menus_info_filepath)
 
     def fix_objects_names(self, context):
         print("Fixing objects names...(Godot can't use dots and other signs!)")

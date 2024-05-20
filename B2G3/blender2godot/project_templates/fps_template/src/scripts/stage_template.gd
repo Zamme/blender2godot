@@ -115,10 +115,10 @@ func add_collider(scene_object, collider_type, scene_to_save):
 	"""
 	match collider_type:
 		COLLIDER_TYPE.CONVEX:
-			print("Creating convex collider on: " + scene_object.name)
+#			print("Creating convex collider on: " + scene_object.name)
 			self.create_convex_collision_shape(scene_object)
 		COLLIDER_TYPE.MESH:
-			print("Creating mesh collider on: " + scene_object.name)
+#			print("Creating mesh collider on: " + scene_object.name)
 			self.create_trimesh_collision_shape(scene_object)
 		COLLIDER_TYPE.SMART:
 			pass
@@ -279,7 +279,7 @@ func add_smart_collider(scene):
 			if ob_position.z < min_z_object.transform.origin.z:
 				min_z_object = ob
 	var corner_position : Vector3 = Vector3(min_x_object.transform.origin.x, min_y_object.transform.origin.y, min_z_object.transform.origin.z)
-	print("Corner position: {" + str(corner_position.x) + "," + str(corner_position.y) + "," + str(corner_position.z) + "}")
+#	print("Corner position: {" + str(corner_position.x) + "," + str(corner_position.y) + "," + str(corner_position.z) + "}")
 	matrix_offset = corner_position
 	
 	# Fill matrix
@@ -319,23 +319,24 @@ func apply_import_changes(scene):
 	print("Aplying changes to " + scene.name)
 	self.get_all_scene_objects(scene)
 	for ob in self.scene_objects_list:
-		print("Changes to " + ob.name)
+#		print("Changes to " + ob.name)
 		if ob is MeshInstance: # MESHES
 			if _colliders_json.has(ob.name):# ON SCENARIOS
 				if _colliders_json[ob.name] == "none":
-					print("...without collider!")
+					pass
+#					print("...without collider!")
 				elif _colliders_json[ob.name] == "convex":
-					print("...with convex collider!")
+#					print("...with convex collider!")
 					self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
 				elif _colliders_json[ob.name] == "mesh":
-					print("...with mesh collider!")
+#					print("...with mesh collider!")
 					self.add_collider(ob, COLLIDER_TYPE.MESH, scene)
 				elif _colliders_json[ob.name] == "smart":
-					print("...with smart collider!")
+#					print("...with smart collider!")
 					self.add_collider(ob, COLLIDER_TYPE.SMART, scene)
 			elif _menus_json.has(scene.name):
 				if _menus_json[scene.name]["SpecialObjects"].has(ob.name):
-					print("Special Object", ob.name, "found")
+#					print("Special Object", ob.name, "found")
 					match _menus_json[scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
 						"button":
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
@@ -346,7 +347,7 @@ func apply_import_changes(scene):
 				lights_instance.name = "Lights"
 				self.add_child(lights_instance)
 				#lights_instance.set_owner(self)
-			print("Adding light on :" + ob.name)
+#			print("Adding light on :" + ob.name)
 			var new_light_color : Color = Color(_lights_json[ob.name + "ColorR"], _lights_json[ob.name + "ColorG"], _lights_json[ob.name + "ColorB"])
 			var new_light_position : Vector3 = Vector3(_lights_json[ob.name + "PositionX"], _lights_json[ob.name + "PositionZ"], -_lights_json[ob.name + "PositionY"])
 			var new_light_rotation : Vector3 = Vector3(_lights_json[ob.name + "RotationX"] -90.0, _lights_json[ob.name + "RotationZ"], -_lights_json[ob.name + "RotationY"])
@@ -444,7 +445,7 @@ func clear_lights(_scene):
 	print("Clearing lights...")
 	for _light in lights_to_remove_from_scene:
 		_light.queue_free()
-		print(_light.name, " cleared from ", _scene.name)
+		#print(_light.name, " cleared from ", _scene.name)
 	print("End clearing lights.")
 #	repack_scene(_scene, MODELS_PATH)
 
@@ -508,7 +509,7 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	player_entity_instance.queue_free()
 	print("Player created.")
 	
-	InputMap.action_erase_events("ui_end")
+	ProjectSettings.set_setting("input/ui_up", null)
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
@@ -577,7 +578,7 @@ func mount_scenes():
 		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		if _stages_json:
 			for _key in _stages_json.keys():
-				print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
+				#print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
 				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
 					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
 					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
@@ -609,7 +610,7 @@ func mount_scenes():
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		if _menus_json:
 			for _key in _menus_json.keys():
-				print("In mount menus: ", _fn_without_ext, " vs ", _key)
+				#print("In mount menus: ", _fn_without_ext, " vs ", _key)
 				if str(_fn_without_ext) == _key:
 					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
 					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
@@ -704,7 +705,7 @@ func read_json_file(filepath):
 	else:
 		file.open(filepath, file.READ)
 		var json = file.get_as_text()
-		print("json ", filepath, " : ", json)
+		#print("json ", filepath, " : ", json)
 		var json_result = JSON.parse(json)
 		file.close()
 		return json_result.result

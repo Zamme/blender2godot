@@ -44,8 +44,8 @@ def controls_update(self, context):
         if os.path.isdir(p_path):
             _template_path = p_path
     _template_properties_path = _template_path + "_properties.json"
-    #print("Template path: ", _template_path)
-    #print("Template properties path: ", _template_properties_path)
+    print("Template path: ", _template_path)
+    print("Template properties path: ", _template_properties_path)
     _template_properties = {}
     with open(_template_properties_path) as f:
         _template_properties = json.load(f)
@@ -93,10 +93,7 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.motion_name, icon="POSE_HLT")
-            layout.prop(item, "motion_input_blender", text="", event=True)
-            #layout.label(text=item.motion_input_blender, icon="VIEW_PAN")
-#            layout.prop(item, "motion_input", text="", icon="NONE")
-            #layout.operator("scene.process_input").control_index = index
+            layout.operator("scene.process_input", text=item.motion_input_blender).control_index = index
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = "POSE_HLT")
@@ -104,6 +101,7 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
 class ControlsProperties(bpy.types.PropertyGroup):
     motion_name: bpy.props.StringProperty(name="Motion Name", default="Unknown") # type: ignore
     motion_input_blender: bpy.props.StringProperty(name="Blender Input", default="None") # type: ignore
+    kmi_blender: bpy.props.IntProperty(name="KMI Blender ID") # type: ignore
     motion_input_godot: bpy.props.StringProperty(name="Godot Input", default="None") # type: ignore
 
 class ControlSettingsType(bpy.types.PropertyGroup):
@@ -112,14 +110,6 @@ class ControlSettingsType(bpy.types.PropertyGroup):
         ("keyboard", "Keyboard", "", 0),
         ("joypad", "Joypad", "", 1)]
 
-class ControlInputProperty(bpy.types.PropertyGroup):
-    """ Control input property """
-    control_input_options = []
-    #for _control_item in bpy.types.KeyMap.keys():
-        #print("Key key: ", _control_item)
-    #    ("keyboard", "Keyboard", "", 0),
-     #   ("joypad", "Joypad", "", 1)]
-
 class SCENE_OT_get_input(bpy.types.Operator):
     """Get input key."""
     bl_idname = 'scene.process_input'
@@ -127,20 +117,21 @@ class SCENE_OT_get_input(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     control_index : bpy.props.IntProperty(name="ControlIndex") # type: ignore
+    last_touched = None
 
     def modal(self, context, event):
         if event.type == 'ESC':
-            print("esc catched")
+            context.scene.controls_settings[self.control_index].motion_input_blender = self.last_touched
             return {'FINISHED'}
         elif event.value == "PRESS":
-            context.scene.controls_settings[self.control_index].motion_input = event.type
+            context.scene.controls_settings[self.control_index].motion_input_blender = event.type
             return {'FINISHED'}
-        #elif event.ctrl:
-            #pass # Input processing code.
 
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
+        self.last_touched = context.scene.controls_settings[self.control_index].motion_input_blender
+        context.scene.controls_settings[self.control_index].motion_input_blender = "Press..."
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
@@ -264,6 +255,8 @@ def init_properties():
     bpy.types.Scene.controls_settings = bpy.props.CollectionProperty(type=ControlsProperties)
     bpy.types.Scene.controls_settings_sel = bpy.props.IntProperty(name="Input Selected", default=0)
 
+    #bpy.types.Scene.test_key_map_item = bpy.props.PointerProperty(type=bpy.types.KeyMapItem)
+
 def register():
     bpy.utils.register_class(ControlsProperties)
     init_properties()
@@ -271,7 +264,6 @@ def register():
     bpy.utils.register_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.register_class(SCENE_OT_get_input)
     bpy.utils.register_class(PlayerPropertiesPanel)
-    #print(bpy.context.preferences.keymap.active_keyconfig)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
