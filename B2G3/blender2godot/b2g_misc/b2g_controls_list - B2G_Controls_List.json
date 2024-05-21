@@ -1,0 +1,446 @@
+{
+  "LEFTMOUSE": {
+    "GodotID": "BUTTON_LEFT"
+  },
+  "MIDDLEMOUSE": {
+    "GodotID": "BUTTON_MIDDLE"
+  },
+  "RIGHTMOUSE": {
+    "GodotID": "BUTTON_RIGHT"
+  },
+  "BUTTON4MOUSE": {
+    "GodotID": "BUTTON_XBUTTON1"
+  },
+  "BUTTON5MOUSE": {
+    "GodotID": "BUTTON_XBUTTON2"
+  },
+  "BUTTON6MOUSE": {
+    "GodotID": null
+  },
+  "BUTTON7MOUSE": {
+    "GodotID": null
+  },
+  "PEN": {
+    "GodotID": null
+  },
+  "ERASER": {
+    "GodotID": null
+  },
+  "MOUSEMOVE": {
+    "GodotID": null
+  },
+  "INBETWEEN_MOUSEMOVE": {
+    "GodotID": null
+  },
+  "TRACKPADPAN": {
+    "GodotID": null
+  },
+  "TRACKPADZOOM": {
+    "GodotID": null
+  },
+  "MOUSEROTATE": {
+    "GodotID": null
+  },
+  "MOUSESMARTZOOM": {
+    "GodotID": null
+  },
+  "WHEELUPMOUSE": {
+    "GodotID": "BUTTON_WHEEL_UP"
+  },
+  "WHEELDOWNMOUSE": {
+    "GodotID": "BUTTON_WHEEL_DOWN"
+  },
+  "WHEELINMOUSE": {
+    "GodotID": "BUTTON_WHEEL_RIGHT"
+  },
+  "WHEELOUTMOUSE": {
+    "GodotID": "BUTTON_WHEEL_LEFT"
+  },
+  "A": {
+    "GodotID": "KEY_A"
+  },
+  "B": {
+    "GodotID": "KEY_B"
+  },
+  "C": {
+    "GodotID": "KEY_C"
+  },
+  "D": {
+    "GodotID": "KEY_D"
+  },
+  "E": {
+    "GodotID": "KEY_E"
+  },
+  "F": {
+    "GodotID": "KEY_F"
+  },
+  "G": {
+    "GodotID": "KEY_G"
+  },
+  "H": {
+    "GodotID": "KEY_H"
+  },
+  "I": {
+    "GodotID": "KEY_I"
+  },
+  "J": {
+    "GodotID": "KEY_J"
+  },
+  "K": {
+    "GodotID": "KEY_K"
+  },
+  "L": {
+    "GodotID": "KEY_L"
+  },
+  "M": {
+    "GodotID": "KEY_M"
+  },
+  "N": {
+    "GodotID": "KEY_N"
+  },
+  "O": {
+    "GodotID": "KEY_O"
+  },
+  "P": {
+    "GodotID": "KEY_P"
+  },
+  "Q": {
+    "GodotID": "KEY_Q"
+  },
+  "R": {
+    "GodotID": "KEY_R"
+  },
+  "S": {
+    "GodotID": "KEY_S"
+  },
+  "T": {
+    "GodotID": "KEY_T"
+  },
+  "U": {
+    "GodotID": "KEY_U"
+  },
+  "V": {
+    "GodotID": "KEY_V"
+  },
+  "W": {
+    "GodotID": "KEY_W"
+  },
+  "X": {
+    "GodotID": "KEY_X"
+  },
+  "Y": {
+    "GodotID": "KEY_Y"
+  },
+  "Z": {
+    "GodotID": "KEY_Z"
+  },
+  "ZERO": {
+    "GodotID": "KEY_0"
+  },
+  "ONE": {
+    "GodotID": "KEY_1"
+  },
+  "TWO": {
+    "GodotID": "KEY_2"
+  },
+  "THREE": {
+    "GodotID": "KEY_3"
+  },
+  "FOUR": {
+    "GodotID": "KEY_4"
+  },
+  "FIVE": {
+    "GodotID": "KEY_5"
+  },
+  "SIX": {
+    "GodotID": "KEY_6"
+  },
+  "SEVEN": {
+    "GodotID": "KEY_7"
+  },
+  "EIGHT": {
+    "GodotID": "KEY_8"
+  },
+  "NINE": {
+    "GodotID": "KEY_9"
+  },
+  "LEFT_CTRL": {
+    "GodotID": "KEY_CONTROL"
+  },
+  "LEFT_ALT": {
+    "GodotID": "KEY_ALT"
+  },
+  "LEFT_SHIFT": {
+    "GodotID": "KEY_SHIFT"
+  },
+  "RIGHT_ALT": {
+    "GodotID": "KEY_ALT"
+  },
+  "RIGHT_CTRL": {
+    "GodotID": "KEY_CONTROL"
+  },
+  "RIGHT_SHIFT": {
+    "GodotID": "KEY_SHIFT"
+  },
+  "OSKEY": {
+    "GodotID": "KEY_CMD"
+  },
+  "APP": {
+    "GodotID": null
+  },
+  "GRLESS": {
+    "GodotID": null
+  },
+  "ESC": {
+    "GodotID": "KEY_ESCAPE"
+  },
+  "TAB": {
+    "GodotID": "KEY_TAB"
+  },
+  "RET": {
+    "GodotID": "KEY_ENTER"
+  },
+  "SPACE": {
+    "GodotID": "KEY_SPACE"
+  },
+  "LINE_FEED": {
+    "GodotID": null
+  },
+  "BACK_SPACE": {
+    "GodotID": null
+  },
+  "DEL": {
+    "GodotID": null
+  },
+  "SEMI_COLON": {
+    "GodotID": null
+  },
+  "PERIOD  COMMA": {
+    "GodotID": null
+  },
+  "QUOTE": {
+    "GodotID": null
+  },
+  "ACCENT_GRAVE": {
+    "GodotID": null
+  },
+  "MINUS": {
+    "GodotID": null
+  },
+  "PLUS": {
+    "GodotID": null
+  },
+  "SLASH": {
+    "GodotID": null
+  },
+  "BACK_SLASH": {
+    "GodotID": null
+  },
+  "EQUAL": {
+    "GodotID": null
+  },
+  "LEFT_BRACKET": {
+    "GodotID": null
+  },
+  "RIGHT_BRACKET": {
+    "GodotID": null
+  },
+  "LEFT_ARROW": {
+    "GodotID": "KEY_LEFT"
+  },
+  "DOWN_ARROW": {
+    "GodotID": "KEY_DOWN"
+  },
+  "RIGHT_ARROW": {
+    "GodotID": "KEY_RIGHT"
+  },
+  "UP_ARROW": {
+    "GodotID": "KEY_UP"
+  },
+  "NUMPAD_2": {
+    "GodotID": "KEY_KP_2"
+  },
+  "NUMPAD_4": {
+    "GodotID": "KEY_KP_4"
+  },
+  "NUMPAD_6": {
+    "GodotID": "KEY_KP_6"
+  },
+  "NUMPAD_8": {
+    "GodotID": "KEY_KP_8"
+  },
+  "NUMPAD_1": {
+    "GodotID": "KEY_KP_1"
+  },
+  "NUMPAD_3": {
+    "GodotID": "KEY_KP_3"
+  },
+  "NUMPAD_5": {
+    "GodotID": "KEY_KP_5"
+  },
+  "NUMPAD_7": {
+    "GodotID": "KEY_KP_7"
+  },
+  "NUMPAD_9": {
+    "GodotID": "KEY_KP_9"
+  },
+  "NUMPAD_PERIOD": {
+    "GodotID": null
+  },
+  "NUMPAD_SLASH": {
+    "GodotID": null
+  },
+  "NUMPAD_ASTERIX": {
+    "GodotID": null
+  },
+  "NUMPAD_0": {
+    "GodotID": "KEY_KP_0"
+  },
+  "NUMPAD_MINUS": {
+    "GodotID": null
+  },
+  "NUMPAD_ENTER": {
+    "GodotID": null
+  },
+  "NUMPAD_PLUS": {
+    "GodotID": null
+  },
+  "F1": {
+    "GodotID": "KEY_F1"
+  },
+  "F2": {
+    "GodotID": "KEY_F2"
+  },
+  "F3": {
+    "GodotID": "KEY_F3"
+  },
+  "F4": {
+    "GodotID": "KEY_F4"
+  },
+  "F5": {
+    "GodotID": "KEY_F5"
+  },
+  "F6": {
+    "GodotID": "KEY_F6"
+  },
+  "F7": {
+    "GodotID": "KEY_F7"
+  },
+  "F8": {
+    "GodotID": "KEY_F8"
+  },
+  "F9": {
+    "GodotID": "KEY_F9"
+  },
+  "F10": {
+    "GodotID": "KEY_F10"
+  },
+  "F11": {
+    "GodotID": "KEY_F11"
+  },
+  "F12": {
+    "GodotID": "KEY_F12"
+  },
+  "F13": {
+    "GodotID": "KEY_F13"
+  },
+  "F14": {
+    "GodotID": "KEY_F14"
+  },
+  "F15": {
+    "GodotID": "KEY_F15"
+  },
+  "F16": {
+    "GodotID": "KEY_F16"
+  },
+  "F17": {
+    "GodotID": "KEY_F17"
+  },
+  "F18": {
+    "GodotID": "KEY_F18"
+  },
+  "F19": {
+    "GodotID": "KEY_F19"
+  },
+  "F20": {
+    "GodotID": "KEY_F20"
+  },
+  "F21": {
+    "GodotID": "KEY_F21"
+  },
+  "F22": {
+    "GodotID": "KEY_F22"
+  },
+  "F23": {
+    "GodotID": "KEY_F23"
+  },
+  "F24": {
+    "GodotID": "KEY_F24"
+  },
+  "PAUSE": {
+    "GodotID": null
+  },
+  "INSERT": {
+    "GodotID": null
+  },
+  "HOME": {
+    "GodotID": null
+  },
+  "PAGE_UP": {
+    "GodotID": null
+  },
+  "PAGE_DOWN": {
+    "GodotID": null
+  },
+  "END": {
+    "GodotID": null
+  },
+  "MEDIA_PLAY": {
+    "GodotID": null
+  },
+  "MEDIA_STOP": {
+    "GodotID": null
+  },
+  "JOY_BUTTON_0": {
+    "GodotID": "JOY_BUTTON_0"
+  },
+  "JOY_BUTTON_1": {
+    "GodotID": "JOY_BUTTON_1"
+  },
+  "JOY_BUTTON_3": {
+    "GodotID": "JOY_BUTTON_3"
+  },
+  "JOY_BUTTON_4": {
+    "GodotID": "JOY_BUTTON_4"
+  },
+  "JOY_BUTTON_5": {
+    "GodotID": "JOY_BUTTON_5"
+  },
+  "JOY_BUTTON_6": {
+    "GodotID": "JOY_BUTTON_6"
+  },
+  "JOY_BUTTON_7": {
+    "GodotID": "JOY_BUTTON_7"
+  },
+  "JOY_BUTTON_8": {
+    "GodotID": "JOY_BUTTON_8"
+  },
+  "JOY_BUTTON_9": {
+    "GodotID": "JOY_BUTTON_9"
+  },
+  "JOY_BUTTON_10": {
+    "GodotID": "JOY_BUTTON_10"
+  },
+  "JOY_BUTTON_12": {
+    "GodotID": "JOY_BUTTON_12"
+  },
+  "JOY_BUTTON_13": {
+    "GodotID": "JOY_BUTTON_13"
+  },
+  "JOY_BUTTON_14": {
+    "GodotID": "JOY_BUTTON_14"
+  },
+  "JOY_BUTTON_15": {
+    "GodotID": "JOY_BUTTON_15"
+  }
+}

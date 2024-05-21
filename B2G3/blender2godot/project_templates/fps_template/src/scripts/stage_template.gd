@@ -466,7 +466,7 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
-func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
+func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -509,7 +509,22 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props):
 	player_entity_instance.queue_free()
 	print("Player created.")
 	
-	ProjectSettings.set_setting("input/ui_up", null)
+	# PLAYER CONTROLS
+#	for _control_prop in _controls_props:
+#		var event_key = InputEventKey.new()
+#		event_key.physical_scancode = KEY_R
+#		var event_joypad = InputEventJoypadButton.new()
+#		event_joypad.button_index = JOY_BUTTON_0
+#		var input = {
+#			"deadzone": 0.5,
+#			"events": [
+#				event_key,
+#				event_joypad
+#			]
+#		}
+#		ProjectSettings.set_setting("input/ui_up", input)
+#	ProjectSettings.save()
+
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
@@ -600,7 +615,8 @@ func mount_scenes():
 						var _cam_props = _player_json["PlayerCameraObject"]
 						var _shape_props = _player_json["PlayerDimensions"]
 						var _anims_props = _player_json["PlayerAnimations"]
-						create_player(_fn_without_ext, _cam_props, _shape_props)
+						var _controls_props = _player_json["PlayerControls"]
+						create_player(_fn_without_ext, _cam_props, _shape_props, _controls_props)
 						_index += 1
 		else:
 			print("No player added")

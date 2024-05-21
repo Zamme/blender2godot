@@ -38,6 +38,21 @@ class my_dictionary(dict):
     def add(self, key, value): 
         self[key] = value 
 
+def get_controls_list(self, context):
+    _controls_list = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "b2g_controls_list - B2G_Controls_List.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _controls_list = json.load(outfile)
+                    break
+            else:
+                pass
+    return _controls_list
+
 def poll_startupable_scenes(self, _scene):
     return (((_scene.scene_type == "stage") or (_scene.scene_type == "menu")) and (_scene.name != "B2G_GameManager"))
 
@@ -599,7 +614,6 @@ class ExportGameOperator(bpy.types.Operator):
         self.main(context)
         print("Project exported!")
         return {'FINISHED'}
-
 
 
 class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender execution until game exits
