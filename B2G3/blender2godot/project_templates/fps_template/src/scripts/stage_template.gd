@@ -510,20 +510,29 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 	print("Player created.")
 	
 	# PLAYER CONTROLS
-#	for _control_prop in _controls_props:
-#		var event_key = InputEventKey.new()
-#		event_key.physical_scancode = KEY_R
-#		var event_joypad = InputEventJoypadButton.new()
-#		event_joypad.button_index = JOY_BUTTON_0
-#		var input = {
-#			"deadzone": 0.5,
-#			"events": [
-#				event_key,
-#				event_joypad
-#			]
-#		}
-#		ProjectSettings.set_setting("input/ui_up", input)
-#	ProjectSettings.save()
+	for _control_prop_key in _controls_props.keys():
+		var _action = InputEventAction.new()
+		var _prop_path : String = "input/" + _control_prop_key
+		ProjectSettings.set(_prop_path, 0)
+		var property_info = {
+			"name": _prop_path,
+			"type": TYPE_INT,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": ""
+		}
+		ProjectSettings.add_property_info(property_info)
+		var event_key = InputEventKey.new()
+		event_key.physical_scancode = int(_controls_props[_control_prop_key])
+		var event_joypad = InputEventJoypadButton.new()
+		event_joypad.button_index = JOY_BUTTON_0
+		var input = {
+			"deadzone": 0.5,
+			"events": [
+				event_key, event_joypad
+			]
+		}
+		ProjectSettings.set_setting(_prop_path, input)
+	ProjectSettings.save()
 
 
 func create_trimesh_collision_shape(scene_object):

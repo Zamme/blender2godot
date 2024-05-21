@@ -38,7 +38,7 @@ class my_dictionary(dict):
     def add(self, key, value): 
         self[key] = value 
 
-def get_controls_list(self, context):
+def get_controls_list():
     _controls_list = None
     possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
     os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
@@ -272,6 +272,8 @@ class ExportGameOperator(bpy.types.Operator):
     dict_stages_info = my_dictionary()
     dict_menus_info = my_dictionary()
     dict_huds_info = my_dictionary()
+
+    controls_list = get_controls_list()
     
     def check_custom_icon(self, context):
         _checked = False
@@ -536,7 +538,7 @@ class ExportGameOperator(bpy.types.Operator):
         # CONTROLS
         _controls_dictionary = my_dictionary()
         for _control_setting in _player_scene.controls_settings:
-            _controls_dictionary.add(_control_setting.motion_input_blender, _control_setting.motion_input_godot)
+            _controls_dictionary.add(_control_setting.motion_name, self.controls_list[_control_setting.motion_input_blender]["GodotEnumID"])
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
         # HUD
         _hud_dictionary = my_dictionary()

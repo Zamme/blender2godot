@@ -109,13 +109,13 @@ func process_input(_delta):
 
 	var input_movement_vector = Vector2()
 
-	if Input.is_action_pressed("ui_up"):
+	if Input.is_action_pressed("Forward"):
 		input_movement_vector.y += 1
-	if Input.is_action_pressed("ui_down"):
+	if Input.is_action_pressed("Backward"):
 		input_movement_vector.y -= 1
-	if Input.is_action_pressed("ui_left"):
+	if Input.is_action_pressed("Left"):
 		input_movement_vector.x -= 1
-	if Input.is_action_pressed("ui_right"):
+	if Input.is_action_pressed("Right"):
 		input_movement_vector.x += 1
 	if Input.is_action_pressed("ui_cancel"):
 		get_tree().quit()
