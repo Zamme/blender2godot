@@ -1,9 +1,0 @@
-{
- "TemplateName": "Walker",
- "PlayerInputs": {
-  "Forward": ["UP_ARROW", "b2g_up"],
-  "Backward": ["DOWN_ARROW", "b2g_down"],
-  "Left": ["LEFT_ARROW", "b2g_left"],
-  "Right": ["RIGHT_ARROW", "b2g_right"]
- }
-}

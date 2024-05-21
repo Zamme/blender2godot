@@ -106,7 +106,7 @@ def update_current_template(self, context):
         items = _scene_types_tuple,
         name = "Scene Type",
         description = "Scene type",
-        default = "none",
+        default = 1,
         update=update_scene_exportable)
 
 def update_game_folder(self, context):
@@ -163,7 +163,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         box1.prop(scene, "game_icon", icon="IMAGE")
         if not scene.game_icon.endswith(".png"):
             box1.label(text="Icon must be a png image!")
-        #box1.prop(scene, "project_template", icon="SHADERFX")
+        box1.prop(scene, "project_template", icon="SHADERFX")
 
 
 class UpdateCurrentTemplateOperator(bpy.types.Operator):
@@ -185,13 +185,6 @@ def clear_properties():
     #del bpy.types.Scene.game_icon_image
 
 def init_properties():
-    '''
-    bpy.types.Scene.scene_type = bpy.props.EnumProperty(
-        items = [("none", "None", "", "NONE", 0)],
-        name = "Scene Type",
-        description = "Scene type",
-        default = "none")
-    '''
     # Project props
     bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME", update=update_game_folder)
     bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")

@@ -39,7 +39,7 @@ class my_dictionary(dict):
         self[key] = value 
 
 def poll_startupable_scenes(self, _scene):
-    return ((_scene.scene_type == "stage") or (_scene.scene_type == "menu"))
+    return (((_scene.scene_type == "stage") or (_scene.scene_type == "menu")) and (_scene.name != "B2G_GameManager"))
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
@@ -55,7 +55,7 @@ class SCENES_UL_scenes_added(bpy.types.UIList):
         visible = 1 << 30
 
         for i, me in enumerate(_scenes):
-            if me.name != "B2G_GameManager":
+            if me.name != context.scene.gamemanager_scene_name:
                 filter_flags[i] = visible
 
         return filter_flags, ()
@@ -64,7 +64,6 @@ class SCENES_UL_scenes_added(bpy.types.UIList):
         custom_icon = 'SCENE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon = custom_icon)
-            #if item.name != "B2G_GameManager":
             if hasattr(context.scene, "scene_type"):
                 layout.prop(item, "scene_type", text="")
                 if item.scene_type != "none":

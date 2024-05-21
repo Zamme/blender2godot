@@ -66,7 +66,7 @@ class StagePropertiesPanel(bpy.types.Panel):
     def poll(self, context):
         _ret = False
         if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "stage"):
+            if ((context.scene.scene_type == "stage") and (context.scene.name != context.scene.gamemanager_scene_name)):
                 _ret = True
         return _ret
     
