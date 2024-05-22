@@ -521,17 +521,20 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 			"hint_string": ""
 		}
 		ProjectSettings.add_property_info(property_info)
-		var event_key = InputEventKey.new()
-		event_key.physical_scancode = int(_controls_props[_control_prop_key])
-		var event_joypad = InputEventJoypadButton.new()
-		event_joypad.button_index = JOY_BUTTON_0
-		var input = {
-			"deadzone": 0.5,
-			"events": [
-				event_key, event_joypad
-			]
-		}
-		ProjectSettings.set_setting(_prop_path, input)
+		var _input_evs = []
+		for _input_entry in _controls_props[_control_prop_key]:
+			match _input_entry[0]:
+				"keyboard":
+					var event_key = InputEventKey.new()
+					event_key.scancode = int(_input_entry[1])
+					_input_evs.append(event_key)
+		#var event_joypad = InputEventJoypadButton.new()
+		#event_joypad.button_index = JOY_BUTTON_0
+		var _total_input = {
+							"deadzone": 0.5,
+							"events": _input_evs
+							}
+		ProjectSettings.set_setting(_prop_path, _total_input)
 	ProjectSettings.save()
 
 

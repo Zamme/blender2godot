@@ -44,7 +44,7 @@ def get_controls_list():
     os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
-            _filepath = os.path.join(p_path, "b2g_controls_list - B2G_Controls_List.json")
+            _filepath = os.path.join(p_path, "b2g_controls_list.json")
             if os.path.isfile(_filepath):
                 with open(_filepath, 'r') as outfile:
                     _controls_list = json.load(outfile)
@@ -538,7 +538,11 @@ class ExportGameOperator(bpy.types.Operator):
         # CONTROLS
         _controls_dictionary = my_dictionary()
         for _control_setting in _player_scene.controls_settings:
-            _controls_dictionary.add(_control_setting.motion_name, self.controls_list[_control_setting.motion_input_blender]["GodotEnumID"])
+            _control_inputs_array = []
+            for _mot_input in _control_setting.motion_inputs:
+                _inputs = [_mot_input.motion_input_type, self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotEnumID"]]
+                _control_inputs_array.append(_inputs)
+            _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
         # HUD
         _hud_dictionary = my_dictionary()
