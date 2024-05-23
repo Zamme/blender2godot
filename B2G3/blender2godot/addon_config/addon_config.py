@@ -22,12 +22,39 @@ Editor main panel
 
 import os
 from bpy_extras.io_utils import ImportHelper
+from bpy.utils import previews
 
 import bpy
 
 
 handle = object()
 subscribe_to = bpy.types.Window, "scene"
+
+global preview_collections
+preview_collections = []
+
+def load_custom_icons():
+    custom_icons = previews.new()
+    custom_icons_dirpath = ""
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "icons"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "icons")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            custom_icons_dirpath = p_path
+            _list_dir = os.listdir(custom_icons_dirpath)
+            for _list_item in _list_dir:
+                _list_item_name = _list_item.removesuffix(".png")
+                _list_item_path = os.path.join(custom_icons_dirpath,_list_item)
+                if os.path.isfile(_list_item_path):
+                    custom_icons.load(
+                                name=_list_item_name,
+                                path=_list_item_path,
+                                path_type="IMAGE"
+                                        )
+                    print("Icon item path:", _list_item_path)
+                    print("Icon name:", _list_item_name)
+            break
+    preview_collections.append(custom_icons)
 
 def msgbus_callback(*args):
     bpy.context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
@@ -38,6 +65,9 @@ def init_properties():
 
 def clear_properties():
     del bpy.types.Scene.godot_executable
+    for pcoll in preview_collections:
+        bpy.utils.previews.remove(pcoll)
+    preview_collections.clear()
 
 class CreateGameManagerOperator(bpy.types.Operator):
     """Create Game Manager Operator"""
@@ -126,8 +156,8 @@ def register():
         notify=msgbus_callback,
         options={"PERSISTENT"}
     )
-
     init_properties()
+    load_custom_icons()
     bpy.utils.register_class(SaveBlendFileOperator)
     bpy.utils.register_class(CreateGameManagerOperator)
     bpy.utils.register_class(Blender2GodotPanel)

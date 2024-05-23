@@ -483,35 +483,35 @@
       "GodotEnumID": "9"
     },
     "BUTTON6MOUSE": {
-      "GodotID": null,
+      "GodotID": "BUTTON6MOUSE",
       "GodotEnumID": null
     },
     "BUTTON7MOUSE": {
-      "GodotID": null,
+      "GodotID": "BUTTON7MOUSE",
       "GodotEnumID": null
     },
     "MOUSEMOVE": {
-      "GodotID": null,
+      "GodotID": "MOUSEMOVE",
       "GodotEnumID": null
     },
     "INBETWEEN_MOUSEMOVE": {
-      "GodotID": null,
+      "GodotID": "INBETWEEN_MOUSEMOVE",
       "GodotEnumID": null
     },
     "TRACKPADPAN": {
-      "GodotID": null,
+      "GodotID": "TRACKPADPAN",
       "GodotEnumID": null
     },
     "TRACKPADZOOM": {
-      "GodotID": null,
+      "GodotID": "TRACKPADZOOM",
       "GodotEnumID": null
     },
     "MOUSEROTATE": {
-      "GodotID": null,
+      "GodotID": "MOUSEROTATE",
       "GodotEnumID": null
     },
     "MOUSESMARTZOOM": {
-      "GodotID": null,
+      "GodotID": "MOUSESMARTZOOM",
       "GodotEnumID": null
     },
     "WHEELUPMOUSE": {
@@ -532,61 +532,93 @@
     }
   },
   "Gamepad": {
-    "JOY_BUTTON_0": {
+    "JOY_AXIS_0": {
+      "GodotID": "JOY_AXIS_0",
+      "GodotEnumID": "0"
+    },
+    "JOY_AXIS_1": {
+      "GodotID": "JOY_AXIS_1",
+      "GodotEnumID": "1"
+    },
+    "JOY_AXIS_2": {
+      "GodotID": "JOY_AXIS_2",
+      "GodotEnumID": "2"
+    },
+    "JOY_AXIS_3": {
+      "GodotID": "JOY_AXIS_3",
+      "GodotEnumID": "3"
+    },
+    "JOY_AXIS_4": {
+      "GodotID": "JOY_AXIS_4",
+      "GodotEnumID": "4"
+    },
+    "JOY_AXIS_5": {
+      "GodotID": "JOY_AXIS_5",
+      "GodotEnumID": "5"
+    },
+    "JOY_AXIS_6": {
+      "GodotID": "JOY_AXIS_6",
+      "GodotEnumID": "6"
+    },
+    "JOY_AXIS_7": {
+      "GodotID": "JOY_AXIS_7",
+      "GodotEnumID": "7"
+    },
+    "JOY_AXIS_8": {
+      "GodotID": "JOY_AXIS_8",
+      "GodotEnumID": "8"
+    },
+    "JOY_AXIS_9": {
+      "GodotID": "JOY_AXIS_9",
+      "GodotEnumID": "9"
+    },
+    "JOY_BUTTON_0 ": {
       "GodotID": "JOY_BUTTON_0",
-      "GodotEnumID": null
+      "GodotEnumID": "0"
     },
-    "JOY_BUTTON_1": {
+    "JOY_BUTTON_1 ": {
       "GodotID": "JOY_BUTTON_1",
-      "GodotEnumID": null
+      "GodotEnumID": "1"
     },
-    "JOY_BUTTON_3": {
+    "JOY_BUTTON_2 ": {
+      "GodotID": "JOY_BUTTON_2",
+      "GodotEnumID": "2"
+    },
+    "JOY_BUTTON_3 ": {
       "GodotID": "JOY_BUTTON_3",
-      "GodotEnumID": null
+      "GodotEnumID": "3"
     },
-    "JOY_BUTTON_4": {
+    "JOY_BUTTON_4 ": {
       "GodotID": "JOY_BUTTON_4",
-      "GodotEnumID": null
+      "GodotEnumID": "4"
     },
-    "JOY_BUTTON_5": {
+    "JOY_BUTTON_5 ": {
       "GodotID": "JOY_BUTTON_5",
-      "GodotEnumID": null
+      "GodotEnumID": "5"
     },
-    "JOY_BUTTON_6": {
+    "JOY_BUTTON_6 ": {
       "GodotID": "JOY_BUTTON_6",
-      "GodotEnumID": null
+      "GodotEnumID": "6"
     },
-    "JOY_BUTTON_7": {
+    "JOY_BUTTON_7 ": {
       "GodotID": "JOY_BUTTON_7",
-      "GodotEnumID": null
+      "GodotEnumID": "7"
     },
-    "JOY_BUTTON_8": {
+    "JOY_BUTTON_8 ": {
       "GodotID": "JOY_BUTTON_8",
-      "GodotEnumID": null
+      "GodotEnumID": "8"
     },
-    "JOY_BUTTON_9": {
+    "JOY_BUTTON_9 ": {
       "GodotID": "JOY_BUTTON_9",
-      "GodotEnumID": null
+      "GodotEnumID": "9"
     },
-    "JOY_BUTTON_10": {
-      "GodotID": "JOY_BUTTON_10",
-      "GodotEnumID": null
+    "JOY_SELECT": {
+      "GodotID": "JOY_SELECT",
+      "GodotEnumID": "10"
     },
-    "JOY_BUTTON_12": {
-      "GodotID": "JOY_BUTTON_12",
-      "GodotEnumID": null
-    },
-    "JOY_BUTTON_13": {
-      "GodotID": "JOY_BUTTON_13",
-      "GodotEnumID": null
-    },
-    "JOY_BUTTON_14": {
-      "GodotID": "JOY_BUTTON_14",
-      "GodotEnumID": null
-    },
-    "JOY_BUTTON_15": {
-      "GodotID": "JOY_BUTTON_15",
-      "GodotEnumID": null
+    "JOY_START": {
+      "GodotID": "JOY_START",
+      "GodotEnumID": "11"
     }
   },
   "Other": {

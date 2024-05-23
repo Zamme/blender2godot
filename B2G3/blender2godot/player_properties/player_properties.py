@@ -65,6 +65,25 @@ def controls_update(self, context):
             _new_motion_input.motion_input_blender = _json_player_inputs[_key][1]
             #_new_setting.motion_input_godot = _json_player_inputs[_key][1]
 
+def get_controls_list_array(_control_type):
+    _controls_list = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "b2g_controls_list.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _controls_list = json.load(outfile)
+                    break
+            else:
+                pass
+    _controls_list_array = []
+    for _index,_control_key in enumerate(_controls_list[_control_type.capitalize()].keys()):
+        _tuple = (_control_key, _control_key, "", _index)
+        _controls_list_array.append(_tuple)
+    return _controls_list_array
+
 def get_controls_settings(self):
     return self["controls_settings"]
 
@@ -77,8 +96,14 @@ def get_hud_scenes(self, context):
             _hs_index += 1
     return _hud_scenes
 
+class GamepadInputType(bpy.types.PropertyGroup):
+    """ Gamepad Input Type properties """
+    gamepad_input_type_options = [
+                        ("axis", "Axis", "", 0),
+                        ("button", "Button", "", 1)]
+
 class InputType(bpy.types.PropertyGroup):
-    """ Animation Type properties """
+    """ Input Type properties """
     input_type_options = [
                         ("keyboard", "Keyboard", "", 0),
                         ("gamepad", "Gamepad", "", 1),
@@ -137,6 +162,60 @@ class SCENE_OT_del_control(bpy.types.Operator):
         _new_input = context.scene.controls_settings[self.current_input_item_index].motion_inputs.remove(self.motion_input_index)
         return {"FINISHED"}
 
+class SCENE_OT_add_gamepad_input(bpy.types.Operator):
+    bl_idname = "scene.add_gamepad_input"
+    bl_label = "Add"
+    bl_description = "Add a new gamepad input"
+    bl_options = {"UNDO", "REGISTER"}
+
+    current_input_item_index : bpy.props.IntProperty(name="Control Property Index") # type: ignore
+    motion_input_index : bpy.props.IntProperty(name="Motion Index") # type: ignore
+    #gamepad_control_type : bpy.props.EnumProperty(items=GamepadInputType.gamepad_input_type_options, default=0) # type: ignore
+    gamepad_input : bpy.props.EnumProperty(items=get_controls_list_array("gamepad")) # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        #box.prop(self, "gamepad_control_type", text="Gamepad Input Type")
+        box.prop(self, "gamepad_input", text="Input")
+    
+    def execute(self, context):
+        context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.gamepad_input
+        return {"FINISHED"}
+
+class SCENE_OT_add_mouse_input(bpy.types.Operator):
+    bl_idname = "scene.add_mouse_input"
+    bl_label = "Add"
+    bl_description = "Add a new mouse input"
+    bl_options = {"UNDO", "REGISTER"}
+
+    current_input_item_index : bpy.props.IntProperty(name="Control Property Index") # type: ignore
+    motion_input_index : bpy.props.IntProperty(name="Motion Index") # type: ignore
+    mouse_input : bpy.props.EnumProperty(items=get_controls_list_array("mouse")) # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        box.prop(self, "mouse_input", text="Mouse Input")
+    
+    def execute(self, context):
+        context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.mouse_input
+        return {"FINISHED"}
+
 class AnimationTypeProperties(bpy.types.PropertyGroup):
     """ Animation Type properties """
     animation_type_options = [
@@ -174,18 +253,20 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
                         _ops = row1.operator("scene.process_input", text=_input_motion.motion_input_blender)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "gamepad":
-                        row1.label(text="Gamepad entry")
+                        _ops = row1.operator("scene.add_gamepad_input", text=_input_motion.motion_input_blender)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "mouse":
-                        row1.label(text="Mouse entry")
+                        _ops = row1.operator("scene.add_mouse_input", text=_input_motion.motion_input_blender)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "other":
                         row1.label(text="Other entry")
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
-                _ops.current_input_item_index = index
-                _ops.motion_input_index = i_enum
-                _ops1.current_input_item_index = index
-                _ops1.motion_input_index = i_enum
+                if _ops:
+                    _ops.current_input_item_index = index
+                    _ops.motion_input_index = i_enum
+                if _ops1:
+                    _ops1.current_input_item_index = index
+                    _ops1.motion_input_index = i_enum
             box0.operator("scene.add_control", text="Add", icon="PLUS").current_input_item_index=index
             box0.separator()
         elif self.layout_type in {'GRID'}:
@@ -356,6 +437,7 @@ def init_properties():
 def register():
     #bpy.utils.register_class(ControlSettingsType)
     bpy.utils.register_class(InputType)
+    bpy.utils.register_class(GamepadInputType)
     bpy.utils.register_class(SCENE_OT_add_control)
     bpy.utils.register_class(SCENE_OT_del_control)
     bpy.utils.register_class(MotionInputProperties)
@@ -364,10 +446,14 @@ def register():
     bpy.utils.register_class(CONTROLS_UL_player_input)
     bpy.utils.register_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.register_class(SCENE_OT_get_input)
+    bpy.utils.register_class(SCENE_OT_add_gamepad_input)
+    bpy.utils.register_class(SCENE_OT_add_mouse_input)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
+    bpy.utils.unregister_class(SCENE_OT_add_mouse_input)
+    bpy.utils.unregister_class(SCENE_OT_add_gamepad_input)
     bpy.utils.unregister_class(SCENE_OT_get_input)
     bpy.utils.unregister_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.unregister_class(CONTROLS_UL_player_input)
@@ -376,6 +462,7 @@ def unregister():
     bpy.utils.unregister_class(SCENE_OT_add_control)
     bpy.utils.unregister_class(SCENE_OT_del_control)
     bpy.utils.unregister_class(InputType)
+    bpy.utils.unregister_class(GamepadInputType)
     #bpy.utils.unregister_class(ControlSettingsType)
     clear_properties()
 
