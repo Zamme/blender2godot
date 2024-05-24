@@ -540,7 +540,9 @@ class ExportGameOperator(bpy.types.Operator):
         for _control_setting in _player_scene.controls_settings:
             _control_inputs_array = []
             for _mot_input in _control_setting.motion_inputs:
-                _inputs = [_mot_input.motion_input_type, self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotEnumID"]]
+                _inputs = [_mot_input.motion_input_type,
+                            self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotEnumID"],
+                            _mot_input.motion_input_modifier]
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)

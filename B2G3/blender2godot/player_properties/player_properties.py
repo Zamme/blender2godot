@@ -115,6 +115,7 @@ class InputType(bpy.types.PropertyGroup):
 class MotionInputProperties(bpy.types.PropertyGroup):
     motion_input_type : bpy.props.EnumProperty(items=InputType.input_type_options) # type: ignore
     motion_input_blender: bpy.props.StringProperty(name="Blender Input", default="None") # type: ignore
+    motion_input_modifier: bpy.props.BoolProperty(name="Blender Input Modifier") # type: ignore
 
 class ControlsProperties(bpy.types.PropertyGroup):
     motion_name: bpy.props.StringProperty(name="Motion Name", default="Unknown") # type: ignore
@@ -172,9 +173,9 @@ class SCENE_OT_add_gamepad_input(bpy.types.Operator):
 
     current_input_item_index : bpy.props.IntProperty(name="Control Property Index") # type: ignore
     motion_input_index : bpy.props.IntProperty(name="Motion Index") # type: ignore
-    #gamepad_control_type : bpy.props.EnumProperty(items=GamepadInputType.gamepad_input_type_options, default=0) # type: ignore
     gamepad_input : bpy.props.EnumProperty(items=get_controls_list_array("gamepad")) # type: ignore
-
+    gamepad_input_modifier : bpy.props.BoolProperty(name="Gamepad Input Positive") # type: ignore
+    
     @classmethod
     def poll(cls, context):
         return True
@@ -185,11 +186,17 @@ class SCENE_OT_add_gamepad_input(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        #box.prop(self, "gamepad_control_type", text="Gamepad Input Type")
-        box.prop(self, "gamepad_input", text="Input", expand=True)
+        box.prop(self, "gamepad_input", text="Input")
+        if self.gamepad_input.find("AXIS") > -1:
+            box.prop(self, "gamepad_input_modifier", text="+")
+        elif self.gamepad_input.find("BUTTON") > -1:
+            box.prop(self, "gamepad_input_modifier", text="release")
+        else:
+            pass
     
     def execute(self, context):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.gamepad_input
+        context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_modifier = self.gamepad_input_modifier
         return {"FINISHED"}
 
 class SCENE_OT_add_mouse_input(bpy.types.Operator):
@@ -250,12 +257,23 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
                 row1 = box1.row(align=True)
                 _ops = None
                 _ops1 = None
+                _ops2 = None
                 match _input_motion.motion_input_type:
                     case "keyboard":
-                        _ops = row1.operator("scene.process_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["keyboard_icon"].icon_id)
+                        _but_text = _input_motion.motion_input_blender
+                        if _input_motion.motion_input_modifier:
+                            _but_text += " (On release)"
+                        else:
+                            _but_text += " (On press)"
+                        _ops = row1.operator("scene.process_input", text=_but_text, icon_value=addon_config.preview_collections[0]["keyboard_icon"].icon_id)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "gamepad":
-                        _ops = row1.operator("scene.add_gamepad_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["gamepad_icon"].icon_id)
+                        _but_text = _input_motion.motion_input_blender
+                        if _input_motion.motion_input_modifier:
+                            _but_text += " (+ Axis)"
+                        else:
+                            _but_text += " (- Axis)"
+                        _ops = row1.operator("scene.add_gamepad_input", text=_but_text, icon_value=addon_config.preview_collections[0]["gamepad_icon"].icon_id)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "mouse":
                         _ops = row1.operator("scene.add_mouse_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["mouse_icon"].icon_id)
@@ -269,6 +287,9 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
                 if _ops1:
                     _ops1.current_input_item_index = index
                     _ops1.motion_input_index = i_enum
+                if _ops2:
+                    _ops2.current_input_item_index = index
+                    _ops2.motion_input_index = i_enum
             box0.operator("scene.add_control", text="Add", icon="PLUS").current_input_item_index=index
             box0.separator()
         elif self.layout_type in {'GRID'}:
