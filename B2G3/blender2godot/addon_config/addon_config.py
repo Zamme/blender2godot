@@ -51,8 +51,8 @@ def load_custom_icons():
                                 path=_list_item_path,
                                 path_type="IMAGE"
                                         )
-                    print("Icon item path:", _list_item_path)
-                    print("Icon name:", _list_item_name)
+                    #print("Icon item path:", _list_item_path)
+                    #print("Icon name:", _list_item_name)
             break
     preview_collections.append(custom_icons)
 

@@ -26,7 +26,7 @@ import json
 
 import bpy
 from bpy.app.handlers import persistent
-from blender2godot.addon_config import addon_config
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 @persistent
@@ -141,7 +141,6 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     def draw_header(self, context):
         layout = self.layout
         layout.label(icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)        
-        #layout.label(icon="PRESET")        
 
     def draw(self, context):
         layout = self.layout

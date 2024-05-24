@@ -25,6 +25,8 @@ import os
 
 import bpy
 
+from blender2godot.addon_config import addon_config # type: ignore
+
 
 def scene_camera_object_poll(self, object):
     return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
@@ -184,7 +186,7 @@ class SCENE_OT_add_gamepad_input(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         #box.prop(self, "gamepad_control_type", text="Gamepad Input Type")
-        box.prop(self, "gamepad_input", text="Input")
+        box.prop(self, "gamepad_input", text="Input", expand=True)
     
     def execute(self, context):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.gamepad_input
@@ -210,7 +212,7 @@ class SCENE_OT_add_mouse_input(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.prop(self, "mouse_input", text="Mouse Input")
+        box.prop(self, "mouse_input", text="Mouse Input", expand=True)
     
     def execute(self, context):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.mouse_input
@@ -241,7 +243,7 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
             row0 = layout.row(align=True)
             box0 = row0.box()
             box0.label(text=item.motion_name, icon="POSE_HLT")
-            box0.alignment = "LEFT"
+            box0.alignment = "EXPAND"
             for i_enum,_input_motion in enumerate(item.motion_inputs):
                 box1 = box0.box()
                 box1.alignment = "EXPAND"
@@ -250,13 +252,13 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
                 _ops1 = None
                 match _input_motion.motion_input_type:
                     case "keyboard":
-                        _ops = row1.operator("scene.process_input", text=_input_motion.motion_input_blender)
+                        _ops = row1.operator("scene.process_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["keyboard_icon"].icon_id)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "gamepad":
-                        _ops = row1.operator("scene.add_gamepad_input", text=_input_motion.motion_input_blender)
+                        _ops = row1.operator("scene.add_gamepad_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["gamepad_icon"].icon_id)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "mouse":
-                        _ops = row1.operator("scene.add_mouse_input", text=_input_motion.motion_input_blender)
+                        _ops = row1.operator("scene.add_mouse_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["mouse_icon"].icon_id)
                         _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
                     case "other":
                         row1.label(text="Other entry")
