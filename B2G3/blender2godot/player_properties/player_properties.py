@@ -28,6 +28,9 @@ import bpy
 from blender2godot.addon_config import addon_config # type: ignore
 
 
+current_template_controls = None
+
+
 def scene_camera_object_poll(self, object):
     return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
 
@@ -97,6 +100,27 @@ def get_hud_scenes(self, context):
             _hud_scenes.append((_sc.name, _sc.name, "", "", _hs_index))
             _hs_index += 1
     return _hud_scenes
+
+def get_template_controls(_control_type):
+    current_template_controls = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template)]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "fps_template_controls.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    current_template_controls = json.load(outfile)
+                    break
+            else:
+                pass
+    '''
+    _controls_list_array = []
+    for _index,_control_key in enumerate(_controls_list[_control_type.capitalize()].keys()):
+        _tuple = (_control_key, _control_key, "", _index)
+        _controls_list_array.append(_tuple)
+    return _controls_list_array
+    '''
 
 class GamepadInputType(bpy.types.PropertyGroup):
     """ Gamepad Input Type properties """

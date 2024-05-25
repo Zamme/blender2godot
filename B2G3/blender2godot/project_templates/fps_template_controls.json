@@ -1,0 +1,184 @@
+{
+  "b2g_go_forward": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "UP_ARROW",
+      "JOY_AXIS_1"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "positive"
+    ]
+  },
+  "b2g_go_backward": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "DOWN_ARROW",
+      "JOY_AXIS_1"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "negative"
+    ]
+  },
+  "b2g_strafe_left": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "LEFT_ARROW",
+      "JOY_AXIS_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "positive"
+    ]
+  },
+  "b2g_strafe_right": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "RIGHT_ARROW",
+      "JOY_AXIS_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "negative"
+    ]
+  },
+  "b2g_rotate_left": {
+    "DefaultInputsTypes": [
+      "mouse",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "MOUSEMOVE",
+      "JOY_AXIS_3"
+    ],
+    "DefaultInputsModifiers": [
+      "on_move",
+      "positive"
+    ]
+  },
+  "b2g_rotate_right": {
+    "DefaultInputsTypes": [
+      "mouse",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "MOUSEMOVE",
+      "JOY_AXIS_3"
+    ],
+    "DefaultInputsModifiers": [
+      "on_move",
+      "negative"
+    ]
+  },
+  "b2g_rotate_up": {
+    "DefaultInputsTypes": [
+      "mouse",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "MOUSEMOVE",
+      "JOY_AXIS_2"
+    ],
+    "DefaultInputsModifiers": [
+      "on_move",
+      "positive"
+    ]
+  },
+  "b2g_rotate_down": {
+    "DefaultInputsTypes": [
+      "mouse",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "MOUSEMOVE",
+      "JOY_AXIS_2"
+    ],
+    "DefaultInputsModifiers": [
+      "on_move",
+      "negative"
+    ]
+  },
+  "b2g_action_0": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "SPACE",
+      "JOY_BUTTON_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ]
+  },
+  "b2g_action_1": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "RET",
+      "JOY_BUTTON_1"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ]
+  },
+  "b2g_action_2": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "LEFT_CTRL",
+      "JOY_BUTTON_2"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ]
+  },
+  "b2g_action_3": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "LEFT_ALT",
+      "JOY_BUTTON_3"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ]
+  },
+  "b2g_pause_game": {
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "TAB",
+      "JOY_START"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ]
+  }
+}
