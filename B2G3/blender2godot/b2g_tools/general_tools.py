@@ -48,11 +48,12 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     def check_conditions(self, context):
         self._errors = []
 
-        _tr = context.scene.current_template_requirements.template_requirements
+        #_tr = context.scene.current_template_requirements.template_requirements
 
         # Check game name
         if context.scene.game_name == "":
             self._errors.append("Game name not set")
+        '''
         # Check minimum scenes
         _min_scenes = []
         for _reqs in _tr:
@@ -87,6 +88,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             self._errors.append("Need more exportable players")
         elif players_amount < 0:
             self._errors.append("Too many exportable players")
+        '''
         return self._errors
 
     def cancel(self, context):

@@ -29,6 +29,17 @@ import imghdr
 import bpy
 
 
+INFOS_FOLDER_NAME = "infos"
+HUDS_INFO_FILENAME = "huds_info.json"
+STAGES_INFO_FILENAME = "stages_info.json"
+COLLIDERS_INFO_FILENAME = "colliders_info.json"
+PLAYERS_INFO_FILENAME = "players_info.json"
+MENUS_INFO_FILENAME = "menus_info.json"
+NPCS_INFO_FILENAME = "npcs_info.json"
+LOADING_INFO_FILENAME = "loadings_info.json"
+LIGHTS_INFO_FILENAME = "lights_info.json"
+GODOT_PROJECT_SETTINGS_INFO_FILENAME = "godot_project_settings.json"
+
 class my_dictionary(dict): 
     # __init__ function 
     def __init__(self): 
@@ -133,8 +144,8 @@ class CreateGodotProjectOperator(bpy.types.Operator):
             print("Godot project tree created.")
     
     def find_project_template_dir_path(self, context):
-        possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template),
-        os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", context.scene.project_template)]
+        possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template"),
+        os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template")]
         for p_path in possible_paths:
             if os.path.isdir(p_path):
                 self.godot_project_template_path = p_path
@@ -298,6 +309,9 @@ class ExportGameOperator(bpy.types.Operator):
     
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
+        self.infos_dirpath = os.path.join(context.scene.project_folder, INFOS_FOLDER_NAME)
+        if not os.path.isdir(self.infos_dirpath):
+            os.mkdir(self.infos_dirpath)
         #self.fix_objects_names(context)
         self.models_folder_path = os.path.join(self.assets_folder_path, self.models_folder_name)
         if not os.path.isdir(self.models_folder_path):
@@ -574,31 +588,32 @@ class ExportGameOperator(bpy.types.Operator):
             outfile.write(self.data_stages_info + '\n')   
 
     def find_colliders_file_path(self, context):
-        self.colliders_filepath = os.path.join(context.scene.project_folder, "colliders_info", "colliders.json")
+        self.colliders_filepath = os.path.join(self.infos_dirpath, COLLIDERS_INFO_FILENAME)
+        #if not os.path.isfile(self.colliders_filepath):
         #print("Colliders json filepath:", self.colliders_filepath)
     
     def find_huds_info_file_path(self, context):
-        self.huds_info_filepath = os.path.join(context.scene.project_folder, "huds_info", "huds_info.json")
+        self.huds_info_filepath = os.path.join(self.infos_dirpath, HUDS_INFO_FILENAME)
         #print("Godot huds settings info json filepath:", self.huds_info_filepath)
 
     def find_lights_file_path(self, context):
-        self.lights_info_filepath = os.path.join(context.scene.project_folder, "lights_info", "lights_info.json")
+        self.lights_info_filepath = os.path.join(self.infos_dirpath, LIGHTS_INFO_FILENAME)
         #print("Lights json filepath:", self.lights_info_filepath)
         
     def find_player_info_file_path(self, context):
-        self.player_info_filepath = os.path.join(context.scene.project_folder, "player_info", "player_info.json")
+        self.player_info_filepath = os.path.join(self.infos_dirpath, PLAYERS_INFO_FILENAME)
         #print("Player info json filepath:", self.player_info_filepath)
 
     def find_godot_project_settings_file_path(self, context):
-        self.godot_project_settings_filepath = os.path.join(context.scene.project_folder, "godot_project_settings_info", "godot_project_settings.json")
+        self.godot_project_settings_filepath = os.path.join(self.infos_dirpath, GODOT_PROJECT_SETTINGS_INFO_FILENAME)
         #print("Godot project settings info json filepath:", self.godot_project_settings_filepath)
 
     def find_stages_info_file_path(self, context):
-        self.stages_info_filepath = os.path.join(context.scene.project_folder, "stages_info", "stages_info.json")
+        self.stages_info_filepath = os.path.join(self.infos_dirpath, STAGES_INFO_FILENAME)
         #print("Godot stages settings info json filepath:", self.stages_info_filepath)
 
     def find_menus_info_file_path(self, context):
-        self.menus_info_filepath = os.path.join(context.scene.project_folder, "menus_info", "menus_info.json")
+        self.menus_info_filepath = os.path.join(self.infos_dirpath, MENUS_INFO_FILENAME)
         #print("Godot menus settings info json filepath:", self.menus_info_filepath)
 
     def fix_objects_names(self, context):

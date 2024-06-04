@@ -45,8 +45,8 @@ def controls_update(self, context):
         return
     _template_path = ""
     _template_properties_path = ""
-    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template),
-    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template)]
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template)]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
             _template_path = p_path
@@ -92,6 +92,20 @@ def get_controls_list_array(_control_type):
 def get_controls_settings(self):
     return self["controls_settings"]
 
+def get_controls_templates(self):
+    controls_templates = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template)]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "fps_template_controls.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    current_template_controls = json.load(outfile)
+                    break
+            else:
+                pass
+
 def get_hud_scenes(self, context):
     _hud_scenes = [("none", "None", "", "NONE", 0)]
     _hs_index = 1
@@ -103,8 +117,8 @@ def get_hud_scenes(self, context):
 
 def get_template_controls(_control_type):
     current_template_controls = None
-    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template),
-    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates", bpy.data.scenes["B2G_GameManager"].project_template)]
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template)]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
             _filepath = os.path.join(p_path, "fps_template_controls.json")
@@ -357,6 +371,93 @@ class SCENE_OT_get_input(bpy.types.Operator):
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
+class PlayerAnimationsPanel(bpy.types.Panel):
+    """Player Animations Panel"""
+    bl_label = "Player Animations"
+    bl_idname = "PLAYERANIMATIONS_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 5
+    
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="ARMATURE_DATA")        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        # Player animations
+        box2 = layout.box()
+        box2.label(text="Animations")
+        if scene.player_object == None:
+            box2.label(text="No player object assigned", icon="ERROR")
+        else:
+            if scene.player_object.type != "ARMATURE":
+                _mess = "No armature in player object."
+                _ic = "ERROR"
+                box2.label(text=_mess, icon=_ic)
+            else:
+                _mess = "Player armature : " + scene.player_object.name
+                _ic = "OUTLINER_OB_ARMATURE"
+                box2.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", bpy.data, "actions", scene, "player_animation_sel")
+                box2.label(text=_mess, icon=_ic)
+
+
+class PlayerControlsPanel(bpy.types.Panel):
+    """Player Controls Panel"""
+    bl_label = "Player Controls"
+    bl_idname = "PLAYERCONTROLS_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 4
+    
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="ARMATURE_DATA")        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        box1 = layout.box()
+        box1.label(text="Player Controls")
+        
+        #box1.prop()
+        box1.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
+
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
     bl_label = "Player Properties"
@@ -397,34 +498,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         if not scene.player_object:
             return
 
-        # Player animations
-        box2 = box1.box()
-        box2.label(text="Animations")
-        if scene.player_object == None:
-            box2.label(text="No player object assigned", icon="ERROR")
-        else:
-            if scene.player_object.type != "ARMATURE":
-                _mess = "No armature in player object."
-                _ic = "ERROR"
-                box2.label(text=_mess, icon=_ic)
-            else:
-                _mess = "Player armature : " + scene.player_object.name
-                _ic = "OUTLINER_OB_ARMATURE"
-                box2.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", bpy.data, "actions", scene, "player_animation_sel")
-                box2.label(text=_mess, icon=_ic)
-
-        # Player motion
         box3 = box1.box()
-        box3.label(text="Player Controls")
-        
-        # TODO : controls settings unfinished
-        box4 = box3.box()
-        #box4.prop(scene, "controls_settings_type")
-        #if scene.controls_settings_type == "keyboard":
-        box4.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
-        #else:
-            #box4.label(text="Inputs:")
-
         box3.prop(scene, "player_gravity_on")
         box3.prop(scene, "camera_control_inverted")
 
@@ -495,10 +569,14 @@ def register():
     bpy.utils.register_class(SCENE_OT_get_input)
     bpy.utils.register_class(SCENE_OT_add_gamepad_input)
     bpy.utils.register_class(SCENE_OT_add_mouse_input)
+    bpy.utils.register_class(PlayerAnimationsPanel)
+    bpy.utils.register_class(PlayerControlsPanel)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
+    bpy.utils.unregister_class(PlayerControlsPanel)
+    bpy.utils.unregister_class(PlayerAnimationsPanel)
     bpy.utils.unregister_class(SCENE_OT_add_mouse_input)
     bpy.utils.unregister_class(SCENE_OT_add_gamepad_input)
     bpy.utils.unregister_class(SCENE_OT_get_input)

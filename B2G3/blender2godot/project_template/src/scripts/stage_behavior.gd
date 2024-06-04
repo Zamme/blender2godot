@@ -1,10 +1,8 @@
 class_name StageBehavior extends Spatial
 
 
-const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
 const STAGE_SCENES_PREFIX = "Stage_"
 const PLAYERS_DIRPATH = "res://src/scenes/players/"
-const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
 
 var player_spawn
 var player
@@ -18,8 +16,8 @@ var b2g_hud
 
 func _ready():
 	print("Stage ", name, " loaded!")
-	var stages_json = read_json_file(STAGES_INFO_JSON_PATH)
-	var player_json = read_json_file(PLAYER_INFO_JSON_PATH)
+	var stages_json = read_json_file(StageTemplate.STAGES_INFO_JSON_PATH)
+	var player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
 	player_spawn = get_player_spawn(stages_json)
 	var _player_name : String = player_json["PlayerSceneName"]
 	add_player(_player_name)

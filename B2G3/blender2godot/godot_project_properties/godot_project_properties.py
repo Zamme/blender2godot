@@ -25,19 +25,21 @@ import shutil
 import json
 
 import bpy
-from bpy.app.handlers import persistent
+#from bpy.app.handlers import persistent
 from blender2godot.addon_config import addon_config # type: ignore
 
 
+'''
 @persistent
 def load_handler(dummy):
     #print("Load Handler:", bpy.data.filepath)
     bpy.ops.scene.update_current_template_operator()
+'''
 
 def get_project_templates(self, context):
     _templates = []
-    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates"),
-    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates")]
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template")]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
             _dirs_list = os.listdir(p_path)
@@ -53,8 +55,8 @@ def get_project_templates(self, context):
 
 def get_templates_info(self, context, template_name):
     _template_info = None
-    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_templates"),
-    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_templates")]
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template")]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
             _dirs_list = os.listdir(p_path)
@@ -79,6 +81,7 @@ def update_scene_exportable(self, context):
     print("Updatting exportable", context.scene.scene_type)
     context.scene.scene_exportable = (context.scene.scene_type != "none")       
 
+'''
 def update_current_template(self, context):
     if context:
         context.scene.b2g_templates.clear()
@@ -109,10 +112,12 @@ def update_current_template(self, context):
         description = "Scene type",
         default = 1,
         update=update_scene_exportable)
+'''
 
 def update_game_folder(self, context):
     context.scene.game_folder = bpy.path.abspath("//")
 
+'''
 class TemplateKey(bpy.types.PropertyGroup):
     value : bpy.props.StringProperty(name="Requirement key") # type: ignore
 
@@ -123,6 +128,7 @@ class TemplateRequirements(bpy.types.PropertyGroup):
 class TemplateStruct(bpy.types.PropertyGroup):
     template_name : bpy.props.StringProperty(name="Template name") # type: ignore
     template_requirements : bpy.props.CollectionProperty(type=TemplateRequirements) # type: ignore
+'''
 
 class GodotProjectPropertiesPanel(bpy.types.Panel):
     """Godot Project Properties Panel"""
@@ -166,7 +172,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
             box1.label(text="Icon must be a png image!")
         box1.prop(scene, "project_template", icon="SHADERFX")
 
-
+'''
 class UpdateCurrentTemplateOperator(bpy.types.Operator):
     bl_idname = "scene.update_current_template_operator"
     bl_label = "UpdateCurrentTemplateOperator"
@@ -174,7 +180,7 @@ class UpdateCurrentTemplateOperator(bpy.types.Operator):
     def execute(self, context):
         update_current_template(self, context)
         return {'FINISHED'}
-
+'''
 
 def clear_properties():
     del bpy.types.Scene.game_name
@@ -182,7 +188,7 @@ def clear_properties():
     del bpy.types.Scene.game_icon
     del bpy.types.Scene.project_folder
     del bpy.types.Scene.godot_project_filepath
-    del bpy.types.Scene.project_template
+    #del bpy.types.Scene.project_template
     #del bpy.types.Scene.game_icon_image
 
 def init_properties():
@@ -192,6 +198,8 @@ def init_properties():
     bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
+
+    '''
     bpy.types.Scene.project_template = bpy.props.EnumProperty(
                                                     items = get_project_templates,
                                                     name = "Project Template",
@@ -200,27 +208,27 @@ def init_properties():
                                                     default = 0)
     bpy.types.Scene.current_template_requirements = bpy.props.PointerProperty(type=TemplateStruct, name="Current Template Requirements")
     bpy.types.Scene.b2g_templates = bpy.props.CollectionProperty(type=TemplateStruct, name="Templates")
-
+    '''
     #bpy.types.Scene.custom_godot = bpy.props.BoolProperty(name="Custom Godot", default=False)
     #bpy.types.Scene.godot_executable_downloaded_zip = bpy.props.StringProperty(name="Godot zip", subtype="FILE_PATH", default=".")
     #bpy.types.Scene.game_icon_image = bpy.props.PointerProperty(name="Game Icon Image", type=bpy.types.Image)
 
 def register():
-    bpy.app.handlers.load_post.append(load_handler)
-    bpy.utils.register_class(UpdateCurrentTemplateOperator)
-    bpy.utils.register_class(TemplateKey)
-    bpy.utils.register_class(TemplateRequirements)
-    bpy.utils.register_class(TemplateStruct)
+    #bpy.app.handlers.load_post.append(load_handler)
+    #bpy.utils.register_class(UpdateCurrentTemplateOperator)
+    #bpy.utils.register_class(TemplateKey)
+    #bpy.utils.register_class(TemplateRequirements)
+    #bpy.utils.register_class(TemplateStruct)
     init_properties()
     bpy.utils.register_class(GodotProjectPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(GodotProjectPropertiesPanel)
     clear_properties()
-    bpy.utils.unregister_class(TemplateStruct)
-    bpy.utils.unregister_class(TemplateRequirements)
-    bpy.utils.unregister_class(TemplateKey)
-    bpy.utils.unregister_class(UpdateCurrentTemplateOperator)
-    bpy.app.handlers.load_post.remove(load_handler)
+    #bpy.utils.unregister_class(TemplateStruct)
+    #bpy.utils.unregister_class(TemplateRequirements)
+    #bpy.utils.unregister_class(TemplateKey)
+    #bpy.utils.unregister_class(UpdateCurrentTemplateOperator)
+    #bpy.app.handlers.load_post.remove(load_handler)
 
 

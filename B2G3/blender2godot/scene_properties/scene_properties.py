@@ -43,6 +43,17 @@ def update_scene_exportable(self, context):
                     bpy.data.scenes[self.name].scene_exportable = False
                     show_error_popup(["Set camera object in player"], "Error detected", "CANCEL")
 
+class SceneType(bpy.types.PropertyGroup):
+    """ Scene type """
+    scene_type_options = [
+        ("none", "None", "", 0),
+        ("stage", "Stage", "", 1),
+        ("player", "Player", "", 2),
+        ("menu", "Menu", "", 3),
+        ("hud", "HUD", "", 4),
+        ("loading", "Loading", "", 5),
+        ("npc", "NPC", "", 6)]
+
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
     bl_label = "Scene Properties"
@@ -80,6 +91,11 @@ class ScenePropertiesPanel(bpy.types.Panel):
 
 def init_properties():
     # Scene props
+    bpy.types.Scene.scene_type = bpy.props.EnumProperty(
+        items = SceneType.scene_type_options,
+        name = "Scene Type",
+        description = "Scene type",
+        default = 1)
     bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE

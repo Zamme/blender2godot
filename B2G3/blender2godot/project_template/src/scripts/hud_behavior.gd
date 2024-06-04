@@ -1,8 +1,6 @@
 class_name HudBehavior extends Control
 
 
-const HUDS_JSON_PATH = "res://huds_info/huds_info.json"
-
 var hud_objects_info
 var hud_settings
 
@@ -28,7 +26,7 @@ func add_fade_tween():
 	add_child(fade_tween)
 
 func get_json_info():
-	var _json_result = read_json_file(HUDS_JSON_PATH)
+	var _json_result = read_json_file(StageTemplate.HUDS_JSON_PATH)
 	var _hud_name : String = name.trim_prefix("Hud_")
 	var hud_info = _json_result[_hud_name]
 	hud_objects_info = hud_info["Objects"]

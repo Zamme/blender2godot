@@ -1,8 +1,6 @@
 class_name MenuBehavior extends Spatial
 
 
-const MENUS_INFO_JSON_PATH = "res://menus_info/menus_info.json"
-
 var _json_info
 
 
@@ -17,7 +15,7 @@ func _ready():
 	add_b2g_hud()
 
 func get_json_info():
-	var _menus_json = read_json_file(MENUS_INFO_JSON_PATH)
+	var _menus_json = read_json_file(StageTemplate.MENUS_INFO_JSON_PATH)
 	var _name_trimmed = name.trim_prefix("Menu_")
 	if _menus_json.has(_name_trimmed):
 		return _menus_json[_name_trimmed]

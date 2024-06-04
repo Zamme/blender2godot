@@ -1,5 +1,5 @@
 tool
-extends Spatial
+class_name StageTemplate extends Spatial
 
 
 enum COLLIDER_TYPE {CONVEX, MESH, SMART}
@@ -28,14 +28,15 @@ const HUD_SCENES_PREFIX = "Hud_"
 const HUD_BEHAVIOR_FILEPATH = "res://src/scripts/hud_behavior.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
-const COLLIDERS_JSON_PATH = "res://colliders_info/colliders.json"
-const LIGHTS_JSON_PATH = "res://lights_info/lights_info.json"
-const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
-const MENUS_INFO_JSON_PATH = "res://menus_info/menus_info.json"
-const HUDS_JSON_PATH = "res://huds_info/huds_info.json"
-const COLLIDERS_MATRIX_PATH = "res://colliders_info/colliders_matrix.txt"
-const GODOT_PROJECT_SETTINGS_JSON_PATH = "res://godot_project_settings_info/godot_project_settings.json"
-const STAGES_INFO_JSON_PATH = "res://stages_info/stages_info.json"
+const INFOS_DIRPATH = "res://infos/"
+const COLLIDERS_JSON_PATH = INFOS_DIRPATH + "colliders_info.json"
+const LIGHTS_JSON_PATH = INFOS_DIRPATH + "lights_info.json"
+const PLAYER_INFO_JSON_PATH = INFOS_DIRPATH + "players_info.json"
+const MENUS_INFO_JSON_PATH = INFOS_DIRPATH + "menus_info.json"
+const HUDS_JSON_PATH = INFOS_DIRPATH + "huds_info.json"
+const COLLIDERS_MATRIX_PATH = INFOS_DIRPATH + "colliders_matrix.txt"
+const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings.json"
+const STAGES_INFO_JSON_PATH = INFOS_DIRPATH + "stages_info.json"
 
 #const PLAYER_SPAWN_OBJECT_NAME = "B2G_PlayerSpawn"
 

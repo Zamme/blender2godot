@@ -1,7 +1,6 @@
 extends KinematicBody
 
 
-const PLAYER_INFO_JSON_PATH = "res://player_info/player_info.json"
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 
 const GRAVITY = -24.8
@@ -31,7 +30,7 @@ var _hud
 
 
 func _ready():
-	player_json = read_json_file(PLAYER_INFO_JSON_PATH)
+	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
 	gravity_enabled = player_json["GravityOn"]
 	_animations = player_json["PlayerAnimations"]
 	player_mesh = find_player_mesh()
