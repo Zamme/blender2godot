@@ -28,6 +28,7 @@ var player_mesh : PlayerMesh
 var _animations = {}
 var _controls = {}
 var _hud
+var mouse_rotation_axises = [false, false, false, false]
 
 
 func _ready():
@@ -36,6 +37,7 @@ func _ready():
 	_animations = player_json["PlayerAnimations"]
 	player_mesh = find_player_mesh()
 	camera = find_camera(player_json["PlayerCameraObject"]["CameraName"])
+	mouse_rotation_axises = get_mouse_rotation_axises()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	add_hud()
 	
@@ -83,6 +85,18 @@ func find_player_mesh():
 			_player_mesh = _child
 			break
 	return _player_mesh
+
+func get_mouse_rotation_axises():
+	var mra = mouse_rotation_axises
+	var mra_index = 0
+	var _rotates = ["b2g_rotate_up", "b2g_rotate_down", "b2g_rotate_left", "b2g_rotate_right"]
+	for _rotate in _rotates:
+		for _control in player_json["PlayerControls"][_rotate]:
+			if _control[0] == "mouse":
+				mra[mra_index] = true
+#				print("Mouse Rotation: ", _rotate, mra[mra_index])
+				mra_index += 1
+	return mra
 
 func read_json_file(filepath):
 	var file = File.new()
@@ -205,11 +219,12 @@ func process_movement(delta):
 
 func _input(event):
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		if camera_inverted:
-			camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY))
-		else:
-			camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0))
+		if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
+			if camera_inverted:
+				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY))
+			else:
+				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0))
 		
-		#self.rotate_y(deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
-		self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
+		if mouse_rotation_axises[2] or mouse_rotation_axises[3]:
+			self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
 
