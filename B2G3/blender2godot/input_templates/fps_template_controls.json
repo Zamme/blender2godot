@@ -62,7 +62,7 @@
     ],
     "DefaultInputs": [
       "MOUSEMOVE",
-      "JOY_AXIS_3"
+      "JOY_AXIS_2"
     ],
     "DefaultInputsModifiers": [
       "on_move",
@@ -76,7 +76,7 @@
     ],
     "DefaultInputs": [
       "MOUSEMOVE",
-      "JOY_AXIS_3"
+      "JOY_AXIS_2"
     ],
     "DefaultInputsModifiers": [
       "on_move",
@@ -90,7 +90,7 @@
     ],
     "DefaultInputs": [
       "MOUSEMOVE",
-      "JOY_AXIS_2"
+      "JOY_AXIS_3"
     ],
     "DefaultInputsModifiers": [
       "on_move",
@@ -104,7 +104,7 @@
     ],
     "DefaultInputs": [
       "MOUSEMOVE",
-      "JOY_AXIS_2"
+      "JOY_AXIS_3"
     ],
     "DefaultInputsModifiers": [
       "on_move",

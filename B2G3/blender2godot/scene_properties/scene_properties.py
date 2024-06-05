@@ -34,6 +34,38 @@ def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
 def scene_emptyobject_poll(self, object):
     return object.type == 'EMPTY'
 
+def scene_type_update(self, context):
+    if context.scene.scene_type == "player":
+        if (len(context.scene.controls_settings) == 0):
+            print("controls updated")
+            context.scene.controls_settings.clear()
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_go_forward"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_go_backward"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_strafe_left"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_strafe_right"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_rotate_left"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_rotate_right"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_rotate_up"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_rotate_down"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_action_0"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_action_1"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_action_2"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_action_3"
+            _new_setting = context.scene.controls_settings.add()
+            _new_setting.motion_name = "b2g_pause_game"
+
 def update_scene_exportable(self, context):
     if bpy.data.scenes[self.name].scene_type == "player":
         if bpy.data.scenes[self.name].player_object != None:
@@ -95,7 +127,8 @@ def init_properties():
         items = SceneType.scene_type_options,
         name = "Scene Type",
         description = "Scene type",
-        default = 1)
+        default = 1,
+        update=scene_type_update)
     bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE

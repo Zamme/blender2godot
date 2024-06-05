@@ -17,6 +17,7 @@ const MAX_SLOPE_ANGLE = 40
 var camera : Camera
 
 var MOUSE_SENSITIVITY = 0.05
+var GAMEPAD_AXIS_SENSITIVITY = 0.5
 
 export var gravity_enabled : bool
 
@@ -100,7 +101,6 @@ func _physics_process(delta):
 	animate()
 
 func process_input(_delta):
-
 	# ----------------------------------
 	# Walking
 	dir = Vector3()
@@ -108,13 +108,13 @@ func process_input(_delta):
 
 	var input_movement_vector = Vector2()
 
-	if Input.is_action_pressed("Forward"):
+	if Input.is_action_pressed("b2g_go_forward"):
 		input_movement_vector.y += 1
-	if Input.is_action_pressed("Backward"):
+	if Input.is_action_pressed("b2g_go_backward"):
 		input_movement_vector.y -= 1
-	if Input.is_action_pressed("Left"):
+	if Input.is_action_pressed("b2g_strafe_left"):
 		input_movement_vector.x -= 1
-	if Input.is_action_pressed("Right"):
+	if Input.is_action_pressed("b2g_strafe_right"):
 		input_movement_vector.x += 1
 	if Input.is_action_pressed("ui_cancel"):
 		get_tree().quit()
@@ -125,7 +125,27 @@ func process_input(_delta):
 	dir += -cam_xform.basis.z * input_movement_vector.y
 	dir += cam_xform.basis.x * input_movement_vector.x
 	# ----------------------------------
-
+	# Rotating
+	if Input.is_action_pressed("b2g_rotate_up"):
+		if camera_inverted:
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+		else:
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+	if Input.is_action_pressed("b2g_rotate_down"):
+		if camera_inverted:
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+		else:
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+	if Input.is_action_pressed("b2g_rotate_left"):
+		if camera_inverted:
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+		else:
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+	if Input.is_action_pressed("b2g_rotate_right"):
+		if camera_inverted:
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+		else:
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY))
 	# ----------------------------------
 	# Jumping
 	if is_on_floor():

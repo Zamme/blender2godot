@@ -538,9 +538,9 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 						event_joypad = InputEventJoypadMotion.new()
 						event_joypad.axis = int(_input_entry[1])
 						if _input_entry[2]:
-							event_joypad.axis_value = 1.0
-						else:
 							event_joypad.axis_value = -1.0
+						else:
+							event_joypad.axis_value = 1.0
 					_input_evs.append(event_joypad)
 		var _total_input = {
 							"deadzone": 0.5,
