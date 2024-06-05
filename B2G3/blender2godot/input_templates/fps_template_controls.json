@@ -11,7 +11,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "positive"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_go_backward": {
     "DefaultInputsTypes": [
@@ -25,7 +26,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "negative"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_strafe_left": {
     "DefaultInputsTypes": [
@@ -39,7 +41,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "positive"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_strafe_right": {
     "DefaultInputsTypes": [
@@ -53,7 +56,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "negative"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_rotate_left": {
     "DefaultInputsTypes": [
@@ -67,7 +71,8 @@
     "DefaultInputsModifiers": [
       "on_move",
       "positive"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_rotate_right": {
     "DefaultInputsTypes": [
@@ -81,7 +86,8 @@
     "DefaultInputsModifiers": [
       "on_move",
       "negative"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_rotate_up": {
     "DefaultInputsTypes": [
@@ -95,7 +101,8 @@
     "DefaultInputsModifiers": [
       "on_move",
       "positive"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_rotate_down": {
     "DefaultInputsTypes": [
@@ -109,7 +116,8 @@
     "DefaultInputsModifiers": [
       "on_move",
       "negative"
-    ]
+    ],
+    "ActionID": null
   },
   "b2g_action_0": {
     "DefaultInputsTypes": [
@@ -123,7 +131,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "on_press"
-    ]
+    ],
+    "ActionID": "action_0"
   },
   "b2g_action_1": {
     "DefaultInputsTypes": [
@@ -137,7 +146,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "on_press"
-    ]
+    ],
+    "ActionID": "action_1"
   },
   "b2g_action_2": {
     "DefaultInputsTypes": [
@@ -151,7 +161,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "on_press"
-    ]
+    ],
+    "ActionID": "action_2"
   },
   "b2g_action_3": {
     "DefaultInputsTypes": [
@@ -165,7 +176,8 @@
     "DefaultInputsModifiers": [
       "on_press",
       "on_press"
-    ]
+    ],
+    "ActionID": "action_3"
   },
   "b2g_pause_game": {
     "DefaultInputsTypes": [
@@ -179,6 +191,7 @@
     "DefaultInputsModifiers": [
       "on_press",
       "on_press"
-    ]
+    ],
+    "ActionID": "pause_game"
   }
 }

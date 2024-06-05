@@ -40,37 +40,46 @@ def scene_player_object_poll(self, object):
 def camera_update(self, context):
     context.scene.scene_exportable = (context.scene.camera_object != None)  
 
+'''
 def controls_update(self, context):
     pass
-    '''
-    if (len(context.scene.controls_settings) > 0):
-        return
-    _template_path = ""
-    _template_properties_path = ""
-    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template),
-    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template)]
+'''
+
+def get_action_template(self, context):
+    # Template name must be "<name>_template_actions.json"
+    _return = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "action_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "action_templates")]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
-            _template_path = p_path
-    _template_properties_path = _template_path + "_properties.json"
-    print("Template path: ", _template_path)
-    print("Template properties path: ", _template_properties_path)
-    _template_properties = {}
-    with open(_template_properties_path) as f:
-        _template_properties = json.load(f)
-    _json_player_inputs = _template_properties["PlayerInputs"]
-        
-    context.scene.controls_settings.clear()
+            _filepath = os.path.join(p_path, context.scene.controls_template.replace("_template_controls.json", "_template_actions.json"))
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _return = json.load(outfile)
+                    break
+        else:
+            pass
+    return _return
 
-    if ((len(context.scene.controls_settings) == 0) or (len(context.scene.controls_settings) > len(_json_player_inputs.keys()))):
-        context.scene.controls_settings.clear()
-        for _key in _json_player_inputs.keys():
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = _key
-            _new_motion_input = _new_setting.motion_inputs.add()
-            _new_motion_input.motion_input_type = _json_player_inputs[_key][0]
-            _new_motion_input.motion_input_blender = _json_player_inputs[_key][1]
-    '''
+def get_actions_list_array(self, context):
+    _actions_list = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "b2g_actions_list.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _actions_list = json.load(outfile)
+                    break
+            else:
+                pass
+    _actions_list_array = []
+    for _index,_action_key in enumerate(_actions_list.keys()):
+        _tuple = (_action_key, _actions_list[_action_key]["ActionName"], _actions_list[_action_key]["ActionDescription"], _index)
+        _actions_list_array.append(_tuple)
+    #print(_actions_list_array)
+    return _actions_list_array
 
 def get_controls_list_array(_control_type):
     _controls_list = None
@@ -95,6 +104,7 @@ def get_controls_settings(self):
     return self["controls_settings"]
 
 def get_input_templates(self, context):
+    # Template name must be "<name>_template_controls.json"
     input_templates = [("custom", "Custom", "", "", 0)]
     possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "input_templates"),
     os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "input_templates")]
@@ -102,7 +112,7 @@ def get_input_templates(self, context):
         if os.path.isdir(p_path):
             _listdir = os.listdir(p_path)
             for _i,_l in enumerate(_listdir):
-                _input_name = _l.replace(".json", "").replace("_", " ").capitalize()
+                _input_name = _l.replace("_template_controls.json", "").replace("_", " ").capitalize()
                 input_templates.append((_l, _input_name, _l, "", _i+1))
             return input_templates
         else:
@@ -117,6 +127,7 @@ def get_hud_scenes(self, context):
             _hs_index += 1
     return _hud_scenes
 
+'''
 def get_template_controls(_control_type):
     current_template_controls = None
     possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "project_template", bpy.data.scenes["B2G_GameManager"].project_template),
@@ -130,6 +141,7 @@ def get_template_controls(_control_type):
                     break
             else:
                 pass
+'''
 
 def update_controls_template(self, context):
     possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "input_templates"),
@@ -152,10 +164,18 @@ def update_controls_template(self, context):
                                           (current_template_controls[_key]["DefaultInputsModifiers"][_ind] == "on_move") or
                                           (current_template_controls[_key]["DefaultInputsModifiers"][_ind] == "positive"))
                             _new_motion_input.motion_input_modifier = _bool_pass
-                    break
-            else:
-                print("Custom input template selected")
+                # Update actions
+                _actions_template = get_action_template(self,context)
+                context.scene.actions_settings.clear()
+                if _actions_template is not None:
+                    for _key in _actions_template.keys():
+                        _new_action = context.scene.actions_settings.add()
+                        _new_action.action_id = _key
+                        _new_action.action_process = _actions_template[_key]["ProcessID"]
                 break
+            else:
+                break
+    print("Input template selected:", context.scene.controls_template)
 
 class GamepadInputType(bpy.types.PropertyGroup):
     """ Gamepad Input Type properties """
@@ -175,6 +195,10 @@ class MotionInputProperties(bpy.types.PropertyGroup):
     motion_input_type : bpy.props.EnumProperty(items=InputType.input_type_options) # type: ignore
     motion_input_blender: bpy.props.StringProperty(name="Blender Input", default="None") # type: ignore
     motion_input_modifier: bpy.props.BoolProperty(name="Blender Input Modifier") # type: ignore
+
+class ActionsProperties(bpy.types.PropertyGroup):
+    action_id : bpy.props.StringProperty(name="Action ID", default="None") # type: ignore
+    action_process : bpy.props.EnumProperty(items=get_actions_list_array, name="Action Process") # type: ignore
 
 class ControlsProperties(bpy.types.PropertyGroup):
     motion_name: bpy.props.StringProperty(name="Motion Name", default="Unknown") # type: ignore
@@ -205,6 +229,7 @@ class SCENE_OT_add_control(bpy.types.Operator):
     def execute(self, context):
         _new_input = context.scene.controls_settings[self.current_input_item_index].motion_inputs.add()
         _new_input.motion_input_type = self.control_type
+        context.scene.controls_template = "custom"
         return {"FINISHED"}
 
 class SCENE_OT_del_control(bpy.types.Operator):
@@ -222,6 +247,7 @@ class SCENE_OT_del_control(bpy.types.Operator):
 
     def execute(self, context):
         _new_input = context.scene.controls_settings[self.current_input_item_index].motion_inputs.remove(self.motion_input_index)
+        context.scene.controls_template = "custom"
         return {"FINISHED"}
 
 class SCENE_OT_add_gamepad_input(bpy.types.Operator):
@@ -256,6 +282,7 @@ class SCENE_OT_add_gamepad_input(bpy.types.Operator):
     def execute(self, context):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.gamepad_input
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_modifier = self.gamepad_input_modifier
+        context.scene.controls_template = "custom"
         return {"FINISHED"}
 
 class SCENE_OT_add_mouse_input(bpy.types.Operator):
@@ -282,6 +309,7 @@ class SCENE_OT_add_mouse_input(bpy.types.Operator):
     
     def execute(self, context):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.mouse_input
+        context.scene.controls_template = "custom"
         return {"FINISHED"}
 
 class AnimationTypeProperties(bpy.types.PropertyGroup):
@@ -302,6 +330,22 @@ class ANIMATIONS_UL_armature_animations(bpy.types.UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon = custom_icon)
+
+class ACTIONS_UL_player_actions(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row0 = layout.row(align=True)
+            box0 = row0.box()
+            _action_name_modified = item.action_id.capitalize()
+            box0.label(text=_action_name_modified, icon="POSE_HLT")
+            box0.label(text=item.action_process)
+            #_prop = "actions_settings[" + str(index) + "]"
+            #box0.prop(context.scene, "actions_settings")
+            #box0.props_enum(context.scene, "action_settings[0]")
+            box0.alignment = "EXPAND"
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = "POSE_HLT")
 
 class CONTROLS_UL_player_input(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -389,6 +433,7 @@ class SCENE_OT_get_input(bpy.types.Operator):
             return {'FINISHED'}
         elif event.value == "PRESS":
             context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = event.type
+            context.scene.controls_template = "custom"
             return {'FINISHED'}
 
         return {'PASS_THROUGH'}
@@ -398,6 +443,47 @@ class SCENE_OT_get_input(bpy.types.Operator):
         context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = "Press..."
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
+
+class PlayerActionsPanel(bpy.types.Panel):
+    """Player Actions Panel"""
+    bl_label = "Player Actions"
+    bl_idname = "PLAYERACTIONS_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 6
+    
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="ARMATURE_DATA")        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        # Player actions
+        row1 = layout.row(align=True)
+        box1 = row1.box()
+        box1.alignment = "EXPAND"
+        box1.label(text="Actions")
+        box2 = box1.box()
+        box2.template_list("ACTIONS_UL_player_actions", "PlayerActionsList", context.scene, "actions_settings", scene, "actions_settings_sel")
+
 
 class PlayerAnimationsPanel(bpy.types.Panel):
     """Player Animations Panel"""
@@ -551,6 +637,8 @@ def clear_properties():
     del bpy.types.Scene.camera_object
     del bpy.types.Scene.player_object
     del bpy.types.Scene.player_animation_sel
+    del bpy.types.Scene.actions_settings
+    del bpy.types.Scene.actions_settings_sel
 
 def init_properties():
     # Player properties
@@ -569,7 +657,10 @@ def init_properties():
 
     bpy.types.Scene.controls_template = bpy.props.EnumProperty(items=get_input_templates, default=0, update=update_controls_template)
     bpy.types.Scene.controls_settings = bpy.props.CollectionProperty(type=ControlsProperties)
-    bpy.types.Scene.controls_settings_sel = bpy.props.IntProperty(name="Input Selected", default=0, update=controls_update)
+    bpy.types.Scene.controls_settings_sel = bpy.props.IntProperty(name="Input Selected", default=0)
+
+    bpy.types.Scene.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
+    bpy.types.Scene.actions_settings_sel = bpy.props.IntProperty(name="Action Selected", default=0)
 
 def register():
     #bpy.utils.register_class(ControlSettingsType)
@@ -579,12 +670,15 @@ def register():
     bpy.utils.register_class(SCENE_OT_del_control)
     bpy.utils.register_class(MotionInputProperties)
     bpy.utils.register_class(ControlsProperties)
+    bpy.utils.register_class(ActionsProperties)
     init_properties()
+    bpy.utils.register_class(ACTIONS_UL_player_actions)
     bpy.utils.register_class(CONTROLS_UL_player_input)
     bpy.utils.register_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.register_class(SCENE_OT_get_input)
     bpy.utils.register_class(SCENE_OT_add_gamepad_input)
     bpy.utils.register_class(SCENE_OT_add_mouse_input)
+    bpy.utils.register_class(PlayerActionsPanel)
     bpy.utils.register_class(PlayerAnimationsPanel)
     bpy.utils.register_class(PlayerControlsPanel)
     bpy.utils.register_class(PlayerPropertiesPanel)
@@ -593,17 +687,19 @@ def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
     bpy.utils.unregister_class(PlayerControlsPanel)
     bpy.utils.unregister_class(PlayerAnimationsPanel)
+    bpy.utils.unregister_class(PlayerActionsPanel)
     bpy.utils.unregister_class(SCENE_OT_add_mouse_input)
     bpy.utils.unregister_class(SCENE_OT_add_gamepad_input)
     bpy.utils.unregister_class(SCENE_OT_get_input)
     bpy.utils.unregister_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.unregister_class(CONTROLS_UL_player_input)
     bpy.utils.unregister_class(ControlsProperties)
+    bpy.utils.unregister_class(ACTIONS_UL_player_actions)
     bpy.utils.unregister_class(MotionInputProperties)
     bpy.utils.unregister_class(SCENE_OT_add_control)
     bpy.utils.unregister_class(SCENE_OT_del_control)
     bpy.utils.unregister_class(InputType)
     bpy.utils.unregister_class(GamepadInputType)
-    #bpy.utils.unregister_class(ControlSettingsType)
+    bpy.utils.unregister_class(ActionsProperties)
     clear_properties()
 

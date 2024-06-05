@@ -542,6 +542,12 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 						else:
 							event_joypad.axis_value = 1.0
 					_input_evs.append(event_joypad)
+				"mouse":
+					var event_mouse
+					if _input_entry[1] != null:
+						event_mouse = InputEventMouseButton.new()
+						event_mouse.button_index = int(_input_entry[1])
+						_input_evs.append(event_mouse)
 		var _total_input = {
 							"deadzone": 0.5,
 							"events": _input_evs

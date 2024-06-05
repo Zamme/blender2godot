@@ -1,0 +1,38 @@
+{
+  "APause": {
+    "ActionName": "Action Pause",
+    "ActionDescription": "Pause game"
+  },
+  "AInteract": {
+    "ActionName": "Action Interact",
+    "ActionDescription": "Interact with in front object"
+  },
+  "AJump": {
+    "ActionName": "Action Jump",
+    "ActionDescription": "Jump"
+  },
+  "ACrouch": {
+    "ActionName": "Action Crouch",
+    "ActionDescription": "Crouch"
+  },
+  "AUse": {
+    "ActionName": "Action Use",
+    "ActionDescription": "Use inventory selected object"
+  },
+  "AIMinus": {
+    "ActionName": "Action IMinus",
+    "ActionDescription": "Select - inventory object"
+  },
+  "AIPlus": {
+    "ActionName": "Action IPlus",
+    "ActionDescription": "Select + inventory object"
+  },
+  "AHelp": {
+    "ActionName": "Action Help",
+    "ActionDescription": "Show help"
+  },
+  "AFire": {
+    "ActionName": "Action Fire",
+    "ActionDescription": "Fire weapon"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "action_0": {
+    "ProcessID": "AInteract"
+  },
+  "action_1": {
+    "ProcessID": "AFire"
+  },
+  "action_2": {
+    "ProcessID": "AJump"
+  },
+  "action_3": {
+    "ProcessID": "AHelp"
+  },
+  "pause_game": {
+    "ProcessID": "APause"
+  }
+}
