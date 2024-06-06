@@ -17,7 +17,7 @@
 
 
 """
-For menus 
+For 3d Menus 
 """
 
 import bpy
@@ -38,7 +38,7 @@ def get_scenes_names(self, context):
             if context.active_object.special_object_info.button_action_on_click == "load_stage" and _sc.scene_type == "stage":
                 _sc_names_purged.append((_sc.name.lower(), _sc.name, _sc.name.upper(), "", _sc_ind))
                 _sc_ind += 1
-            elif context.active_object.special_object_info.button_action_on_click == "load_menu" and _sc.scene_type == "menu":
+            elif context.active_object.special_object_info.button_action_on_click == "load_menu" and _sc.scene_type == "3dmenu":
                 _sc_names_purged.append((_sc.name.lower(), _sc.name, _sc.name.upper(), "", _sc_ind))
                 _sc_ind += 1
     return _sc_names_purged
@@ -60,10 +60,10 @@ class MenuSpecialObject(bpy.types.PropertyGroup):
     #scene_link : bpy.props.StringProperty(name="Stage Link") # type: ignore
     scene_link : bpy.props.EnumProperty(items=get_scenes_names, name="Stage Link") # type: ignore
 
-class MenuPropertiesPanel(bpy.types.Panel):
-    """Menu Properties Panel"""
-    bl_label = "Menu Properties"
-    bl_idname = "MENUPROPERTIES_PT_layout"
+class Menu3DPropertiesPanel(bpy.types.Panel):
+    """Menu 3D Properties Panel"""
+    bl_label = "Menu 3D Properties"
+    bl_idname = "MENU3DPROPERTIES_PT_layout"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
@@ -77,7 +77,7 @@ class MenuPropertiesPanel(bpy.types.Panel):
     def poll(self, context):
         _ret = False
         if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "menu"):
+            if (context.scene.scene_type == "3dmenu"):
                 _ret = True
         return _ret
     
@@ -130,10 +130,10 @@ def clear_properties():
 def register():
     bpy.utils.register_class(MenuSpecialObject)
     init_properties()
-    bpy.utils.register_class(MenuPropertiesPanel)
+    bpy.utils.register_class(Menu3DPropertiesPanel)
 
 def unregister():
-    bpy.utils.unregister_class(MenuPropertiesPanel)
+    bpy.utils.unregister_class(Menu3DPropertiesPanel)
     bpy.utils.unregister_class(MenuSpecialObject)
     clear_properties()
 

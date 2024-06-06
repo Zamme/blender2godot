@@ -46,7 +46,9 @@ from blender2godot.stage_properties import stage_properties
 
 from blender2godot.player_properties import player_properties
 
-from blender2godot.menu_properties import menu_properties
+from blender2godot.menu3d_properties import menu3d_properties
+
+from blender2godot.menu2d_properties import menu2d_properties
 
 from blender2godot.hud_properties import hud_properties
 
@@ -96,7 +98,8 @@ def register():
     scene_properties.register()
     stage_properties.register()
     player_properties.register()
-    menu_properties.register()
+    menu3d_properties.register()
+    menu2d_properties.register()
     hud_properties.register()
     test_project.register()
     game_export.register()
@@ -116,7 +119,8 @@ def unregister():
     stage_properties.unregister()
     scene_properties.unregister()
     hud_properties.unregister()
-    menu_properties.unregister()
+    menu3d_properties.unregister()
+    menu2d_properties.unregister()
     player_properties.unregister()
     test_project.unregister()
     game_export.unregister()

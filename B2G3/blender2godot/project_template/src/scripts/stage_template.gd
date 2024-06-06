@@ -431,7 +431,7 @@ func apply_new_config():
 				match startup_scene_type:
 					"stage":
 						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
-					"menu":
+					"3dmenu":
 						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
 			"application/boot_splash/bg_color":

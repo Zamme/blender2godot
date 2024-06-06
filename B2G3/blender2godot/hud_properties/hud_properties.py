@@ -27,21 +27,21 @@ class HudSettings(bpy.types.PropertyGroup):
     visibility_type : bpy.props.EnumProperty(items=[
                                     ("always", "Always", "ALWAYS", "", 0),
                                     ("conditional", "Conditional", "CONDITIONAL", "", 1)
-                                        ], name="Visibility", description="HUD visibility behavior")
+                                        ], name="Visibility", description="HUD visibility behavior") # type: ignore
     show_transition_type : bpy.props.EnumProperty(items=[
                                     ("none", "None", "NONE", "", 0),
                                     ("fade_in", "Fade In", "FADE IN", "", 1)
-                                        ], name="Showing HUD effect")
-    show_transition_time : bpy.props.FloatProperty(name="Show Transition Time")
+                                        ], name="Showing HUD effect") # type: ignore
+    show_transition_time : bpy.props.FloatProperty(name="Show Transition Time") # type: ignore
     hide_transition_type : bpy.props.EnumProperty(items=[
                                     ("none", "None", "NONE", "", 0),
                                     ("fade_in", "Fade In", "FADE IN", "", 1)
-                                        ], name="Hiding HUD effect")
-    hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time")
+                                        ], name="Hiding HUD effect") # type: ignore
+    hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
     hud_export_format : bpy.props.EnumProperty(items=[
                                                 ("png", "PNG", "PNG", "", 0),
                                                 ("svg", "SVG", "SVG", "", 1)
-                                                ], name="Format", description="HUD export format")
+                                                ], name="Format", description="HUD export format") # type: ignore
 
 class CreateHUDViewOperator(bpy.types.Operator):
     bl_idname = "scene.create_hud_view_operator"

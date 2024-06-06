@@ -81,10 +81,11 @@ class SceneType(bpy.types.PropertyGroup):
         ("none", "None", "", 0),
         ("stage", "Stage", "", 1),
         ("player", "Player", "", 2),
-        ("menu", "Menu", "", 3),
+        ("3dmenu", "3D Menu", "", 3),
         ("hud", "HUD", "", 4),
         ("loading", "Loading", "", 5),
-        ("npc", "NPC", "", 6)]
+        ("2dmenu", "2D Menu", "", 6),
+        ("npc", "NPC", "", 7)]
 
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""

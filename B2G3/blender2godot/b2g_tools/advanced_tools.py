@@ -65,7 +65,7 @@ def get_controls_list():
     return _controls_list
 
 def poll_startupable_scenes(self, _scene):
-    return (((_scene.scene_type == "stage") or (_scene.scene_type == "menu")) and (_scene.name != "B2G_GameManager"))
+    return (((_scene.scene_type == "stage") or (_scene.scene_type == "2dmenu") or (_scene.scene_type == "3dmenu")) and (_scene.name != "B2G_GameManager"))
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
@@ -357,7 +357,7 @@ class ExportGameOperator(bpy.types.Operator):
                         case "player":
                             self.export_player_info(context, _sc)
                             context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                        case "menu":
+                        case "3dmenu":
                             # MENUS'S CAMERA
                             _temp_dict = my_dictionary()
                             if not _sc_added.menu_camera_object:
