@@ -338,10 +338,7 @@ class ACTIONS_UL_player_actions(bpy.types.UIList):
             box0 = row0.box()
             _action_name_modified = item.action_id.capitalize()
             box0.label(text=_action_name_modified, icon="POSE_HLT")
-            box0.label(text=item.action_process)
-            #_prop = "actions_settings[" + str(index) + "]"
-            #box0.prop(context.scene, "actions_settings")
-            #box0.props_enum(context.scene, "action_settings[0]")
+            box0.prop(item, "action_process")
             box0.alignment = "EXPAND"
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
@@ -428,10 +425,10 @@ class SCENE_OT_get_input(bpy.types.Operator):
     last_touched = None
 
     def modal(self, context, event):
-        if event.type == 'ESC':
-            context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.last_touched
-            return {'FINISHED'}
-        elif event.value == "PRESS":
+        #if event.type == 'ESC':
+            #context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = self.last_touched
+            #return {'FINISHED'}
+        if event.value == "PRESS":
             context.scene.controls_settings[self.current_input_item_index].motion_inputs[self.motion_input_index].motion_input_blender = event.type
             context.scene.controls_template = "custom"
             return {'FINISHED'}

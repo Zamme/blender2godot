@@ -185,8 +185,8 @@
       "gamepad"
     ],
     "DefaultInputs": [
-      "TAB",
-      "JOY_START"
+      "ESC",
+      "JOY_BUTTON_START"
     ],
     "DefaultInputsModifiers": [
       "on_press",

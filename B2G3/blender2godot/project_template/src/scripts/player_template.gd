@@ -16,8 +16,8 @@ const MAX_SLOPE_ANGLE = 40
 
 var camera : Camera
 
-var MOUSE_SENSITIVITY = 0.05
-var GAMEPAD_AXIS_SENSITIVITY = 0.5
+var MOUSE_SENSITIVITY = 2.5
+var GAMEPAD_AXIS_SENSITIVITY = 25.0
 
 export var gravity_enabled : bool
 
@@ -26,15 +26,21 @@ var player_json
 var player_mesh : PlayerMesh
 
 var _animations = {}
+var _actions = {}
 var _controls = {}
 var _hud
 var mouse_rotation_axises = [false, false, false, false]
+
+var current_delta = 0.0
+
+var pause_control : Control
 
 
 func _ready():
 	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
 	gravity_enabled = player_json["GravityOn"]
 	_animations = player_json["PlayerAnimations"]
+	set_json_actions()
 	player_mesh = find_player_mesh()
 	camera = find_camera(player_json["PlayerCameraObject"]["CameraName"])
 	mouse_rotation_axises = get_mouse_rotation_axises()
@@ -59,6 +65,13 @@ func animate():
 		player_mesh._play_animation(_animations["backward"])
 	else:
 		player_mesh._play_animation(_animations["idle"])
+
+func create_pause():
+	yield(get_tree(),"idle_frame")
+	pause_control = Control.new()
+	pause_control.script = load("res://b2g_tools/B2G_Pause.gd")
+	add_child(pause_control)
+	pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
 
 func find_camera(_camera_object_name):
 	print("Searching ", _camera_object_name, " on ", self.name)
@@ -98,6 +111,16 @@ func get_mouse_rotation_axises():
 				mra_index += 1
 	return mra
 
+func pause_game_enable(_enable):
+	if _enable:
+		create_pause()
+	else:
+		pause_control.queue_free()
+	print("Paused: ", get_tree().paused)
+
+func toogle_pause():
+	pause_game_enable(!get_tree().paused)
+
 func read_json_file(filepath):
 	var file = File.new()
 	if not file.file_exists(filepath):
@@ -109,10 +132,46 @@ func read_json_file(filepath):
 		file.close()
 		return json_result.result
 
+func set_json_actions():
+	var _json_actions = player_json["PlayerActions"]
+	for _action_key in _json_actions.keys():
+		_actions["b2g_" + _action_key] = _json_actions[_action_key]
+	#print(_actions)
+
 func _physics_process(delta):
+	current_delta = delta
 	process_input(delta)
 	process_movement(delta)
+	process_actions(delta)
 	animate()
+
+func process_action(_action, _delta):
+	print("Action ", _action)
+	match _action:
+		"APause":
+			pause_game_enable(true)
+		"AInteract":
+			pass
+		"AJump":
+			if is_on_floor():
+				vel.y = JUMP_SPEED
+		"ACrouch":
+			pass
+		"AUse":
+			pass
+		"AIMinus":
+			pass
+		"AIPlus":
+			pass
+		"AHelp":
+			pass
+		"AFire":
+			pass
+
+func process_actions(_delta):
+	for _action_key in _actions.keys():
+		if Input.is_action_just_released(_action_key):
+			process_action(_actions[_action_key], _delta)
 
 func process_input(_delta):
 	# ----------------------------------
@@ -130,8 +189,8 @@ func process_input(_delta):
 		input_movement_vector.x -= 1
 	if Input.is_action_pressed("b2g_strafe_right"):
 		input_movement_vector.x += 1
-	if Input.is_action_pressed("ui_cancel"):
-		get_tree().quit()
+	#if Input.is_key_pressed(16777217):
+		#get_tree().quit()
 	
 	input_movement_vector = input_movement_vector.normalized()
 
@@ -142,29 +201,25 @@ func process_input(_delta):
 	# Rotating
 	if Input.is_action_pressed("b2g_rotate_up"):
 		if camera_inverted:
-			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 		else:
-			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
 	if Input.is_action_pressed("b2g_rotate_down"):
 		if camera_inverted:
-			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
 		else:
-			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+			camera.rotate_x(deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 	if Input.is_action_pressed("b2g_rotate_left"):
 		if camera_inverted:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 		else:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
 	if Input.is_action_pressed("b2g_rotate_right"):
 		if camera_inverted:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
 		else:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 	# ----------------------------------
-	# Jumping
-	if is_on_floor():
-		if Input.is_action_just_pressed("ui_select"):
-			vel.y = JUMP_SPEED
 	# ----------------------------------
 
 	# ----------------------------------
@@ -221,10 +276,10 @@ func _input(event):
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
 			if camera_inverted:
-				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY))
+				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * current_delta))
 			else:
-				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0))
+				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0 * current_delta))
 		
 		if mouse_rotation_axises[2] or mouse_rotation_axises[3]:
-			self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1))
+			self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1 * current_delta))
 

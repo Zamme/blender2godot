@@ -545,21 +545,28 @@ class ExportGameOperator(bpy.types.Operator):
                                                          "FOV" : _player_scene.camera_object.data.angle,
                                                          "KeepFOV" : _player_scene.camera_object.data.sensor_fit})
         # ANIMATIONS
-        _action_dictionary = my_dictionary()
+        _animation_dictionary = my_dictionary()
         for _player_action in bpy.data.actions:
-            _action_dictionary.add(_player_action.animation_type , _player_action.name)
-        self.dict_player_info.add("PlayerAnimations", _action_dictionary)
+            _animation_dictionary.add(_player_action.animation_type , _player_action.name)
+        self.dict_player_info.add("PlayerAnimations", _animation_dictionary)
         # CONTROLS
         _controls_dictionary = my_dictionary()
         for _control_setting in _player_scene.controls_settings:
             _control_inputs_array = []
             for _mot_input in _control_setting.motion_inputs:
                 _inputs = [_mot_input.motion_input_type,
+                            _mot_input.motion_input_blender,
+                            self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotID"],
                             self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotEnumID"],
                             _mot_input.motion_input_modifier]
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
+        # ACTIONS
+        _actions_dictionary = my_dictionary()
+        for _action_setting in _player_scene.actions_settings:
+            _actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
+        self.dict_player_info.add("PlayerActions", _actions_dictionary)
         # HUD
         _hud_dictionary = my_dictionary()
         _hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)

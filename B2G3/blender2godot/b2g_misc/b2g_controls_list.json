@@ -612,11 +612,11 @@
       "GodotID": "JOY_BUTTON_9",
       "GodotEnumID": "9"
     },
-    "JOY_SELECT": {
+    "JOY_BUTTON_SELECT": {
       "GodotID": "JOY_SELECT",
       "GodotEnumID": "10"
     },
-    "JOY_START": {
+    "JOY_BUTTON_START": {
       "GodotID": "JOY_START",
       "GodotEnumID": "11"
     }

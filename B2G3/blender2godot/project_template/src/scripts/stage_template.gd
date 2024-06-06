@@ -527,26 +527,26 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 			match _input_entry[0]:
 				"keyboard":
 					var event_key = InputEventKey.new()
-					event_key.scancode = int(_input_entry[1])
+					event_key.scancode = int(_input_entry[3])
 					_input_evs.append(event_key)
 				"gamepad":
 					var event_joypad
-					if _input_entry[0].find("BUTTON") > -1:
+					if _input_entry[1].find("BUTTON") > -1:
 						event_joypad = InputEventJoypadButton.new()
-						event_joypad.button_index = int(_input_entry[1])
+						event_joypad.button_index = int(_input_entry[3])
 					else:
 						event_joypad = InputEventJoypadMotion.new()
-						event_joypad.axis = int(_input_entry[1])
-						if _input_entry[2]:
+						event_joypad.axis = int(_input_entry[3])
+						if _input_entry[4]:
 							event_joypad.axis_value = -1.0
 						else:
 							event_joypad.axis_value = 1.0
 					_input_evs.append(event_joypad)
 				"mouse":
 					var event_mouse
-					if _input_entry[1] != null:
+					if _input_entry[3] != null:
 						event_mouse = InputEventMouseButton.new()
-						event_mouse.button_index = int(_input_entry[1])
+						event_mouse.button_index = int(_input_entry[3])
 						_input_evs.append(event_mouse)
 		var _total_input = {
 							"deadzone": 0.5,
