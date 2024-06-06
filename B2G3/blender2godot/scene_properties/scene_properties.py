@@ -128,7 +128,7 @@ def init_properties():
         items = SceneType.scene_type_options,
         name = "Scene Type",
         description = "Scene type",
-        default = 1,
+        default = 0,
         update=scene_type_update)
     bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
     # Object props

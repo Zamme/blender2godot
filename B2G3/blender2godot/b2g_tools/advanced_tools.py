@@ -270,6 +270,7 @@ class ExportGameOperator(bpy.types.Operator):
     assets_folder_name = "assets"
     models_folder_name = "models"
     huds_folder_name = "huds"
+    menus2d_folder_name = "menus2d"
     colliders_filepath = ""
     player_info_filepath = ""
     lights_info_filepath = ""
@@ -337,6 +338,25 @@ class ExportGameOperator(bpy.types.Operator):
                     _hud_settings_dict.add("ExportFormat", _sc.hud_settings.hud_export_format)
                     _hud_dict.add("Settings", _hud_settings_dict)
                     self.dict_huds_info.add(_sc.name, _hud_dict)
+                elif _sc.scene_type == "2dmenu":
+                    self.export_menu2d(context, _sc)
+                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
+                    '''
+                    _hud_dict = my_dictionary()
+                    _hud_obj_dict = my_dictionary()
+                    for _hud_obj in _sc.objects:
+                        _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
+                    _hud_dict.add("Objects", _hud_obj_dict)
+                    _hud_settings_dict = my_dictionary()
+                    _hud_settings_dict.add("VisibilityType", _sc.hud_settings.visibility_type)
+                    _hud_settings_dict.add("ShowTransitionType", _sc.hud_settings.show_transition_type)
+                    _hud_settings_dict.add("ShowTransitionTime", _sc.hud_settings.show_transition_time)
+                    _hud_settings_dict.add("HideTransitionType", _sc.hud_settings.hide_transition_type)
+                    _hud_settings_dict.add("HideTransitionTime", _sc.hud_settings.hide_transition_time)
+                    _hud_settings_dict.add("ExportFormat", _sc.hud_settings.hud_export_format)
+                    _hud_dict.add("Settings", _hud_settings_dict)
+                    self.dict_huds_info.add(_sc.name, _hud_dict)
+                    '''
                 else:
                     self.export_scene(context, _sc)
                     context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -518,6 +538,33 @@ class ExportGameOperator(bpy.types.Operator):
         with open(self.lights_info_filepath, 'w') as outfile:
             outfile.write(self.data_lights + '\n')
     
+    def export_menu2d(self, context, _menu2d_scene):
+        self.menus2d_folder_path = os.path.join(self.assets_folder_path, self.menus2d_folder_name)
+        if not os.path.isdir(self.menus2d_folder_path):
+            os.mkdir(self.menus2d_folder_path)
+        print("Exporting menu 2d scene", _menu2d_scene.name)
+        context.window.scene = _menu2d_scene
+        for _obj in _menu2d_scene.objects:
+            bpy.ops.object.mode_set(mode = 'OBJECT')
+            _obj.select_set(_obj.godot_exportable)
+            # Disable gpencil layers lights
+            if _obj.type == "GPENCIL":
+                print("Is gpencil")
+                for _layer in _obj.data.layers:
+                    _layer.use_lights = False
+        bpy.ops.view3d.view_camera()
+        menu2d_path = os.path.join(self.menus2d_folder_path, _menu2d_scene.name)
+        if len(_menu2d_scene.objects) > 0:
+            menu2d_path = menu2d_path + ".png"
+            _menu2d_scene.render.engine = "BLENDER_EEVEE"
+            bpy.context.scene.render.filepath = menu2d_path
+            bpy.context.scene.render.film_transparent = True
+            bpy.context.scene.view_layers["ViewLayer"].use_pass_z = True
+            bpy.ops.render.render(write_still = True)
+            print("Scene", _menu2d_scene.name, "exported.")
+        else:
+            print("Scene ", _menu2d_scene.name, " empty!")
+
     def export_menus_info(self, context):
         self.find_menus_info_file_path(context)
         self.data_menus_info = json.dumps(self.dict_menus_info, indent=1, ensure_ascii=True)
