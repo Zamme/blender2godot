@@ -31,6 +31,7 @@ import bpy
 
 INFOS_FOLDER_NAME = "infos"
 HUDS_INFO_FILENAME = "huds_info.json"
+MENUS2D_INFO_FILENAME = "menus2d_info.json"
 STAGES_INFO_FILENAME = "stages_info.json"
 COLLIDERS_INFO_FILENAME = "colliders_info.json"
 PLAYERS_INFO_FILENAME = "players_info.json"
@@ -283,6 +284,7 @@ class ExportGameOperator(bpy.types.Operator):
     dict_godot_project_settings = my_dictionary()
     dict_stages_info = my_dictionary()
     dict_menus_info = my_dictionary()
+    dict_menus2d_info = my_dictionary()
     dict_huds_info = my_dictionary()
 
     controls_list = get_controls_list()
@@ -341,22 +343,18 @@ class ExportGameOperator(bpy.types.Operator):
                 elif _sc.scene_type == "2dmenu":
                     self.export_menu2d(context, _sc)
                     context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                    '''
-                    _hud_dict = my_dictionary()
-                    _hud_obj_dict = my_dictionary()
-                    for _hud_obj in _sc.objects:
-                        _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
-                    _hud_dict.add("Objects", _hud_obj_dict)
-                    _hud_settings_dict = my_dictionary()
-                    _hud_settings_dict.add("VisibilityType", _sc.hud_settings.visibility_type)
-                    _hud_settings_dict.add("ShowTransitionType", _sc.hud_settings.show_transition_type)
-                    _hud_settings_dict.add("ShowTransitionTime", _sc.hud_settings.show_transition_time)
-                    _hud_settings_dict.add("HideTransitionType", _sc.hud_settings.hide_transition_type)
-                    _hud_settings_dict.add("HideTransitionTime", _sc.hud_settings.hide_transition_time)
-                    _hud_settings_dict.add("ExportFormat", _sc.hud_settings.hud_export_format)
-                    _hud_dict.add("Settings", _hud_settings_dict)
-                    self.dict_huds_info.add(_sc.name, _hud_dict)
-                    '''
+                    _menu2d_dict = my_dictionary()
+                    for _menu2d_obj in _sc.objects:
+                        if _menu2d_obj.type == "GPENCIL":
+                            _menu2d_obj_dict = my_dictionary()
+                            _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
+                            _menu2d_obj_dict.add("Location", _menu2d_obj_location)
+                            _co_array = []
+                            for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
+                                _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                            _menu2d_obj_dict.add("Points", _co_array)
+                            _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
+                    self.dict_menus2d_info.add(_sc.name, _menu2d_dict)
                 else:
                     self.export_scene(context, _sc)
                     context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -413,6 +411,8 @@ class ExportGameOperator(bpy.types.Operator):
         #bpy.ops.scene.set_godot_project_environment_operator()
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)
+        context.window.scene = bpy.data.scenes["B2G_GameManager"]
+        self.export_menus2d_info(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_menus_info(context)
         context.window.scene = bpy.data.scenes["B2G_GameManager"]
@@ -565,6 +565,12 @@ class ExportGameOperator(bpy.types.Operator):
         else:
             print("Scene ", _menu2d_scene.name, " empty!")
 
+    def export_menus2d_info(self, context):
+        self.find_menus2d_info_file_path(context)
+        self.data_menus2d_info = json.dumps(self.dict_menus2d_info, indent=1, ensure_ascii=True)
+        with open(self.menus2d_info_filepath, 'w') as outfile:
+            outfile.write(self.data_menus2d_info + '\n')   
+
     def export_menus_info(self, context):
         self.find_menus_info_file_path(context)
         self.data_menus_info = json.dumps(self.dict_menus_info, indent=1, ensure_ascii=True)
@@ -654,6 +660,9 @@ class ExportGameOperator(bpy.types.Operator):
         self.lights_info_filepath = os.path.join(self.infos_dirpath, LIGHTS_INFO_FILENAME)
         #print("Lights json filepath:", self.lights_info_filepath)
         
+    def find_menus2d_info_file_path(self, context):
+        self.menus2d_info_filepath = os.path.join(self.infos_dirpath, MENUS2D_INFO_FILENAME)
+
     def find_player_info_file_path(self, context):
         self.player_info_filepath = os.path.join(self.infos_dirpath, PLAYERS_INFO_FILENAME)
         #print("Player info json filepath:", self.player_info_filepath)

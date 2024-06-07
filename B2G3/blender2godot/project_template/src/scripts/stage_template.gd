@@ -5,7 +5,8 @@ class_name StageTemplate extends Spatial
 enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
 const MODELS_PATH = "res://assets/models/"
-const HUDS_SVGS_PATH = "res://assets/huds/"
+const HUDS_TEXTURES_PATH = "res://assets/huds/"
+const MENUS2D_TEXTURES_PATH = "res://assets/menus2d/"
 const SCENES_PATH = "res://src/scenes/"
 const SCRIPTS_PATH = "res://src/scripts/"
 const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
@@ -27,6 +28,10 @@ const HUDS_PATH = SCENES_PATH + "huds/"
 const HUD_SCENES_PREFIX = "Hud_"
 const HUD_BEHAVIOR_FILEPATH = "res://src/scripts/hud_behavior.gd"
 
+const MENUS2D_PATH = SCENES_PATH + "menus2d/"
+const MENUS2D_SCENES_PREFIX = "Menu2d_"
+const MENUS2D_BEHAVIOR_FILEPATH = "res://b2g_tools/B2G_Pause.gd"
+
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const INFOS_DIRPATH = "res://infos/"
 const COLLIDERS_JSON_PATH = INFOS_DIRPATH + "colliders_info.json"
@@ -37,6 +42,7 @@ const HUDS_JSON_PATH = INFOS_DIRPATH + "huds_info.json"
 const COLLIDERS_MATRIX_PATH = INFOS_DIRPATH + "colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = INFOS_DIRPATH + "stages_info.json"
+const MENUS2D_INFO_JSON_PATH = INFOS_DIRPATH + "menus2d_info.json"
 
 #const PLAYER_SPAWN_OBJECT_NAME = "B2G_PlayerSpawn"
 
@@ -73,6 +79,7 @@ var _menus_json
 var _colliders_json
 var _lights_json
 var _huds_json
+var _menus2d_json
 
 
 func _ready():
@@ -85,6 +92,7 @@ func _ready():
 			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
+			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
 			if !self.mount_scenes():
 				return
 			yield(get_tree(),"idle_frame")
@@ -697,11 +705,32 @@ func mount_scenes():
 		_new_texture_rect.set_owner(_new_hud)
 		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
 		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
-		var _svg_path : String = HUDS_SVGS_PATH + _key + "." + _texture_format
+		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + _texture_format
 		_new_texture_rect.texture = load(_svg_path)
 		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		self.repack_scene(_new_hud, _new_hud_path)
+	
+	# Create Menus2d
+	for _key in _menus2d_json.keys():
+		var _new_menu2d_name : String = MENUS2D_SCENES_PREFIX + _key
+		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
+		var _directory : Directory = Directory.new()
+		if !_directory.dir_exists(MENUS2D_PATH):
+			_directory.make_dir(MENUS2D_PATH)
+		var _new_menu2d : Control = Control.new()
+		_new_menu2d.name = _new_menu2d_name
+		_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
+		var _new_texture_rect : TextureRect = TextureRect.new()
+		_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
+		_new_menu2d.add_child(_new_texture_rect)
+		_new_texture_rect.set_owner(_new_menu2d)
+		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
+		_new_texture_rect.texture = load(_texture_path)
+		_new_texture_rect.expand = true
+		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
+		self.repack_scene(_new_menu2d, _new_menu2d_path)
 	
 	return true
 #	self.add_scenes(imported_scenes)

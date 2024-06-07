@@ -3,6 +3,9 @@ extends KinematicBody
 
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 
+# TODO: LOAD FROM JSONS INFO
+const PAUSE_MENU_PATH = "res://src/scenes/menus2d/Menu2d_PauseMenu2D.tscn"
+
 const GRAVITY = -24.8
 var vel = Vector3()
 const MAX_SPEED = 4.5
@@ -68,8 +71,7 @@ func animate():
 
 func create_pause():
 	yield(get_tree(),"idle_frame")
-	pause_control = Control.new()
-	pause_control.script = load("res://b2g_tools/B2G_Pause.gd")
+	pause_control = load(PAUSE_MENU_PATH).instance()
 	add_child(pause_control)
 	pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
 

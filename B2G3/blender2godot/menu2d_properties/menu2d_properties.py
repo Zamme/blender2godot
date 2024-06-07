@@ -73,10 +73,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
         if len(context.scene.objects) < 1:
             box1.operator("scene.create_menu2d_view_operator")
             return
-        # CAMERA
-        box2 = box1.box()
-        #box2.prop(scene, "menu_camera_object")
-
+        
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
             row2 = box1.row()
@@ -86,6 +83,14 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             box4 = box3.box()
             if context.active_object.type == "CAMERA":
                 box4.prop(context.active_object.data, "angle")
+            elif context.active_object.type == "GPENCIL":
+                #box3.prop(context.active_object.data.layers[0].active_frame.strokes[0], "bound_box_max")
+                #box3.prop(context.active_object.data.layers[0].active_frame.strokes[0], "bound_box_min")
+                for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
+                    if _point.select:
+                        _point_text = "Stroke point: " + str(_point_index)
+                        box3.label(text=_point_text)
+                        box3.prop(_point, "co")
             else:
                 box4.prop(context.active_object.special_object_info, "menu_object_type")
                 if context.active_object.special_object_info.menu_object_type == "button":
@@ -94,6 +99,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                         box4.prop(context.active_object.special_object_info, "scene_link")
                     elif context.active_object.special_object_info.button_action_on_click == "load_menu":
                         box4.prop(context.active_object.special_object_info, "scene_link")
+                
             box3.prop(context.active_object, "godot_exportable")
                  
 
