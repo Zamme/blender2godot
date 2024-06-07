@@ -3,8 +3,7 @@ extends KinematicBody
 
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 
-# TODO: LOAD FROM JSONS INFO
-const PAUSE_MENU_PATH = "res://src/scenes/menus2d/Menu2d_PauseMenu2D.tscn"
+export var PAUSE_MENU_PATH = ""
 
 const GRAVITY = -24.8
 var vel = Vector3()

@@ -80,6 +80,7 @@ var _colliders_json
 var _lights_json
 var _huds_json
 var _menus2d_json
+var _godot_project_settings_json
 
 
 func _ready():
@@ -93,6 +94,7 @@ func _ready():
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
+			_godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
 			if !self.mount_scenes():
 				return
 			yield(get_tree(),"idle_frame")
@@ -429,25 +431,24 @@ func apply_import_changes_to_list(scenes_list, path):
 
 func apply_new_config():
 	var startup_scene_type : String
-	var godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
-	for _key in godot_project_settings_json.keys():
+	for _key in _godot_project_settings_json.keys():
 		match _key:
 			"startup_scene_type":
-				startup_scene_type = godot_project_settings_json["startup_scene_type"]
+				startup_scene_type = _godot_project_settings_json["startup_scene_type"]
 			"application/run/main_scene":
 				var _start_scene_path : String
 				match startup_scene_type:
 					"stage":
-						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 					"3dmenu":
-						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
 			"application/boot_splash/bg_color":
-				var _splits = godot_project_settings_json["application/boot_splash/bg_color"].split(",")
+				var _splits = _godot_project_settings_json["application/boot_splash/bg_color"].split(",")
 				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
 				ProjectSettings.set_setting("application/boot_splash/bg_color", _color)
 			_:
-				ProjectSettings.set_setting(_key, godot_project_settings_json[_key])
+				ProjectSettings.set_setting(_key, _godot_project_settings_json[_key])
 
 
 func clear_lights(_scene):
@@ -475,7 +476,7 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
-func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props):
+func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props, _pause_menu):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -510,6 +511,7 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 			_player_camera.keep_aspect = Camera.KEEP_HEIGHT
 		"HORIZONTAL":
 			_player_camera.keep_aspect = Camera.KEEP_WIDTH
+	player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()
@@ -654,7 +656,8 @@ func mount_scenes():
 						var _shape_props = _player_json["PlayerDimensions"]
 						var _anims_props = _player_json["PlayerAnimations"]
 						var _controls_props = _player_json["PlayerControls"]
-						create_player(_fn_without_ext, _cam_props, _shape_props, _controls_props)
+						var _pause_menu_name = _player_json["PauseMenu"]
+						create_player(_fn_without_ext, _cam_props, _shape_props, _controls_props, _pause_menu_name)
 						_index += 1
 		else:
 			print("No player added")
@@ -730,6 +733,7 @@ func mount_scenes():
 		_new_texture_rect.texture = load(_texture_path)
 		_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
+		prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 	
 	return true
@@ -743,6 +747,28 @@ func mount_scenes():
 #	repack_scene(self, STAGE_TEMPLATE_PATH)
 	#self.add_scene(COLLIDERS_PATH, "Colliders")
 
+func prepare_menu2d_scene(_menu_scene, _menu_objects):
+	print("Preparing ", _menu_scene.name, " objects:")
+	var SCALE_FACTOR = 28.0
+	for _menu_object_key in _menu_objects.keys():
+		print(_menu_object_key)
+		var _new_area2d : Area2D = Area2D.new()
+		_new_area2d.name = _menu_object_key + "_Area2D"
+		_menu_scene.add_child(_new_area2d)
+		_new_area2d.set_owner(_menu_scene)
+		var _new_collision_polygon2d : CollisionPolygon2D = CollisionPolygon2D.new()
+		_new_collision_polygon2d.name = _menu_object_key + "_CollisionPolygon2D"
+		_new_area2d.add_child(_new_collision_polygon2d)
+		_new_collision_polygon2d.set_owner(_menu_scene)
+		var _new_pool_vector : PoolVector2Array = PoolVector2Array()
+		for _point in _menu_objects[_menu_object_key]["Points"]:
+			var _new_vector : Vector2 = Vector2(_point[0] * SCALE_FACTOR, _point[1] * SCALE_FACTOR)
+			_new_pool_vector.append(_new_vector)
+		_new_collision_polygon2d.polygon = _new_pool_vector
+		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+		_new_area2d.position = Vector2(_display_size.x/2, _display_size.y/2)
+		_new_area2d.position -= Vector2(float(_menu_objects[_menu_object_key]["Location"][0]) * SCALE_FACTOR, float(_menu_objects[_menu_object_key]["Location"][1]) * SCALE_FACTOR)
+	print("Finished.")
 
 func output_matrix():
 	var output_matrix_text = []

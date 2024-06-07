@@ -624,6 +624,8 @@ class ExportGameOperator(bpy.types.Operator):
         _hud_dictionary = my_dictionary()
         _hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
         self.dict_player_info.add("PlayerHUD", _hud_dictionary)
+        # PAUSE MENU
+        self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
         # EXPORT JSON
         self.data_player_info = json.dumps(self.dict_player_info, indent=1, ensure_ascii=True)
         with open(self.player_info_filepath, 'w') as outfile:

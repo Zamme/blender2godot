@@ -143,6 +143,15 @@ def get_template_controls(_control_type):
                 pass
 '''
 
+def get_menu2d_scenes_array(self, context):
+    _menu2ds_array = [("none", "None", "None", "", 0)]
+    _index = 1
+    for _scene in bpy.data.scenes:
+        if _scene.scene_type == "2dmenu":
+            _menu2ds_array.append((_scene.name, _scene.name, _scene.name, "", _index))
+            _index += 1
+    return _menu2ds_array
+
 def update_controls_template(self, context):
     possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "input_templates"),
     os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "input_templates")]
@@ -626,6 +635,11 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         box6.label(text="Player HUD")
         box6.prop(scene, "player_hud_scene", text="HUD scene")
 
+        # Pause Menu 2D
+        box7 = box1.box()
+        box7.label(text="Pause")
+        box7.prop(scene, "pause_menu2d", text="Pause menu 2D")
+
 
 def clear_properties():
     del bpy.types.Action.animation_type
@@ -658,6 +672,8 @@ def init_properties():
 
     bpy.types.Scene.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
     bpy.types.Scene.actions_settings_sel = bpy.props.IntProperty(name="Action Selected", default=0)
+
+    bpy.types.Scene.pause_menu2d = bpy.props.EnumProperty(items=get_menu2d_scenes_array, default=0)
 
 def register():
     #bpy.utils.register_class(ControlSettingsType)
