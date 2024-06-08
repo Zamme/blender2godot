@@ -712,6 +712,8 @@ func mount_scenes():
 		_new_texture_rect.texture = load(_svg_path)
 		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
+		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		self.repack_scene(_new_hud, _new_hud_path)
 	
 	# Create Menus2d
@@ -721,17 +723,19 @@ func mount_scenes():
 		var _directory : Directory = Directory.new()
 		if !_directory.dir_exists(MENUS2D_PATH):
 			_directory.make_dir(MENUS2D_PATH)
-		var _new_menu2d : Control = Control.new()
+		var _new_menu2d : Sprite = Sprite.new()
 		_new_menu2d.name = _new_menu2d_name
-		_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
-		var _new_texture_rect : TextureRect = TextureRect.new()
-		_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
-		_new_menu2d.add_child(_new_texture_rect)
-		_new_texture_rect.set_owner(_new_menu2d)
-		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+		#_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
+		#var _new_texture_rect : TextureRect = TextureRect.new()
+		#_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
+		#_new_menu2d.add_child(_new_texture_rect)
+		#_new_texture_rect.set_owner(_new_menu2d)
+		#_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
 		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
-		_new_texture_rect.texture = load(_texture_path)
-		_new_texture_rect.expand = true
+		_new_menu2d.texture = load(_texture_path)
+		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
+		#_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
 		prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
@@ -768,6 +772,12 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
 		_new_area2d.position = Vector2(_display_size.x/2, _display_size.y/2)
 		_new_area2d.position -= Vector2(float(_menu_objects[_menu_object_key]["Location"][0]) * SCALE_FACTOR, float(_menu_objects[_menu_object_key]["Location"][1]) * SCALE_FACTOR)
+		# Actions
+		match _menu_objects[_menu_object_key]["Type"]:
+			"button":
+				_new_area2d.script = load("res://b2g_tools/B2G_Menu2dButton.gd")
+			"check":
+				pass
 	print("Finished.")
 
 func output_matrix():

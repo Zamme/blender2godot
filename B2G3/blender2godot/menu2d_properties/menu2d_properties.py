@@ -23,6 +23,24 @@ For menus 2D
 import bpy
 
 
+class Menu2DObjectProperties(bpy.types.PropertyGroup):
+    """ Menu 2D Object Type """
+    object_type_options = [
+        ("none", "None", "", 0),
+        ("button", "Button", "", 1),
+        ("checkbutton", "Checkbutton", "", 2)]
+    button_actions = [
+        ("none", "None", "", 0),
+        ("continue", "Continue", "", 1),
+        ("quit", "Quit", "", 2)]
+    check_actions = [
+        ("none", "None", "", 0),
+        ("option1", "Option1", "", 1),
+        ("option2", "Option2", "", 2)]
+    menu2d_object_type : bpy.props.EnumProperty(items=object_type_options, name="Object Type", default=0) # type: ignore
+    button_action : bpy.props.EnumProperty(items=button_actions, name="Button Action", default=0) # type: ignore
+    check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
+
 class CreateMenu2dViewOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_view_operator"
     bl_label = "Create Menu 2D View"
@@ -81,40 +99,36 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             _nl = "Active Object: " + context.active_object.name
             box3.label(text=_nl)
             box4 = box3.box()
-            if context.active_object.type == "CAMERA":
-                box4.prop(context.active_object.data, "angle")
-            elif context.active_object.type == "GPENCIL":
-                #box3.prop(context.active_object.data.layers[0].active_frame.strokes[0], "bound_box_max")
-                #box3.prop(context.active_object.data.layers[0].active_frame.strokes[0], "bound_box_min")
+            box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
+            match context.active_object.menu2d_object_properties.menu2d_object_type:
+                case "button":
+                    box4.prop(context.active_object.menu2d_object_properties, "button_action")
+                case "check":
+                    box4.prop(context.active_object.menu2d_object_properties, "check_action")
+            '''
+            if context.active_object.type == "GPENCIL":
                 for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
                     if _point.select:
                         _point_text = "Stroke point: " + str(_point_index)
                         box3.label(text=_point_text)
                         box3.prop(_point, "co")
-            else:
-                box4.prop(context.active_object.special_object_info, "menu_object_type")
-                if context.active_object.special_object_info.menu_object_type == "button":
-                    box4.prop(context.active_object.special_object_info, "button_action_on_click")
-                    if context.active_object.special_object_info.button_action_on_click == "load_stage":
-                        box4.prop(context.active_object.special_object_info, "scene_link")
-                    elif context.active_object.special_object_info.button_action_on_click == "load_menu":
-                        box4.prop(context.active_object.special_object_info, "scene_link")
-                
+            '''                
             box3.prop(context.active_object, "godot_exportable")
                  
 
 def init_properties():
-    pass
+    bpy.types.Object.menu2d_object_properties = bpy.props.PointerProperty(type=Menu2DObjectProperties)
     #bpy.types.Scene.menu_camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Menu Camera", poll=scene_camera_object_poll)
-    #bpy.types.Object.special_object_info = bpy.props.PointerProperty(type=MenuSpecialObject, name="Object Info")
+    pass
 
 def clear_properties():
-    pass
-    #del bpy.types.Scene.menu_camera_object
+    del bpy.types.Object.menu2d_object_properties
     #del bpy.types.Object.special_object_info
+    pass
 
 def register():
     #bpy.utils.register_class(MenuSpecialObject)
+    bpy.utils.register_class(Menu2DObjectProperties)
     init_properties()
     bpy.utils.register_class(CreateMenu2dViewOperator)
     bpy.utils.register_class(Menu2DPropertiesPanel)
@@ -122,7 +136,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(Menu2DPropertiesPanel)
     bpy.utils.unregister_class(CreateMenu2dViewOperator)
-    #bpy.utils.unregister_class(MenuSpecialObject)
     clear_properties()
+    bpy.utils.unregister_class(Menu2DObjectProperties)
 
 

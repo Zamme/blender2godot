@@ -6,6 +6,7 @@ const PLAYERS_DIRPATH = "res://src/scenes/players/"
 
 var player_spawn
 var player
+var is_paused : bool
 
 onready var scenario_scene = get_child(0)
 
@@ -21,6 +22,7 @@ func _ready():
 	player_spawn = get_player_spawn(stages_json)
 	var _player_name : String = player_json["PlayerSceneName"]
 	add_player(_player_name)
+	player.set_stage_scene(self)
 	# DEBUG
 	add_b2g_hud()
 

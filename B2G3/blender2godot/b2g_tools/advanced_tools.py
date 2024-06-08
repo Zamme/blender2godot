@@ -346,14 +346,22 @@ class ExportGameOperator(bpy.types.Operator):
                     _menu2d_dict = my_dictionary()
                     for _menu2d_obj in _sc.objects:
                         if _menu2d_obj.type == "GPENCIL":
-                            _menu2d_obj_dict = my_dictionary()
-                            _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
-                            _menu2d_obj_dict.add("Location", _menu2d_obj_location)
-                            _co_array = []
-                            for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
-                                _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
-                            _menu2d_obj_dict.add("Points", _co_array)
-                            _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
+                            if _menu2d_obj.godot_exportable:
+                                if _menu2d_obj.menu2d_object_properties.menu2d_object_type != "none":
+                                    _menu2d_obj_dict = my_dictionary()
+                                    _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
+                                    _menu2d_obj_dict.add("Type", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
+                                    match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
+                                        case "button":
+                                            _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.button_action)
+                                        case "check":
+                                            _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.check_action)
+                                    _menu2d_obj_dict.add("Location", _menu2d_obj_location)
+                                    _co_array = []
+                                    for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
+                                        _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                                    _menu2d_obj_dict.add("Points", _co_array)
+                                    _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
                     self.dict_menus2d_info.add(_sc.name, _menu2d_dict)
                 else:
                     self.export_scene(context, _sc)

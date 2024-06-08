@@ -35,7 +35,9 @@ var mouse_rotation_axises = [false, false, false, false]
 
 var current_delta = 0.0
 
-var pause_control : Control
+var pause_control
+
+var stage_scene
 
 
 func _ready():
@@ -69,10 +71,13 @@ func animate():
 		player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
+	stage_scene.is_paused = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	yield(get_tree(),"idle_frame")
 	pause_control = load(PAUSE_MENU_PATH).instance()
-	add_child(pause_control)
 	pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
+	pause_control.set_player_scene(self)
+	add_child(pause_control)
 
 func find_camera(_camera_object_name):
 	print("Searching ", _camera_object_name, " on ", self.name)
@@ -139,12 +144,16 @@ func set_json_actions():
 		_actions["b2g_" + _action_key] = _json_actions[_action_key]
 	#print(_actions)
 
+func set_stage_scene(_scene):
+	stage_scene = _scene
+
 func _physics_process(delta):
-	current_delta = delta
-	process_input(delta)
-	process_movement(delta)
-	process_actions(delta)
-	animate()
+	if not stage_scene.is_paused:
+		current_delta = delta
+		process_input(delta)
+		process_movement(delta)
+		process_actions(delta)
+		animate()
 
 func process_action(_action, _delta):
 	print("Action ", _action)
@@ -274,13 +283,14 @@ func process_movement(delta):
 		vel = move_and_slide(vel, Vector3(0, 1, 0), 0.05, 4, deg2rad(MAX_SLOPE_ANGLE))
 
 func _input(event):
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
-			if camera_inverted:
-				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * current_delta))
-			else:
-				camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0 * current_delta))
-		
-		if mouse_rotation_axises[2] or mouse_rotation_axises[3]:
-			self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1 * current_delta))
+	if not stage_scene.is_paused:
+		if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
+				if camera_inverted:
+					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * current_delta))
+				else:
+					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0 * current_delta))
+			
+			if mouse_rotation_axises[2] or mouse_rotation_axises[3]:
+				self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1 * current_delta))
 
