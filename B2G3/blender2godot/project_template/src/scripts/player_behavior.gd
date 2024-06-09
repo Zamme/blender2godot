@@ -1,9 +1,8 @@
-extends KinematicBody
+class_name PlayerBehavior extends KinematicBody
 
 
-const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
-
-export var PAUSE_MENU_PATH = ""
+export var PAUSE_MENU_PATH : String = ""
+export var gravity_enabled : bool
 
 const GRAVITY = -24.8
 var vel = Vector3()
@@ -21,7 +20,6 @@ var camera : Camera
 var MOUSE_SENSITIVITY = 2.5
 var GAMEPAD_AXIS_SENSITIVITY = 25.0
 
-export var gravity_enabled : bool
 
 export var camera_inverted := true
 var player_json
@@ -42,7 +40,7 @@ var stage_scene
 
 func _ready():
 	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
-	gravity_enabled = player_json["GravityOn"]
+#	gravity_enabled = player_json["GravityOn"]
 	_animations = player_json["PlayerAnimations"]
 	set_json_actions()
 	player_mesh = find_player_mesh()
@@ -58,7 +56,7 @@ func add_hud():
 	if player_json.has("PlayerHUD"):
 		var _hud_scene_name = player_json["PlayerHUD"]["HudSceneName"]
 		if _hud_scene_name != "none":
-			var _hud_scene_path : String = HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
+			var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
 			_hud = load(_hud_scene_path).instance()
 			add_child(_hud)
 

@@ -8,24 +8,29 @@ const ASSETS_PATH = "res://assets/"
 const MODELS_PATH = ASSETS_PATH + "models/"
 const HUDS_TEXTURES_PATH = ASSETS_PATH + "huds/"
 const MENUS2D_TEXTURES_PATH = ASSETS_PATH + "menus2d/"
+
 const SRC_PATH = "res://src/"
 const SCENES_PATH = SRC_PATH + "scenes/"
 const SCRIPTS_PATH = SRC_PATH + "scripts/"
+
 const B2G_TOOLS_PATH = "res://b2g_tools/"
-const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
+
+const SOURCES_SCENES_PATH = SCENES_PATH + "sources/"
+
 const PLAYER_ENTITIES_PATH = SCENES_PATH + "players/"
+const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
 const STAGES_PATH = SCENES_PATH + "stages/"
 const STAGE_TEMPLATE_PATH = STAGES_PATH + "Stage_Template.tscn"
 const STAGE_SCENES_PREFIX = "Stage_"
 
-const PLAYER_SCENE_PATH = SCENES_PATH + "Player_Template.tscn"
-const PLAYER_BEHAVIOR_PATH = SCRIPTS_PATH + "player_template.gd"
+const PLAYERS_PATH = SCENES_PATH + "players/"
+const PLAYER_BEHAVIOR_PATH = SCRIPTS_PATH + "player_behavior.gd"
 const PLAYER_MESH_BEHAVIOR_PATH = SCRIPTS_PATH + "player_mesh_behavior.gd"
 
-const MENUS_PATH = SCENES_PATH + "menus/"
-const MENU_SCENES_PREFIX = "Menu_"
-const MENU_BEHAVIOR_PATH = SCRIPTS_PATH + "menu_behavior.gd"
-const BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "menu_button_class.gd"
+const MENUS3D_PATH = SCENES_PATH + "menus3d/"
+const MENU3D_SCENES_PREFIX = "Menu3d_"
+const MENU3D_BEHAVIOR_PATH = SCRIPTS_PATH + "menu3d_behavior.gd"
+const MENU3D_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "menu3d_button.gd"
 
 const HUDS_PATH = SCENES_PATH + "huds/"
 const HUD_SCENES_PREFIX = "Hud_"
@@ -40,7 +45,7 @@ const INFOS_DIRPATH = "res://infos/"
 const COLLIDERS_JSON_PATH = INFOS_DIRPATH + "colliders_info.json"
 const LIGHTS_JSON_PATH = INFOS_DIRPATH + "lights_info.json"
 const PLAYER_INFO_JSON_PATH = INFOS_DIRPATH + "players_info.json"
-const MENUS_INFO_JSON_PATH = INFOS_DIRPATH + "menus_info.json"
+const MENUS3D_INFO_JSON_PATH = INFOS_DIRPATH + "menus3d_info.json"
 const HUDS_JSON_PATH = INFOS_DIRPATH + "huds_info.json"
 const COLLIDERS_MATRIX_PATH = INFOS_DIRPATH + "colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings.json"
@@ -68,7 +73,7 @@ var quit_timer : Timer
 # JSONS
 var _stages_json
 var _player_json
-var _menus_json
+var _menus3d_json
 var _colliders_json
 var _lights_json
 var _huds_json
@@ -82,7 +87,7 @@ func _ready():
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
 			_stages_json = read_json_file(STAGES_INFO_JSON_PATH)
 			_player_json = read_json_file(PLAYER_INFO_JSON_PATH)
-			_menus_json = read_json_file(MENUS_INFO_JSON_PATH)
+			_menus3d_json = read_json_file(MENUS3D_INFO_JSON_PATH)
 			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
@@ -338,13 +343,15 @@ func apply_import_changes(scene):
 				elif _colliders_json[ob.name] == "smart":
 #					print("...with smart collider!")
 					self.add_collider(ob, COLLIDER_TYPE.SMART, scene)
-			elif _menus_json.has(scene.name):
-				if _menus_json[scene.name]["SpecialObjects"].has(ob.name):
+			elif _menus3d_json.has(scene.name):
+				if _menus3d_json[scene.name]["SpecialObjects"].has(ob.name):
 #					print("Special Object", ob.name, "found")
-					match _menus_json[scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
+					match _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
 						"button":
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
-							ob.script = load(BUTTON_BEHAVIOR_PATH)
+							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
+							ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
+							ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
 		elif _lights_json.has(ob.name):
 			if lights_instance == null:
 				lights_instance = Spatial.new()
@@ -434,7 +441,7 @@ func apply_new_config():
 					"stage":
 						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 					"3dmenu":
-						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = MENUS3D_PATH + MENU3D_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 #				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
 			"application/boot_splash/bg_color":
 				var _splits = _godot_project_settings_json["application/boot_splash/bg_color"].split(",")
@@ -474,6 +481,9 @@ func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
 func create_players(_files_to_import):
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(PLAYERS_PATH):
+		_directory.make_dir(PLAYERS_PATH)
 	# Create Players
 	for _file_to_import in _files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
@@ -486,7 +496,9 @@ func create_players(_files_to_import):
 						var _anims_props = _player_json["PlayerAnimations"]
 						var _controls_props = _player_json["PlayerControls"]
 						var _pause_menu_name = _player_json["PauseMenu"]
-						create_player_props(_fn_without_ext, _cam_props, _shape_props, _controls_props, _pause_menu_name)
+						var _gravity_enabled = _player_json["GravityOn"]
+						create_player_props(_fn_without_ext, _cam_props, _shape_props,
+											 _controls_props, _pause_menu_name, _gravity_enabled)
 		else:
 			print("No player added")
 
@@ -495,10 +507,14 @@ func create_gamemanager():
 	var _new_gamemanager : Spatial = Spatial.new()
 	_new_gamemanager.name = GAMEMANAGER_NAME
 	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
+	_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
 	var _gamemanager_path : String = GAMEMANAGER_FILEPATH
 	self.repack_scene(_new_gamemanager, _gamemanager_path)
 
 func create_huds():
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(HUDS_PATH):
+		_directory.make_dir(HUDS_PATH)
 	# Create HUDs
 	for _key in _huds_json.keys():
 		var _new_hud_name : String = HUD_SCENES_PREFIX + _key
@@ -521,13 +537,13 @@ func create_huds():
 		self.repack_scene(_new_hud, _new_hud_path)
 
 func create_menus2d():
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(MENUS2D_PATH):
+		_directory.make_dir(MENUS2D_PATH)
 	# Create Menus2d
 	for _key in _menus2d_json.keys():
 		var _new_menu2d_name : String = MENUS2D_SCENES_PREFIX + _key
 		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
-		var _directory : Directory = Directory.new()
-		if !_directory.dir_exists(MENUS2D_PATH):
-			_directory.make_dir(MENUS2D_PATH)
 		var _new_menu2d : Sprite = Sprite.new()
 		_new_menu2d.name = _new_menu2d_name
 		#_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
@@ -546,21 +562,23 @@ func create_menus2d():
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
 func create_menus3d(_files_to_import):
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(MENUS3D_PATH):
+		_directory.make_dir(MENUS3D_PATH)
 	# Create Menus 3d
-	var _index : int = 0
 	for _file_to_import in _files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _menus_json:
-			for _key in _menus_json.keys():
+		if _menus3d_json:
+			for _key in _menus3d_json.keys():
 				#print("In mount menus: ", _fn_without_ext, " vs ", _key)
 				if str(_fn_without_ext) == _key:
-					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
+					var _new_menu_name : String = "Menu3d_" + _file_to_import.get_file()
 					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
-					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.imported_scenes[_index]])
-					var _new_menu_path : String = MENUS_PATH + _new_menu_name + ".tscn"
-					_new_menu.script = load(MENU_BEHAVIOR_PATH)
+					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.get_file_to_import_path(_fn_without_ext)])
+					var _new_menu_path : String = MENUS3D_PATH + _new_menu_name + ".tscn"
+					_new_menu.script = load(MENU3D_BEHAVIOR_PATH)
 					var _new_camera : Camera = Camera.new()
-					var _new_camera_dict = _menus_json[_key]["MenuCameraObjectDict"]
+					var _new_camera_dict = _menus3d_json[_key]["MenuCameraObjectDict"]
 					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
 					_new_menu.add_child(_new_camera)
 					_new_camera.set_owner(_new_menu)
@@ -576,11 +594,10 @@ func create_menus3d(_files_to_import):
 						"HORIZONTAL":
 							_new_camera.keep_aspect = Camera.KEEP_WIDTH
 					yield(get_tree(), "idle_frame")
-					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 					self.repack_scene(_new_menu, _new_menu_path)
-					_index += 1
 
-func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props, _pause_menu):
+func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
+						 _controls_props, _pause_menu, _gravity_enabled):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -592,7 +609,8 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props, _
 	caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
 	player_collision_shape.shape = caps_shape
 	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
-	var _player_mesh_scene = load(SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
+	player_entity_instance.gravity_enabled = _gravity_enabled
+	var _player_mesh_scene = load(SOURCES_SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
 	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
@@ -671,26 +689,27 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props, _
 
 func create_stages(_files_to_import):
 	# Create Stages
-	var _index : int = 0
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(STAGES_PATH):
+		_directory.make_dir(STAGES_PATH)
 	for _file_to_import in _files_to_import:
 		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
 		if _stages_json:
 			for _key in _stages_json.keys():
-				#print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
 				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
 					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
 					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
-					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.get_file_to_import_path(_fn_without_ext)])
 	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
 	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
 					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					_new_stage.player_spawn_name = _stages_json[_key]["PlayerSpawnObjectName"]
 					self.repack_scene(_new_stage, _new_stage_path)
-					_index += 1
+					break
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
-
 
 func dir_contents(path, file_type = ".glb"):
 	var files_to_import = []
@@ -717,6 +736,20 @@ func get_all_scene_objects(scene):
 		if ob.get_child_count() > 0:
 			self.get_all_scene_objects(ob)
 
+func get_file_to_import_path(_filename):
+#	print("Looking for ", _filename)
+	var fti_filepath : String = ""
+	for _imported_scene in imported_scenes:
+#		print(_imported_scene, "vs", _filename)
+		if _imported_scene.find(_filename) > -1:
+			fti_filepath = _imported_scene
+			break
+#	if fti_filepath == "":
+#		print("Not found")
+#	else:
+#		print("Found!")
+	return fti_filepath
+
 func import_file(file_name):
 	var filename_path = MODELS_PATH + file_name
 	print("Importing " + file_name)
@@ -724,20 +757,23 @@ func import_file(file_name):
 	var modified_scene = self.apply_import_changes(file_scene)
 	var packed_scene = PackedScene.new()
 	packed_scene.pack(modified_scene)
-	var scene_file_path = SCENES_PATH + modified_scene.name + ".tscn"
+	var scene_file_path = SOURCES_SCENES_PATH + modified_scene.name + ".tscn"
 	ResourceSaver.save(scene_file_path, packed_scene)
 	file_scene.queue_free()
 	#modified_scene.queue_free()
 	imported_scenes.append(scene_file_path)
 
-
 func import_files(files_to_import):
+	var _directory : Directory = Directory.new()
+	if not _directory.dir_exists(SCENES_PATH):
+		_directory.make_dir(SCENES_PATH)
+	if not _directory.dir_exists(SOURCES_SCENES_PATH):
+		_directory.make_dir(SOURCES_SCENES_PATH)
 	if len(files_to_import) > 0:
 		for f in files_to_import:
 			self.import_file(f)
 	else:
 		print("No files to import.")
-
 
 func mount_scenes():
 	print("Mounting scene...")
