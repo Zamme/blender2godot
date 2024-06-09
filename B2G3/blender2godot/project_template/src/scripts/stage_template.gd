@@ -4,11 +4,14 @@ class_name StageTemplate extends Spatial
 
 enum COLLIDER_TYPE {CONVEX, MESH, SMART}
 
-const MODELS_PATH = "res://assets/models/"
-const HUDS_TEXTURES_PATH = "res://assets/huds/"
-const MENUS2D_TEXTURES_PATH = "res://assets/menus2d/"
-const SCENES_PATH = "res://src/scenes/"
-const SCRIPTS_PATH = "res://src/scripts/"
+const ASSETS_PATH = "res://assets/"
+const MODELS_PATH = ASSETS_PATH + "models/"
+const HUDS_TEXTURES_PATH = ASSETS_PATH + "huds/"
+const MENUS2D_TEXTURES_PATH = ASSETS_PATH + "menus2d/"
+const SRC_PATH = "res://src/"
+const SCENES_PATH = SRC_PATH + "scenes/"
+const SCRIPTS_PATH = SRC_PATH + "scripts/"
+const B2G_TOOLS_PATH = "res://b2g_tools/"
 const STAGE_BEHAVIOR_SCRIPT_PATH = SCRIPTS_PATH + "stage_behavior.gd"
 const PLAYER_ENTITIES_PATH = SCENES_PATH + "players/"
 const STAGES_PATH = SCENES_PATH + "stages/"
@@ -16,21 +19,21 @@ const STAGE_TEMPLATE_PATH = STAGES_PATH + "Stage_Template.tscn"
 const STAGE_SCENES_PREFIX = "Stage_"
 
 const PLAYER_SCENE_PATH = SCENES_PATH + "Player_Template.tscn"
-const PLAYER_BEHAVIOR_PATH = "res://src/scripts/player_template.gd"
-const PLAYER_MESH_BEHAVIOR_PATH = "res://src/scripts/player_mesh_behavior.gd"
+const PLAYER_BEHAVIOR_PATH = SCRIPTS_PATH + "player_template.gd"
+const PLAYER_MESH_BEHAVIOR_PATH = SCRIPTS_PATH + "player_mesh_behavior.gd"
 
 const MENUS_PATH = SCENES_PATH + "menus/"
 const MENU_SCENES_PREFIX = "Menu_"
-const MENU_BEHAVIOR_PATH = "res://src/scripts/menu_behavior.gd"
-const BUTTON_BEHAVIOR_PATH = "res://src/scripts/menu_button_class.gd"
+const MENU_BEHAVIOR_PATH = SCRIPTS_PATH + "menu_behavior.gd"
+const BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "menu_button_class.gd"
 
 const HUDS_PATH = SCENES_PATH + "huds/"
 const HUD_SCENES_PREFIX = "Hud_"
-const HUD_BEHAVIOR_FILEPATH = "res://src/scripts/hud_behavior.gd"
+const HUD_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "hud_behavior.gd"
 
 const MENUS2D_PATH = SCENES_PATH + "menus2d/"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
-const MENUS2D_BEHAVIOR_FILEPATH = "res://b2g_tools/B2G_Pause.gd"
+const MENUS2D_BEHAVIOR_FILEPATH = B2G_TOOLS_PATH + "B2G_Pause.gd"
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const INFOS_DIRPATH = "res://infos/"
@@ -44,21 +47,11 @@ const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings
 const STAGES_INFO_JSON_PATH = INFOS_DIRPATH + "stages_info.json"
 const MENUS2D_INFO_JSON_PATH = INFOS_DIRPATH + "menus2d_info.json"
 
-#const PLAYER_SPAWN_OBJECT_NAME = "B2G_PlayerSpawn"
+const GAMEMANAGER_NAME = "B2G_GameManager"
+const GAMEMANAGER_SCRIPT_FILEPATH = B2G_TOOLS_PATH + GAMEMANAGER_NAME + ".gd"
+const GAMEMANAGER_FILEPATH = SCENES_PATH + GAMEMANAGER_NAME + ".tscn"
 
-#var camera_instance : Camera = null
-#var player_instance : KinematicBody = null
 var lights_instance : Spatial = null
-#
-#var player_height : float = 1.5
-#var player_radius : float = 0.2
-#var player_velocity : float = 1.0 # TODO: manage from blender
-#
-##var minimum_collider_size = 0.1
-#var initial_player_position : Vector3 = Vector3.ZERO
-#var initial_player_rotation : Vector3 = Vector3.ZERO
-#export var player_gravity_on : bool
-#export var player_camera_inverted : bool
 
 var imported_scenes : Array
 var scene_objects_list : Array
@@ -431,25 +424,29 @@ func apply_import_changes_to_list(scenes_list, path):
 
 func apply_new_config():
 	var startup_scene_type : String
+	var _start_scene_path : String
 	for _key in _godot_project_settings_json.keys():
 		match _key:
 			"startup_scene_type":
 				startup_scene_type = _godot_project_settings_json["startup_scene_type"]
 			"application/run/main_scene":
-				var _start_scene_path : String
 				match startup_scene_type:
 					"stage":
 						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 					"3dmenu":
 						_start_scene_path = MENUS_PATH + MENU_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
-				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
+#				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
 			"application/boot_splash/bg_color":
 				var _splits = _godot_project_settings_json["application/boot_splash/bg_color"].split(",")
 				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
 				ProjectSettings.set_setting("application/boot_splash/bg_color", _color)
 			_:
 				ProjectSettings.set_setting(_key, _godot_project_settings_json[_key])
-
+	var _gm = load(GAMEMANAGER_FILEPATH).instance()
+	_gm.startup_scene_filepath = _start_scene_path
+	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
+	ProjectSettings.set_setting("application/run/main_scene", GAMEMANAGER_FILEPATH)
+	ProjectSettings.save()
 
 func clear_lights(_scene):
 	print("Clearing lights...")
@@ -476,7 +473,114 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
-func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props, _pause_menu):
+func create_players(_files_to_import):
+	# Create Players
+	for _file_to_import in _files_to_import:
+		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _player_json:
+			if not _player_json.empty():
+				if _player_json.has("PlayerSceneName"):
+					if _player_json["PlayerSceneName"] == _fn_without_ext:
+						var _cam_props = _player_json["PlayerCameraObject"]
+						var _shape_props = _player_json["PlayerDimensions"]
+						var _anims_props = _player_json["PlayerAnimations"]
+						var _controls_props = _player_json["PlayerControls"]
+						var _pause_menu_name = _player_json["PauseMenu"]
+						create_player_props(_fn_without_ext, _cam_props, _shape_props, _controls_props, _pause_menu_name)
+		else:
+			print("No player added")
+
+func create_gamemanager():
+	# Create GameManager
+	var _new_gamemanager : Spatial = Spatial.new()
+	_new_gamemanager.name = GAMEMANAGER_NAME
+	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
+	var _gamemanager_path : String = GAMEMANAGER_FILEPATH
+	self.repack_scene(_new_gamemanager, _gamemanager_path)
+
+func create_huds():
+	# Create HUDs
+	for _key in _huds_json.keys():
+		var _new_hud_name : String = HUD_SCENES_PREFIX + _key
+		var _new_hud_path : String = HUDS_PATH + _new_hud_name + ".tscn"
+		var _new_hud : Control = Control.new()
+		_new_hud.name = _new_hud_name
+		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
+		var _new_texture_rect : TextureRect = TextureRect.new()
+		_new_texture_rect.name = "TextureRect_" + _new_hud_name
+		_new_hud.add_child(_new_texture_rect)
+		_new_texture_rect.set_owner(_new_hud)
+		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
+		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + _texture_format
+		_new_texture_rect.texture = load(_svg_path)
+		_new_texture_rect.expand = true
+		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
+		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		self.repack_scene(_new_hud, _new_hud_path)
+
+func create_menus2d():
+	# Create Menus2d
+	for _key in _menus2d_json.keys():
+		var _new_menu2d_name : String = MENUS2D_SCENES_PREFIX + _key
+		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
+		var _directory : Directory = Directory.new()
+		if !_directory.dir_exists(MENUS2D_PATH):
+			_directory.make_dir(MENUS2D_PATH)
+		var _new_menu2d : Sprite = Sprite.new()
+		_new_menu2d.name = _new_menu2d_name
+		#_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
+		#var _new_texture_rect : TextureRect = TextureRect.new()
+		#_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
+		#_new_menu2d.add_child(_new_texture_rect)
+		#_new_texture_rect.set_owner(_new_menu2d)
+		#_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
+		_new_menu2d.texture = load(_texture_path)
+		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
+		#_new_texture_rect.expand = true
+		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
+		prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
+		self.repack_scene(_new_menu2d, _new_menu2d_path)
+
+func create_menus3d(_files_to_import):
+	# Create Menus 3d
+	var _index : int = 0
+	for _file_to_import in _files_to_import:
+		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _menus_json:
+			for _key in _menus_json.keys():
+				#print("In mount menus: ", _fn_without_ext, " vs ", _key)
+				if str(_fn_without_ext) == _key:
+					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
+					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
+					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.imported_scenes[_index]])
+					var _new_menu_path : String = MENUS_PATH + _new_menu_name + ".tscn"
+					_new_menu.script = load(MENU_BEHAVIOR_PATH)
+					var _new_camera : Camera = Camera.new()
+					var _new_camera_dict = _menus_json[_key]["MenuCameraObjectDict"]
+					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
+					_new_menu.add_child(_new_camera)
+					_new_camera.set_owner(_new_menu)
+					yield(get_tree(),"idle_frame")
+					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
+					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
+					_new_camera.fov = rad2deg(_new_camera_dict["FOV"])
+					match _new_camera_dict["KeepFOV"]:
+						"AUTO":
+							_new_camera.keep_aspect = Camera.KEEP_WIDTH
+						"VERTICAL":
+							_new_camera.keep_aspect = Camera.KEEP_HEIGHT
+						"HORIZONTAL":
+							_new_camera.keep_aspect = Camera.KEEP_WIDTH
+					yield(get_tree(), "idle_frame")
+					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					self.repack_scene(_new_menu, _new_menu_path)
+					_index += 1
+
+func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props, _controls_props, _pause_menu):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -565,6 +669,24 @@ func create_player(_player_mesh_scene_name, _camera_props, _shape_props, _contro
 		ProjectSettings.set_setting(_prop_path, _total_input)
 	ProjectSettings.save()
 
+func create_stages(_files_to_import):
+	# Create Stages
+	var _index : int = 0
+	for _file_to_import in _files_to_import:
+		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _stages_json:
+			for _key in _stages_json.keys():
+				#print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
+				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
+					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
+					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
+					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
+	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
+	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
+					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
+					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					self.repack_scene(_new_stage, _new_stage_path)
+					_index += 1
 
 func create_trimesh_collision_shape(scene_object):
 	scene_object.create_trimesh_collision()
@@ -627,129 +749,14 @@ func mount_scenes():
 	else:
 		print("Imported files: ", len(files_to_import))
 	
-	# Create Stages
-	var _index : int = 0
-	for _file_to_import in files_to_import:
-		var _fn_without_ext =  _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _stages_json:
-			for _key in _stages_json.keys():
-				#print("In mount stages: ", _fn_without_ext, " vs ", _stages_json[_key]["SceneName"])
-				if str(_fn_without_ext) == (_stages_json[_key]["SceneName"]):
-					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
-					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
-					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.imported_scenes[_index]])
-	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
-	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
-					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
-					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
-					self.repack_scene(_new_stage, _new_stage_path)
-					_index += 1
-	
-	# Create Player
-	for _file_to_import in files_to_import:
-		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _player_json:
-			if not _player_json.empty():
-				if _player_json.has("PlayerSceneName"):
-					if _player_json["PlayerSceneName"] == _fn_without_ext:
-						var _cam_props = _player_json["PlayerCameraObject"]
-						var _shape_props = _player_json["PlayerDimensions"]
-						var _anims_props = _player_json["PlayerAnimations"]
-						var _controls_props = _player_json["PlayerControls"]
-						var _pause_menu_name = _player_json["PauseMenu"]
-						create_player(_fn_without_ext, _cam_props, _shape_props, _controls_props, _pause_menu_name)
-						_index += 1
-		else:
-			print("No player added")
-	
-	# Create Menus
-	for _file_to_import in files_to_import:
-		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _menus_json:
-			for _key in _menus_json.keys():
-				#print("In mount menus: ", _fn_without_ext, " vs ", _key)
-				if str(_fn_without_ext) == _key:
-					var _new_menu_name : String = "Menu_" + _file_to_import.get_file()
-					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
-					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.imported_scenes[_index]])
-					var _new_menu_path : String = MENUS_PATH + _new_menu_name + ".tscn"
-					_new_menu.script = load(MENU_BEHAVIOR_PATH)
-					var _new_camera : Camera = Camera.new()
-					var _new_camera_dict = _menus_json[_key]["MenuCameraObjectDict"]
-					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
-					_new_menu.add_child(_new_camera)
-					_new_camera.set_owner(_new_menu)
-					yield(get_tree(),"idle_frame")
-					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
-					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
-					_new_camera.fov = rad2deg(_new_camera_dict["FOV"])
-					match _new_camera_dict["KeepFOV"]:
-						"AUTO":
-							_new_camera.keep_aspect = Camera.KEEP_WIDTH
-						"VERTICAL":
-							_new_camera.keep_aspect = Camera.KEEP_HEIGHT
-						"HORIZONTAL":
-							_new_camera.keep_aspect = Camera.KEEP_WIDTH
-					yield(get_tree(), "idle_frame")
-					#_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
-					self.repack_scene(_new_menu, _new_menu_path)
-					_index += 1
-	
-	# Create HUDs
-	for _key in _huds_json.keys():
-		var _new_hud_name : String = HUD_SCENES_PREFIX + _key
-		var _new_hud_path : String = HUDS_PATH + _new_hud_name + ".tscn"
-		var _new_hud : Control = Control.new()
-		_new_hud.name = _new_hud_name
-		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
-		var _new_texture_rect : TextureRect = TextureRect.new()
-		_new_texture_rect.name = "TextureRect_" + _new_hud_name
-		_new_hud.add_child(_new_texture_rect)
-		_new_texture_rect.set_owner(_new_hud)
-		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
-		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
-		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + _texture_format
-		_new_texture_rect.texture = load(_svg_path)
-		_new_texture_rect.expand = true
-		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
-		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		self.repack_scene(_new_hud, _new_hud_path)
-	
-	# Create Menus2d
-	for _key in _menus2d_json.keys():
-		var _new_menu2d_name : String = MENUS2D_SCENES_PREFIX + _key
-		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
-		var _directory : Directory = Directory.new()
-		if !_directory.dir_exists(MENUS2D_PATH):
-			_directory.make_dir(MENUS2D_PATH)
-		var _new_menu2d : Sprite = Sprite.new()
-		_new_menu2d.name = _new_menu2d_name
-		#_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
-		#var _new_texture_rect : TextureRect = TextureRect.new()
-		#_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
-		#_new_menu2d.add_child(_new_texture_rect)
-		#_new_texture_rect.set_owner(_new_menu2d)
-		#_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
-		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
-		_new_menu2d.texture = load(_texture_path)
-		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
-		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
-		#_new_texture_rect.expand = true
-		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
-		prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
-		self.repack_scene(_new_menu2d, _new_menu2d_path)
+	create_stages(files_to_import)
+	create_players(files_to_import)
+	create_menus3d(files_to_import)
+	create_huds()
+	create_menus2d()
+	create_gamemanager()
 	
 	return true
-#	self.add_scenes(imported_scenes)
-#	if lights_instance != null:
-#		repack_scene(lights_instance, LIGHTS_SCENE_PATH)
-#		lights_instance.queue_free()
-#	self.add_scene(PLAYER_SCENE_PATH, "Player")
-#	self.add_scene(LIGHTS_SCENE_PATH, "Lights")
-#
-#	repack_scene(self, STAGE_TEMPLATE_PATH)
-	#self.add_scene(COLLIDERS_PATH, "Colliders")
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
