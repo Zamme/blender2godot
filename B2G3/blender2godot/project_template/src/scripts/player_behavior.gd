@@ -3,6 +3,13 @@ class_name PlayerBehavior extends KinematicBody
 
 export var PAUSE_MENU_PATH : String = ""
 export var gravity_enabled : bool
+export var camera_name : String = ""
+export var hud_scene_name : String
+export var camera_inverted : bool = true
+export var _controls : Dictionary
+export var _animations : Dictionary
+export var _actions_dict : Dictionary
+
 
 const GRAVITY = -24.8
 var vel = Vector3()
@@ -21,44 +28,37 @@ var MOUSE_SENSITIVITY = 2.5
 var GAMEPAD_AXIS_SENSITIVITY = 25.0
 
 
-export var camera_inverted := true
-var player_json
-var player_mesh : PlayerMesh
 
-var _animations = {}
-var _actions = {}
-var _controls = {}
+#var player_json
+var player_mesh : PlayerMesh
 var _hud
 var mouse_rotation_axises = [false, false, false, false]
 
 var current_delta = 0.0
 
 var pause_control
-
+var _actions : Dictionary
 var stage_scene
 
 
 func _ready():
-	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
-#	gravity_enabled = player_json["GravityOn"]
-	_animations = player_json["PlayerAnimations"]
-	set_json_actions()
+#	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
+#	set_json_actions()
 	player_mesh = find_player_mesh()
-	camera = find_camera(player_json["PlayerCameraObject"]["CameraName"])
+	camera = find_camera(camera_name)
 	mouse_rotation_axises = get_mouse_rotation_axises()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	set_actions()
 	add_hud()
 	
 	# TESTING
 	#player_mesh._test_anim()
 
 func add_hud():
-	if player_json.has("PlayerHUD"):
-		var _hud_scene_name = player_json["PlayerHUD"]["HudSceneName"]
-		if _hud_scene_name != "none":
-			var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + _hud_scene_name + ".tscn"
-			_hud = load(_hud_scene_path).instance()
-			add_child(_hud)
+	if hud_scene_name != "none":
+		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
+		_hud = load(_hud_scene_path).instance()
+		add_child(_hud)
 
 func animate():
 	if vel.z > 0.1:
@@ -108,7 +108,7 @@ func get_mouse_rotation_axises():
 	var mra_index = 0
 	var _rotates = ["b2g_rotate_up", "b2g_rotate_down", "b2g_rotate_left", "b2g_rotate_right"]
 	for _rotate in _rotates:
-		for _control in player_json["PlayerControls"][_rotate]:
+		for _control in _controls[_rotate]:
 			if _control[0] == "mouse":
 				mra[mra_index] = true
 #				print("Mouse Rotation: ", _rotate, mra[mra_index])
@@ -122,24 +122,28 @@ func pause_game_enable(_enable):
 		pause_control.queue_free()
 	print("Paused: ", get_tree().paused)
 
+func set_actions():
+	for _action_key in _actions_dict.keys():
+		_actions["b2g_" + _action_key] = _actions_dict[_action_key]
+
 func toogle_pause():
 	pause_game_enable(!get_tree().paused)
 
-func read_json_file(filepath):
-	var file = File.new()
-	if not file.file_exists(filepath):
-		print("Missing classes.json file.")
-	else:
-		file.open(filepath, file.READ)
-		var json = file.get_as_text()
-		var json_result = JSON.parse(json)
-		file.close()
-		return json_result.result
+#func read_json_file(filepath):
+#	var file = File.new()
+#	if not file.file_exists(filepath):
+#		print("Missing classes.json file.")
+#	else:
+#		file.open(filepath, file.READ)
+#		var json = file.get_as_text()
+#		var json_result = JSON.parse(json)
+#		file.close()
+#		return json_result.result
 
-func set_json_actions():
-	var _json_actions = player_json["PlayerActions"]
-	for _action_key in _json_actions.keys():
-		_actions["b2g_" + _action_key] = _json_actions[_action_key]
+#func set_json_actions():
+#	var _json_actions = player_json["PlayerActions"]
+#	for _action_key in _json_actions.keys():
+#		_actions["b2g_" + _action_key] = _json_actions[_action_key]
 	#print(_actions)
 
 func set_stage_scene(_scene):
@@ -179,6 +183,7 @@ func process_action(_action, _delta):
 func process_actions(_delta):
 	for _action_key in _actions.keys():
 		if Input.is_action_just_released(_action_key):
+			print("pressed")
 			process_action(_actions[_action_key], _delta)
 
 func process_input(_delta):

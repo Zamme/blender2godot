@@ -4,6 +4,8 @@ class_name GameManager extends Node
 const PLAYERS_DIRPATH = "res://src/scenes/players/"
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 
+const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
+
 enum GameState {None, Starting, Loading, Menu, Playing, Pause, Finished}
 
 export var startup_scene_filepath : String = ""
@@ -20,6 +22,12 @@ func _ready():
 	else:
 		load_scene(startup_scene_filepath)
 		set_state(GameState.Starting)
+
+static func get_all_children(in_node,arr:=[]):
+	arr.push_back(in_node)
+	for child in in_node.get_children():
+		arr = get_all_children(child,arr)
+	return arr
 
 func load_menu2d():
 	pass

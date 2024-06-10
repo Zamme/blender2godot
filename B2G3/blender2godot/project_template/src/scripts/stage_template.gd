@@ -497,8 +497,14 @@ func create_players(_files_to_import):
 						var _controls_props = _player_json["PlayerControls"]
 						var _pause_menu_name = _player_json["PauseMenu"]
 						var _gravity_enabled = _player_json["GravityOn"]
+						var _animations = _player_json["PlayerAnimations"]
+						var _actions = _player_json["PlayerActions"]
+						var _cam_name = _player_json["PlayerCameraObject"]["CameraName"]
+						var _controls = _player_json["PlayerControls"]
+						var _hud = _player_json["PlayerHUD"]["HudSceneName"]
 						create_player_props(_fn_without_ext, _cam_props, _shape_props,
-											 _controls_props, _pause_menu_name, _gravity_enabled)
+											 _controls_props, _pause_menu_name, _gravity_enabled,
+											 _animations, _actions, _cam_name, _controls, _hud)
 		else:
 			print("No player added")
 
@@ -597,7 +603,9 @@ func create_menus3d(_files_to_import):
 					self.repack_scene(_new_menu, _new_menu_path)
 
 func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
-						 _controls_props, _pause_menu, _gravity_enabled):
+						 _controls_props, _pause_menu, _gravity_enabled,
+						 _animations, _actions, _camera_name, _controls,
+						 _hud):
 	print("Creating player...")
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
@@ -609,7 +617,15 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 	caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
 	player_collision_shape.shape = caps_shape
 	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
+	# PASS JSON INFO TO SCRIPT
 	player_entity_instance.gravity_enabled = _gravity_enabled
+	player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
+	player_entity_instance._animations = _animations
+	player_entity_instance._actions_dict = _actions
+	player_entity_instance.camera_name = _camera_name
+	player_entity_instance._controls = _controls
+	player_entity_instance.hud_scene_name = _hud
+	# CONTINUE
 	var _player_mesh_scene = load(SOURCES_SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
@@ -633,7 +649,6 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 			_player_camera.keep_aspect = Camera.KEEP_HEIGHT
 		"HORIZONTAL":
 			_player_camera.keep_aspect = Camera.KEEP_WIDTH
-	player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()
