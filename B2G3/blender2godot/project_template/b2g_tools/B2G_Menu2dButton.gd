@@ -26,11 +26,11 @@ func do_click_action():
 			_param = StageTemplate.STAGES_PATH + StageTemplate.STAGE_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
-		"load_menu3d":
+		"load_3dmenu":
 			_param = StageTemplate.MENUS3D_PATH + StageTemplate.MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
-		"load_menu2d":
+		"load_2dmenu":
 			_param = StageTemplate.MENUS2D_PATH + StageTemplate.MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
