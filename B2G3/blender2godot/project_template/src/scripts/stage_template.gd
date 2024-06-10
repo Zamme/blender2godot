@@ -442,7 +442,8 @@ func apply_new_config():
 						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 					"3dmenu":
 						_start_scene_path = MENUS3D_PATH + MENU3D_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
-#				ProjectSettings.set_setting("application/run/main_scene", _start_scene_path)
+					"2dmenu":
+						_start_scene_path = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
 			"application/boot_splash/bg_color":
 				var _splits = _godot_project_settings_json["application/boot_splash/bg_color"].split(",")
 				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
@@ -514,8 +515,7 @@ func create_gamemanager():
 	_new_gamemanager.name = GAMEMANAGER_NAME
 	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
 	_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
-	var _gamemanager_path : String = GAMEMANAGER_FILEPATH
-	self.repack_scene(_new_gamemanager, _gamemanager_path)
+	self.repack_scene(_new_gamemanager, GAMEMANAGER_FILEPATH)
 
 func create_huds():
 	var _directory : Directory = Directory.new()
@@ -811,13 +811,16 @@ func mount_scenes():
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
-	var SCALE_FACTOR = 28.0
+	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+	var SCALE_FACTOR = 28.5
 	for _menu_object_key in _menu_objects.keys():
-		print(_menu_object_key)
+#		print(_menu_object_key)
 		var _new_area2d : Area2D = Area2D.new()
 		_new_area2d.name = _menu_object_key + "_Area2D"
 		_menu_scene.add_child(_new_area2d)
 		_new_area2d.set_owner(_menu_scene)
+		_new_area2d.position = Vector2(_display_size.x/2, _display_size.y/2)
+		_new_area2d.position -= Vector2(float(_menu_objects[_menu_object_key]["Location"][0]) * -SCALE_FACTOR, float(_menu_objects[_menu_object_key]["Location"][1]) * SCALE_FACTOR)
 		var _new_collision_polygon2d : CollisionPolygon2D = CollisionPolygon2D.new()
 		_new_collision_polygon2d.name = _menu_object_key + "_CollisionPolygon2D"
 		_new_area2d.add_child(_new_collision_polygon2d)
@@ -828,18 +831,17 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 		_new_polygon2d.set_owner(_menu_scene)
 		var _new_pool_vector : PoolVector2Array = PoolVector2Array()
 		for _point in _menu_objects[_menu_object_key]["Points"]:
-			var _new_vector : Vector2 = Vector2(_point[0] * SCALE_FACTOR, _point[1] * SCALE_FACTOR)
+			var _new_vector : Vector2 = Vector2(_point[0] * SCALE_FACTOR, _point[1] * -SCALE_FACTOR)
 			_new_pool_vector.append(_new_vector)
 		_new_collision_polygon2d.polygon = _new_pool_vector
 		_new_polygon2d.polygon = _new_pool_vector
 		_new_polygon2d.color = GameManager.SELECTED_OBJECT_OVERLAY_COLOR
-		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
-		_new_area2d.position = Vector2(_display_size.x/2, _display_size.y/2)
-		_new_area2d.position -= Vector2(float(_menu_objects[_menu_object_key]["Location"][0]) * SCALE_FACTOR, float(_menu_objects[_menu_object_key]["Location"][1]) * SCALE_FACTOR)
 		# Actions
 		match _menu_objects[_menu_object_key]["Type"]:
 			"button":
-				_new_area2d.script = load("res://b2g_tools/B2G_Menu2dButton.gd")
+				_new_area2d.script = load(GameManager.MENU2D_BUTTON_BEHAVIOR_PATH)
+				_new_area2d.action_to_do = _menu_objects[_menu_object_key]["Action"]
+				_new_area2d.action_parameter = _menu_objects[_menu_object_key]["ActionParameter"]
 			"check":
 				pass
 	print("Finished.")

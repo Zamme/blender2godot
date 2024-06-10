@@ -23,6 +23,15 @@ For menus 2D
 import bpy
 
 
+def get_stages_scenes(self, context):
+    _scenes = [("none", "None", "", "NONE", 0)]
+    _index = 1
+    for _sc in bpy.data.scenes:
+        if _sc.scene_type == context.active_object.menu2d_object_properties.button_action:
+            _scenes.append((_sc.name, _sc.name, "", "", _index))
+            _index += 1
+    return _scenes
+
 class Menu2DObjectProperties(bpy.types.PropertyGroup):
     """ Menu 2D Object Type """
     object_type_options = [
@@ -31,14 +40,19 @@ class Menu2DObjectProperties(bpy.types.PropertyGroup):
         ("checkbutton", "Checkbutton", "", 2)]
     button_actions = [
         ("none", "None", "", 0),
-        ("continue", "Continue", "", 1),
-        ("quit", "Quit", "", 2)]
+        ("close_menu", "Close Menu", "", 1),
+        ("quit_game", "Quit Game", "", 2),
+        ("load_stage", "Load Stage", "", 3),
+        ("load_menu2d", "Load Menu 2D", "", 4),
+        ("load_menu3d", "Load Menu 3D", "", 5)
+        ]
     check_actions = [
         ("none", "None", "", 0),
         ("option1", "Option1", "", 1),
         ("option2", "Option2", "", 2)]
     menu2d_object_type : bpy.props.EnumProperty(items=object_type_options, name="Object Type", default=0) # type: ignore
     button_action : bpy.props.EnumProperty(items=button_actions, name="Button Action", default=0) # type: ignore
+    action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
 
 class CreateMenu2dViewOperator(bpy.types.Operator):
@@ -103,6 +117,9 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             match context.active_object.menu2d_object_properties.menu2d_object_type:
                 case "button":
                     box4.prop(context.active_object.menu2d_object_properties, "button_action")
+                    _act = context.active_object.menu2d_object_properties.button_action
+                    if ((_act != "none") and (_act != "close_menu") and (_act != "quit_game")):
+                        box4.prop(context.active_object.menu2d_object_properties, "action_parameter")
                 case "check":
                     box4.prop(context.active_object.menu2d_object_properties, "check_action")
             '''

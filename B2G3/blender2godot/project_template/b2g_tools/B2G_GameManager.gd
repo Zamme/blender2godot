@@ -3,7 +3,7 @@ class_name GameManager extends Node
 
 const PLAYERS_DIRPATH = "res://src/scenes/players/"
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
-
+const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
 const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
 enum GameState {None, Starting, Loading, Menu, Playing, Pause, Finished}

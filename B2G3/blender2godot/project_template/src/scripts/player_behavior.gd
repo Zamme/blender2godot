@@ -69,13 +69,17 @@ func animate():
 		player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
-	stage_scene.is_paused = true
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	yield(get_tree(),"idle_frame")
-	pause_control = load(PAUSE_MENU_PATH).instance()
-	pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
-	pause_control.set_player_scene(self)
-	add_child(pause_control)
+	print(PAUSE_MENU_PATH)
+	if PAUSE_MENU_PATH.ends_with("none.tscn"):
+		get_tree().quit()
+	else:
+		stage_scene.is_paused = true
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		yield(get_tree(),"idle_frame")
+		pause_control = load(PAUSE_MENU_PATH).instance()
+		pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
+		pause_control.set_player_scene(self)
+		add_child(pause_control)
 
 func find_camera(_camera_object_name):
 	print("Searching ", _camera_object_name, " on ", self.name)

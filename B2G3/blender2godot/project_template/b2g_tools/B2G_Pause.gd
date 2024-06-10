@@ -95,12 +95,3 @@ func _process(delta):
 	if Input.is_action_just_released("b2g_action_0"):
 		do_action()
 
-
-#func _input(_event):
-#	if _event is InputEventMouseButton:
-#		if _event.pressed:
-#			print("Mouse button pressed")
-#			print(_event.position)
-#			var space_state = get_world_2d().direct_space_state
-#			print(space_state.intersect_point(_event.position))
-#			print(space_state.intersect_ray(_event.position, _event.position))

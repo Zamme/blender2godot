@@ -22,6 +22,7 @@ func _ready():
 	pass
 
 func get_selectable_objects():
+	# TODO: Add by position order
 	var _sel_objects = []
 	for _object in GameManager.get_all_children(_menu):
 		if _object is Menu3d_Button:
