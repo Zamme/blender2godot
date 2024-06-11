@@ -564,7 +564,7 @@ func create_menus2d():
 		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
 		#_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
-		prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
+		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
 func create_menus3d(_files_to_import):
@@ -845,6 +845,9 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 			"check":
 				pass
 	print("Finished.")
+
+func prepare_menu3d_scene(_menu_scene, _menu_objects):
+	pass
 
 func output_matrix():
 	var output_matrix_text = []

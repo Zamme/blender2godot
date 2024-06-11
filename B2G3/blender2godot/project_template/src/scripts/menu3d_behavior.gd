@@ -8,18 +8,10 @@ var selectable_objects = []
 var current_selected_object_index = -1
 
 
-# DEBUG
-const B2G_HUD_FILEPATH = "res://b2g_tools/B2G_HUD.tscn"
-var b2g_hud
-
-
 func _ready():
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
 		select_object(0)
-	# DEBUG
-#	add_b2g_hud()
-	pass
 
 func get_selectable_objects():
 	# TODO: Add by position order
@@ -69,11 +61,3 @@ func _process(delta):
 		do_action()
 	if Input.is_action_just_released("b2g_pause_game"):
 		get_tree().quit()
-
-# DEBUG
-func add_b2g_hud():
-	b2g_hud = load(B2G_HUD_FILEPATH).instance()
-	add_child(b2g_hud)
-
-func show_message(_text):
-	b2g_hud.show_message(_text)

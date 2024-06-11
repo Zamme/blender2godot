@@ -300,6 +300,7 @@ class ExportGameOperator(bpy.types.Operator):
         return _checked
     
     def export_colliders(self, context, _scene):
+        _last_scene = context.window.scene
         print("Exporting colliders...")
         self.find_colliders_file_path(context)
         scene_objects = _scene.objects
@@ -312,12 +313,10 @@ class ExportGameOperator(bpy.types.Operator):
         self.data_colliders = json.dumps(self.dict_colliders, indent=1, ensure_ascii=True)
         with open(self.colliders_filepath, 'w') as outfile:
             outfile.write(self.data_colliders + '\n')
+        context.window.scene = _last_scene
     
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
-        #self.scenes_dirpath = os.path.join(context.scene.project_folder, INFOS_FOLDER_NAME)
-        #if not os.path.isdir(self.infos_dirpath):
-            #os.mkdir(self.infos_dirpath)
         self.infos_dirpath = os.path.join(context.scene.project_folder, INFOS_FOLDER_NAME)
         if not os.path.isdir(self.infos_dirpath):
             os.mkdir(self.infos_dirpath)
@@ -328,121 +327,38 @@ class ExportGameOperator(bpy.types.Operator):
         _sc_index = 0
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
-                _sc = bpy.data.scenes[_sc_added.name]
-                if _sc.scene_type == "hud":
-                    self.export_hud(context, _sc)
-                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                    _hud_dict = my_dictionary()
-                    _hud_obj_dict = my_dictionary()
-                    for _hud_obj in _sc.objects:
-                        _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
-                    _hud_dict.add("Objects", _hud_obj_dict)
-                    _hud_settings_dict = my_dictionary()
-                    _hud_settings_dict.add("VisibilityType", _sc.hud_settings.visibility_type)
-                    _hud_settings_dict.add("ShowTransitionType", _sc.hud_settings.show_transition_type)
-                    _hud_settings_dict.add("ShowTransitionTime", _sc.hud_settings.show_transition_time)
-                    _hud_settings_dict.add("HideTransitionType", _sc.hud_settings.hide_transition_type)
-                    _hud_settings_dict.add("HideTransitionTime", _sc.hud_settings.hide_transition_time)
-                    _hud_settings_dict.add("ExportFormat", _sc.hud_settings.hud_export_format)
-                    _hud_dict.add("Settings", _hud_settings_dict)
-                    self.dict_huds_info.add(_sc.name, _hud_dict)
-                elif _sc.scene_type == "2dmenu":
-                    self.export_menu2d(context, _sc)
-                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                    _menu2d_dict = my_dictionary()
-                    for _menu2d_obj in _sc.objects:
-                        if _menu2d_obj.type == "GPENCIL":
-                            if _menu2d_obj.godot_exportable:
-                                if _menu2d_obj.menu2d_object_properties.menu2d_object_type != "none":
-                                    _menu2d_obj_dict = my_dictionary()
-                                    _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
-                                    _menu2d_obj_dict.add("Type", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
-                                    match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
-                                        case "button":
-                                            _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.button_action)
-                                            _menu2d_obj_dict.add("ActionParameter", _menu2d_obj.menu2d_object_properties.action_parameter)
-                                        case "check":
-                                            _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.check_action)
-                                    _menu2d_obj_dict.add("Location", _menu2d_obj_location)
-                                    _co_array = []
-                                    for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
-                                        _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
-                                    _menu2d_obj_dict.add("Points", _co_array)
-                                    _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
-                    self.dict_menus2d_info.add(_sc.name, _menu2d_dict)
-                else:
-                    self.export_scene(context, _sc)
-                    context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                    match _sc_added.scene_type:
-                        case "stage":
-                            #self.stages_folder_path = os.path.join(self.assets_folder_path, self.players_folder_name)
-                            #if not os.path.isdir(self.players_folder_path):
-                                #os.mkdir(self.players_folder_path)
-                            self.export_colliders(context, _sc)
-                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                            self.export_lights(context)
-                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                            _temp_dict = my_dictionary()
-                            _temp_dict.add("SceneName", _sc_added.name)
-                            if not _sc_added.player_spawn_empty:
-                                _temp_dict.add("PlayerSpawnObjectName", "")
-                            else:
-                                _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
-                            self.dict_stages_info.add(_sc_index, _temp_dict)
-                            _sc_index += 1
-                        case "player":
-                            #self.players_folder_path = os.path.join(self.assets_folder_path, self.players_folder_name)
-                            #if not os.path.isdir(self.players_folder_path):
-                                #os.mkdir(self.players_folder_path)
-                            self.export_player_info(context, _sc)
-                            context.window.scene = bpy.data.scenes["B2G_GameManager"]
-                        case "3dmenu":
-                            # MENUS'S CAMERA
-                            _temp_dict = my_dictionary()
-                            if not _sc_added.menu_camera_object:
-                                _temp_dict.add("MenuCameraObjectDict", my_dictionary())
-                            else:
-                                _cam_dict = my_dictionary()
-                                _cam_dict.add("MenuCameraObjectName", _sc_added.menu_camera_object.name)
-                                _cam_dict.add("Position", {"PosX" : _sc_added.menu_camera_object.location.x,
-                                                            "PosY" : _sc_added.menu_camera_object.location.y,
-                                                            "PosZ" : _sc_added.menu_camera_object.location.z})
-                                _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
-                                                            "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
-                                                            "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
-                                _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
-                                _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
-                                _temp_dict.add("MenuCameraObjectDict", _cam_dict)
-                            # MENU'S SPECIAL OBJECTS
-                            _special_objects = my_dictionary()
-                            for _obj in _sc_added.objects:
-                                _special_objects.add(_obj.name, {
-                                    "ObjectType" : _obj.special_object_info.menu_object_type,
-                                    "ActionOnClick" : _obj.special_object_info.button_action_on_click
-                                })
-                                _action_parameter_rename = ""
-                                if _obj.special_object_info.button_action_on_click == "load_stage":
-                                    _action_parameter_rename = "Stage_" + _obj.special_object_info.button_action_parameter
-                                elif _obj.special_object_info.button_action_on_click == "load_menu":
-                                    _action_parameter_rename = "Menu3d_" + _obj.special_object_info.button_action_parameter
-                                _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
-                            _temp_dict.add("SpecialObjects", _special_objects)
-                            # ADD DICT TO INFO
-                            self.dict_menus3d_info.add(_sc_added.name, _temp_dict)
+                match _sc_added.scene_type:
+                    case "hud":
+                        self.export_hud(context, _sc_added)
+                        self.export_hud_dict(context, _sc_added)
+                    case "2dmenu":
+                        self.export_menu2d(context, _sc_added)
+                        self.export_menu2d_dict(context, _sc_added)
+                    case "stage":
+                        self.export_scene(context, _sc_added)
+                        self.export_colliders(context, _sc_added)
+                        self.export_lights(context)
+                        _temp_dict = my_dictionary()
+                        _temp_dict.add("SceneName", _sc_added.name)
+                        if not _sc_added.player_spawn_empty:
+                            _temp_dict.add("PlayerSpawnObjectName", "")
+                        else:
+                            _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
+                        self.dict_stages_info.add(_sc_index, _temp_dict)
+                        _sc_index += 1                            
+                    case "player":
+                        self.export_scene(context, _sc_added)
+                        self.export_player_info(context, _sc_added)
+                    case "3dmenu":
+                        self.export_scene(context, _sc_added)
+                        self.export_menu3d_dict(context, _sc_added)
         #bpy.ops.scene.set_godot_project_environment_operator()
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_stages_info(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_menus2d_info(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_menus3d_info(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_huds_info(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_icon(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
         self.export_godot_project_settings(context)
-        context.window.scene = bpy.data.scenes["B2G_GameManager"]
     
     def export_godot_project_settings(self, context):
         print("Exporting project settings...")
@@ -486,6 +402,7 @@ class ExportGameOperator(bpy.types.Operator):
             print("Custom icon is not a png image. Loading default icon.")
     
     def export_hud(self, context, _hud_scene):
+        _last_scene = context.window.scene
         self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
         if not os.path.isdir(self.huds_folder_path):
             os.mkdir(self.huds_folder_path)
@@ -512,6 +429,23 @@ class ExportGameOperator(bpy.types.Operator):
             print("Scene", _hud_scene.name, "exported.")
         else:
             print("Scene ", _hud_scene.name, " empty!")
+        context.window.scene = _last_scene
+
+    def export_hud_dict(self, context, _sc_added):
+        _hud_dict = my_dictionary()
+        _hud_obj_dict = my_dictionary()
+        for _hud_obj in _sc_added.objects:
+            _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
+        _hud_dict.add("Objects", _hud_obj_dict)
+        _hud_settings_dict = my_dictionary()
+        _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)
+        _hud_settings_dict.add("ShowTransitionType", _sc_added.hud_settings.show_transition_type)
+        _hud_settings_dict.add("ShowTransitionTime", _sc_added.hud_settings.show_transition_time)
+        _hud_settings_dict.add("HideTransitionType", _sc_added.hud_settings.hide_transition_type)
+        _hud_settings_dict.add("HideTransitionTime", _sc_added.hud_settings.hide_transition_time)
+        _hud_settings_dict.add("ExportFormat", _sc_added.hud_settings.hud_export_format)
+        _hud_dict.add("Settings", _hud_settings_dict)
+        self.dict_huds_info.add(_sc_added.name, _hud_dict)
 
     def export_huds_info(self, context):
         self.find_huds_info_file_path(context)
@@ -520,6 +454,7 @@ class ExportGameOperator(bpy.types.Operator):
             outfile.write(self.data_huds_info + '\n')   
 
     def export_lights(self, context):
+        _last_scene = context.window.scene
         print("Exporting lights...")
         self.find_lights_file_path(context)
         scene_objects = context.scene.objects
@@ -558,8 +493,10 @@ class ExportGameOperator(bpy.types.Operator):
         self.data_lights = json.dumps(self.dict_lights_info, indent=1, ensure_ascii=True)
         with open(self.lights_info_filepath, 'w') as outfile:
             outfile.write(self.data_lights + '\n')
+        context.window.scene = _last_scene
     
     def export_menu2d(self, context, _menu2d_scene):
+        _last_scene = context.window.scene
         self.menus2d_folder_path = os.path.join(self.assets_folder_path, self.menus2d_folder_name)
         if not os.path.isdir(self.menus2d_folder_path):
             os.mkdir(self.menus2d_folder_path)
@@ -570,7 +507,7 @@ class ExportGameOperator(bpy.types.Operator):
             _obj.select_set(_obj.godot_exportable)
             # Disable gpencil layers lights
             if _obj.type == "GPENCIL":
-                print("Is gpencil")
+                #print("Is gpencil")
                 for _layer in _obj.data.layers:
                     _layer.use_lights = False
         bpy.ops.view3d.view_camera()
@@ -585,12 +522,77 @@ class ExportGameOperator(bpy.types.Operator):
             print("Scene", _menu2d_scene.name, "exported.")
         else:
             print("Scene ", _menu2d_scene.name, " empty!")
+        context.window.scene = _last_scene
+
+    def export_menu2d_dict(self, context, _sc_added):
+        _menu2d_dict = my_dictionary()
+        for _menu2d_obj in _sc_added.objects:
+            if _menu2d_obj.type == "GPENCIL":
+                if _menu2d_obj.godot_exportable:
+                    if _menu2d_obj.menu2d_object_properties.menu2d_object_type != "none":
+                        _menu2d_obj_dict = my_dictionary()
+                        _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
+                        _menu2d_obj_dict.add("Type", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
+                        match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
+                            case "button":
+                                _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.button_action)
+                                _menu2d_obj_dict.add("ActionParameter", _menu2d_obj.menu2d_object_properties.action_parameter)
+                            case "check":
+                                _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.check_action)
+                        _menu2d_obj_dict.add("Location", _menu2d_obj_location)
+                        _co_array = []
+                        for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
+                            _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                        _menu2d_obj_dict.add("Points", _co_array)
+                        _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
+        self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)
 
     def export_menus2d_info(self, context):
         self.find_menus2d_info_file_path(context)
         self.data_menus2d_info = json.dumps(self.dict_menus2d_info, indent=1, ensure_ascii=True)
         with open(self.menus2d_info_filepath, 'w') as outfile:
             outfile.write(self.data_menus2d_info + '\n')   
+
+    def export_menu3d_dict(self, context, _sc_added):
+        # MENUS'S CAMERA
+        _temp_dict = my_dictionary()
+        if not _sc_added.menu_camera_object:
+            _temp_dict.add("MenuCameraObjectDict", my_dictionary())
+        else:
+            _cam_dict = my_dictionary()
+            _cam_dict.add("MenuCameraObjectName", _sc_added.menu_camera_object.name)
+            _cam_dict.add("Position", {"PosX" : _sc_added.menu_camera_object.location.x,
+                                        "PosY" : _sc_added.menu_camera_object.location.y,
+                                        "PosZ" : _sc_added.menu_camera_object.location.z})
+            _cam_dict.add("Rotation", {"RotX" : _sc_added.menu_camera_object.rotation_euler.x,
+                                        "RotY" : _sc_added.menu_camera_object.rotation_euler.y,
+                                        "RotZ" : _sc_added.menu_camera_object.rotation_euler.z})
+            _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
+            _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
+            _temp_dict.add("MenuCameraObjectDict", _cam_dict)
+        # MENU'S SPECIAL OBJECTS
+        _special_objects = my_dictionary()
+        for _obj in _sc_added.objects:
+            if hasattr(_obj, "special_object_info"):
+                if _obj.special_object_info.menu_object_type != "none":
+                    _special_objects.add(_obj.name, {
+                        "ObjectType" : _obj.special_object_info.menu_object_type,
+                        "ActionOnClick" : _obj.special_object_info.button_action_on_click
+                    })
+                    #print("Special object", _obj.name, "Info", _obj.special_object_info.button_action_on_click, "Param", _obj.special_object_info.scene_parameter)
+                    _pref_param = ""
+                    match _obj.special_object_info.button_action_on_click:
+                        case "load_stage":
+                            _pref_param = "Stage_"
+                        case "load_3dmenu":
+                            _pref_param = "Menu3d_"
+                        case "load_2dmenu":
+                            _pref_param = "Menu2d_"
+                    _action_parameter_rename = _pref_param + _obj.special_object_info.action_parameter
+                    _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
+        _temp_dict.add("SpecialObjects", _special_objects)
+        # ADD DICT TO INFO
+        self.dict_menus3d_info.add(_sc_added.name, _temp_dict)
 
     def export_menus3d_info(self, context):
         self.find_menus3d_info_file_path(context)
@@ -654,6 +656,7 @@ class ExportGameOperator(bpy.types.Operator):
 
     def export_scene(self, context, _scene):
         print("Exporting scene", _scene.name)
+        _last_scene = context.window.scene
         context.window.scene = _scene
         model_path = os.path.join(self.models_folder_path, _scene.name)
         for ob in _scene.objects:
@@ -663,6 +666,7 @@ class ExportGameOperator(bpy.types.Operator):
             print("Scene", _scene.name, "exported.")
         else:
             print("Scene ", _scene.name, " empty!")
+        context.window.scene = _last_scene
     
     def export_stages_info(self, context):
         self.find_stages_info_file_path(context)

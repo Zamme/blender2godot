@@ -38,8 +38,11 @@ func do_click_action():
 		"load_stage":
 			_param = StageTemplate.STAGES_PATH + action_parameter + ".tscn"
 			get_tree().current_scene.load_scene(_param, true)
-		"menu_stage":
+		"load_3dmenu":
 			_param = StageTemplate.MENUS3D_PATH + action_parameter + ".tscn"
+			get_tree().current_scene.load_scene(_param, true)
+		"load_2dmenu":
+			_param = StageTemplate.MENUS2D_PATH + action_parameter + ".tscn"
 			get_tree().current_scene.load_scene(_param, true)
 		"quit_game":
 			get_tree().quit()

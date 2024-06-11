@@ -26,7 +26,6 @@ import bpy
 def get_action_scenes(self, context):
     _scenes = [("none", "None", "", "NONE", 0)]
     _index = 1
-    #print("data required:", context.active_object.menu2d_object_properties.button_action)
     for _sc in bpy.data.scenes:
         if _sc.scene_type == context.active_object.menu2d_object_properties.button_action.removeprefix("load_"):
             if _sc.scene_exportable:
@@ -37,6 +36,9 @@ def get_action_scenes(self, context):
 def get_scene_parameter_name(self, context):
     _parameter_name = context.active_object.menu2d_object_properties.button_action.removeprefix("load_").capitalize()
     return _parameter_name
+
+def update_action_parameter(self, context):
+    context.active_object.menu2d_object_properties.action_parameter = context.active_object.menu2d_object_properties.scene_parameter
 
 class Menu2DObjectProperties(bpy.types.PropertyGroup):
     """ Menu 2D Object Type """
@@ -60,7 +62,7 @@ class Menu2DObjectProperties(bpy.types.PropertyGroup):
     button_action : bpy.props.EnumProperty(items=button_actions, name="Button Action", default=0) # type: ignore
     action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
-    scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0) # type: ignore
+    scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
 class CreateMenu2dViewOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_view_operator"
@@ -128,7 +130,6 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                     if ((_act != "none") and (_act != "close_menu") and (_act != "quit_game")):
                         _param_name = get_scene_parameter_name(self, context)
                         box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
-#                        box4.prop(context.active_object.menu2d_object_properties, "action_parameter")
                 case "check":
                     box4.prop(context.active_object.menu2d_object_properties, "check_action")
             '''
@@ -144,16 +145,11 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
 
 def init_properties():
     bpy.types.Object.menu2d_object_properties = bpy.props.PointerProperty(type=Menu2DObjectProperties)
-    #bpy.types.Scene.menu_camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Menu Camera", poll=scene_camera_object_poll)
-    pass
 
 def clear_properties():
     del bpy.types.Object.menu2d_object_properties
-    #del bpy.types.Object.special_object_info
-    pass
 
 def register():
-    #bpy.utils.register_class(MenuSpecialObject)
     bpy.utils.register_class(Menu2DObjectProperties)
     init_properties()
     bpy.utils.register_class(CreateMenu2dViewOperator)

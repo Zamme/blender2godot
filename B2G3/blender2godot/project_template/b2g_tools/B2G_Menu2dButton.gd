@@ -56,4 +56,6 @@ func set_menu_scene(_scene):
 
 func _on_Button_Area2D_input_event(viewport, event, shape_idx):
 	if (event is InputEventMouseButton && event.pressed):
+		get_tree().set_input_as_handled()
+		yield(get_tree(),"idle_frame")
 		do_click_action()

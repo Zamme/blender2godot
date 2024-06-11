@@ -60,7 +60,7 @@ func update_objects():
 func connect_areas_signals(areas):
 	for _area in areas:
 		_area.connect("input_event", _area, "_on_Button_Area2D_input_event")
-		print("Area ", _area.name, " connected")
+#		print("Area ", _area.name, " connected")
 
 func create_exit_timer():
 	_timer = Timer.new()

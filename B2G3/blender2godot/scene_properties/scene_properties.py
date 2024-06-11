@@ -119,8 +119,14 @@ class ScenePropertiesPanel(bpy.types.Panel):
         
         # SCENE PROPERTIES
         row = layout.row()
+        row.alignment = "EXPAND"
+        column1 = row.column()
         if hasattr(context.scene, "scene_type"):
-            row.prop(context.scene, "scene_type")
+            column1.prop(context.scene, "scene_type")
+        column2 = row.column(align=True)
+        column2.ui_units_x = 5.0
+        if hasattr(context.scene, "scene_exportable"):
+            column2.prop(context.scene, "scene_exportable")
 
 def init_properties():
     # Scene props
