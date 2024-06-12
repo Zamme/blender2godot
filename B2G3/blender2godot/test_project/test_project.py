@@ -28,6 +28,7 @@ import socket
 import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler, test  # type: ignore
 from pathlib import Path
+from threading import Thread
 
 import bpy
 from blender2godot.addon_config import addon_config # type: ignore
@@ -49,8 +50,6 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
         self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
-
-
 ### END BROWSER SERVER ###
 
 
@@ -93,8 +92,15 @@ class TestBrowserGameOperator(bpy.types.Operator): # It blocks blender execution
     def modal(self, context, event):
         if not self._testing:
             self._testing = True
-            test(CORSRequestHandler, DualStackServer, port=self._port)
-        return {'PASS_THROUGH'}
+            self._handler = CORSRequestHandler
+            self._dual_stack_server = DualStackServer
+            t = Thread(target=test, args=(self._handler, self._dual_stack_server, self._port,))
+            t.start()
+            test(self._handler, self._dual_stack_server, port=self._port)
+            return {'PASS_THROUGH'}
+        else:
+            print(self._handler)
+            return {'FINISHED'}
 
     def invoke(self, context, event):
         print("Starting browser game", context.scene.project_folder)
