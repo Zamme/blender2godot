@@ -175,7 +175,6 @@ class BuildGameOperator(bpy.types.Operator):
         self.export_presets_filepath = os.path.join(context.scene.project_folder, "export_presets.cfg")
         self.add_selected_export_presets(context)
         print("Compiling...")
-        #bpy.ops.scene.compile_selected_versions_operator()
         bpy.ops.scene.compile_selected_versions_operator('INVOKE_DEFAULT')
         
     def config_presets(self, context):
@@ -401,6 +400,7 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
                 os.mkdir(context.scene.web_exports_path)
             print("Web version...OK")
             context.scene.web_exe_filepath = os.path.join(context.scene.web_exports_path, context.scene.game_name)
+            context.scene.web_exe_filepath += ".html"
             self.process = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--no-window", "--path", context.scene.project_folder, "--export", "HTML5", context.scene.web_exe_filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print("Web version exported at :", context.scene.web_exports_path)
         #return {'FINISHED'}
@@ -422,27 +422,6 @@ class CompileSelectedVersionsOperator(bpy.types.Operator):
         if context.scene.web_export:
             self.pending_platforms.append(self.available_platforms[4])
         print("Pending versions: ", self.pending_platforms)
-
-    '''
-    def execute(self, context):
-        self.all_compiled = False
-        self.process = None
-        self.create_builds_folder(context)
-        self.set_pending_platforms(context)
-        while (len(self.pending_platforms) > 0):
-            if self.process is None:
-                print("Process None")
-                context.scene.current_version_compiling = self.pending_platforms.pop()
-                self.compile_exe(context)
-            else:
-                if self.process.poll() == 0:
-                    print("Process Next")
-                    context.scene.current_version_compiling = self.pending_platforms.pop()
-                    self.compile_exe(context)
-        self.all_compiled = True
-        print("Processes completed")
-        return {'FINISHED'}
-    '''
 
     def modal(self, context, event):
         if self.all_compiled == True:

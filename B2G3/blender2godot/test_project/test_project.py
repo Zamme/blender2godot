@@ -17,31 +17,94 @@
 
 
 """
-Testing game actions
+Testing game 
 """
 
 import subprocess
 import os
 
+import contextlib
+import socket
+import sys
+from http.server import HTTPServer, SimpleHTTPRequestHandler, test  # type: ignore
+from pathlib import Path
+
 import bpy
+from blender2godot.addon_config import addon_config # type: ignore
 
 
-class TestGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
-    """Test Game Operator"""
-    bl_idname = "scene.test_game_operator"
-    bl_label = "Test Last Exported Game"
+### BROWSER SERVER ###
+# See cpython GH-17851 and GH-17864.
+class DualStackServer(HTTPServer):
+    def server_bind(self):
+        # Suppress exception when protocol is IPv4.
+        with contextlib.suppress(Exception):
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        return super().server_bind()
+
+
+class CORSRequestHandler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
+
+### END BROWSER SERVER ###
+
+
+class TestProjectGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
+    """Test Project Game Operator"""
+    bl_idname = "scene.test_project_game_operator"
+    bl_label = "Test Last Exported Project"
     
-    def start_game(self, context):
-        print("Starting game", context.scene.project_folder)
+    def start_project_game(self, context):
+        print("Starting project game", context.scene.project_folder)
         self.cmd = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--path", context.scene.project_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     def main(self, context):
-        self.start_game(context)        
+        self.start_project_game(context)        
 
     def execute(self, context):
         self.main(context)
         return {'FINISHED'}
 
+class TestBrowserGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
+    """Test Browser Game Operator"""
+    bl_idname = "scene.test_browser_game_operator"
+    bl_label = "Test Browser Build"
+
+    _output = None
+    _testing = False
+    _port = 8060
+    
+    def shell_open(self, context, url):
+        if sys.platform == "win32":
+            os.startfile(url)
+        else:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            self._output = subprocess.run([opener, url])
+            print("Output:", self._output)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def modal(self, context, event):
+        if not self._testing:
+            self._testing = True
+            test(CORSRequestHandler, DualStackServer, port=self._port)
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        print("Starting browser game", context.scene.project_folder)
+        self._path = context.scene.web_exe_filepath.rpartition(os.sep)[0]
+        print(self._path)
+        os.chdir(self._path)
+        self._testing = False
+        self.shell_open(context, f"http://127.0.0.1:{self._port}")
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
 class TestGamePanel(bpy.types.Panel):
     """Test Game Panel"""
@@ -63,7 +126,6 @@ class TestGamePanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
 
         if not bpy.data.is_saved:       
             return
@@ -79,15 +141,19 @@ class TestGamePanel(bpy.types.Panel):
         box = row.box()
         if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
             row.alignment="CENTER"
-            box.operator("scene.test_game_operator", icon="PLAY")
+            box.operator("scene.test_project_game_operator", icon="PLAY")
+            if os.path.isfile(context.scene.web_exe_filepath + ".html"):
+                box.operator_context = 'INVOKE_DEFAULT'
+                box.operator("scene.test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
         else:
             box.label(text="Export to godot before testing", icon="ERROR")
 
-
 def register():
-    bpy.utils.register_class(TestGameOperator)
+    bpy.utils.register_class(TestProjectGameOperator)
+    bpy.utils.register_class(TestBrowserGameOperator)
     bpy.utils.register_class(TestGamePanel)
 
 def unregister():
     bpy.utils.unregister_class(TestGamePanel)
-    bpy.utils.unregister_class(TestGameOperator)
+    bpy.utils.unregister_class(TestBrowserGameOperator)
+    bpy.utils.unregister_class(TestProjectGameOperator)
