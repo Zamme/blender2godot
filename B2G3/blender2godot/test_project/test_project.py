@@ -38,7 +38,9 @@ testing = None
 handler = None
 server = None
 output = None
-server_address = ('127.0.0.1', 8060)
+_adress = "127.0.0.1"
+_port = 8060
+server_address = (_adress, _port)
 
 def shell_open(_url):
     if sys.platform == "win32":
@@ -120,14 +122,13 @@ class TestBrowserGameOperator(bpy.types.Operator): # It blocks blender execution
     def execute(self, context):
         global t1, testing, server_address
         if not testing:
-            print("Starting browser game", context.scene.project_folder)
             self._path = context.scene.web_exe_filepath.rpartition(os.sep)[0]
-            print(self._path)
+            print("Starting browser game", self._path)
             os.chdir(self._path)
             testing = True
             t1 = Thread(target=exec_test)
             t1.start()
-            shell_open(f"http://127.0.0.1:8060")
+            shell_open("http://" + _adress + ":" + str(_port) + "/" + context.scene.game_name + ".html")
         return {'FINISHED'}
 
 class TestGamePanel(bpy.types.Panel):
