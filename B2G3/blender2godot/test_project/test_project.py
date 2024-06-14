@@ -22,16 +22,44 @@ Testing game
 
 import subprocess
 import os
-
+import sys
 import contextlib
 import socket
-import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler, test  # type: ignore
-from pathlib import Path
 from threading import Thread
 
 import bpy
 from blender2godot.addon_config import addon_config # type: ignore
+
+
+t1 = None
+t2 = None
+testing = None
+handler = None
+server = None
+output = None
+server_address = ('127.0.0.1', 8060)
+
+def shell_open(_url):
+    if sys.platform == "win32":
+        os.startfile(_url)
+    else:
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        global output
+        output = subprocess.run([opener, _url])
+        print("Output:", output)
+
+def close_test():
+    global testing, server
+    server.shutdown()
+    server.server_close()
+    testing = False
+
+def exec_test():
+    global server, handler, server_address
+    handler = CORSRequestHandler
+    server = DualStackServer(server_address, handler)
+    server.serve_forever()
 
 
 ### BROWSER SERVER ###
@@ -52,6 +80,21 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         super().end_headers()
 ### END BROWSER SERVER ###
 
+
+class StopTestBrowserGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
+    """Stop Test Browser Game Operator"""
+    bl_idname = "scene.stop_test_browser_game_operator"
+    bl_label = "Stop Test Browser"
+
+    def execute(self, context):
+        global t2, t1
+        print("Stopping test browser...")
+        t2 = Thread(target=close_test)
+        t2.start()
+        t2.join()
+        t1.join()
+        print("Test browser stopped.")
+        return {'FINISHED'}
 
 class TestProjectGameOperator(bpy.types.Operator): # It blocks blender execution until game exits
     """Test Project Game Operator"""
@@ -74,43 +117,18 @@ class TestBrowserGameOperator(bpy.types.Operator): # It blocks blender execution
     bl_idname = "scene.test_browser_game_operator"
     bl_label = "Test Browser Build"
 
-    _output = None
-    _testing = False
-    _port = 8060
-    
-    def shell_open(self, context, url):
-        if sys.platform == "win32":
-            os.startfile(url)
-        else:
-            opener = "open" if sys.platform == "darwin" else "xdg-open"
-            self._output = subprocess.run([opener, url])
-            print("Output:", self._output)
-
     def execute(self, context):
+        global t1, testing, server_address
+        if not testing:
+            print("Starting browser game", context.scene.project_folder)
+            self._path = context.scene.web_exe_filepath.rpartition(os.sep)[0]
+            print(self._path)
+            os.chdir(self._path)
+            testing = True
+            t1 = Thread(target=exec_test)
+            t1.start()
+            shell_open(f"http://127.0.0.1:8060")
         return {'FINISHED'}
-
-    def modal(self, context, event):
-        if not self._testing:
-            self._testing = True
-            self._handler = CORSRequestHandler
-            self._dual_stack_server = DualStackServer
-            t = Thread(target=test, args=(self._handler, self._dual_stack_server, self._port,))
-            t.start()
-            test(self._handler, self._dual_stack_server, port=self._port)
-            return {'PASS_THROUGH'}
-        else:
-            print(self._handler)
-            return {'FINISHED'}
-
-    def invoke(self, context, event):
-        print("Starting browser game", context.scene.project_folder)
-        self._path = context.scene.web_exe_filepath.rpartition(os.sep)[0]
-        print(self._path)
-        os.chdir(self._path)
-        self._testing = False
-        self.shell_open(context, f"http://127.0.0.1:{self._port}")
-        context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
 
 class TestGamePanel(bpy.types.Panel):
     """Test Game Panel"""
@@ -149,12 +167,16 @@ class TestGamePanel(bpy.types.Panel):
             row.alignment="CENTER"
             box.operator("scene.test_project_game_operator", icon="PLAY")
             if os.path.isfile(context.scene.web_exe_filepath + ".html"):
-                box.operator_context = 'INVOKE_DEFAULT'
-                box.operator("scene.test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
+                global testing
+                if testing:
+                    box.operator("scene.stop_test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
+                else:
+                    box.operator("scene.test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
         else:
             box.label(text="Export to godot before testing", icon="ERROR")
 
 def register():
+    bpy.utils.register_class(StopTestBrowserGameOperator)
     bpy.utils.register_class(TestProjectGameOperator)
     bpy.utils.register_class(TestBrowserGameOperator)
     bpy.utils.register_class(TestGamePanel)
@@ -163,3 +185,4 @@ def unregister():
     bpy.utils.unregister_class(TestGamePanel)
     bpy.utils.unregister_class(TestBrowserGameOperator)
     bpy.utils.unregister_class(TestProjectGameOperator)
+    bpy.utils.unregister_class(StopTestBrowserGameOperator)
