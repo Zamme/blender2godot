@@ -137,10 +137,13 @@ def init_properties():
         default = 0,
         update=scene_type_update)
     bpy.types.Scene.scene_exportable = bpy.props.BoolProperty(name="Exportable", default=False, update=update_scene_exportable) # SCENE EXPORTABLE
+    #bpy.types.Scene.scene_environment = bpy.props.PointerProperty(type=bpy.types.World, name="Environment")
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Exportable", default=True) # OBJECT EXPORTABLE
 
 def clear_properties():
+    #del bpy.types.Scene.scene_environment
+    del bpy.types.Scene.scene_type
     del bpy.types.Scene.scene_exportable
     del bpy.types.Object.godot_exportable
 

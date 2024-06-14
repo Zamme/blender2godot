@@ -170,9 +170,9 @@ class TestGamePanel(bpy.types.Panel):
             if os.path.isfile(context.scene.web_exe_filepath + ".html"):
                 global testing
                 if testing:
-                    box.operator("scene.stop_test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
+                    box.operator("scene.stop_test_browser_game_operator", icon="CANCEL")
                 else:
-                    box.operator("scene.test_browser_game_operator", icon_value=addon_config.preview_collections[0]["godot_icon"].icon_id)
+                    box.operator("scene.test_browser_game_operator", icon="URL")
         else:
             box.label(text="Export to godot before testing", icon="ERROR")
 

@@ -432,24 +432,32 @@ func apply_import_changes_to_list(scenes_list, path):
 func apply_new_config():
 	var startup_scene_type : String
 	var _start_scene_path : String
-	for _key in _godot_project_settings_json.keys():
+	# Other settings
+	for _key in _godot_project_settings_json["OtherSettings"].keys():
 		match _key:
 			"startup_scene_type":
-				startup_scene_type = _godot_project_settings_json["startup_scene_type"]
+				startup_scene_type = _godot_project_settings_json["OtherSettings"]["startup_scene_type"]
+	# App settings
+	for _key in _godot_project_settings_json["AppSettings"].keys():
+		match _key:
 			"application/run/main_scene":
 				match startup_scene_type:
 					"stage":
-						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = STAGES_PATH + STAGE_SCENES_PREFIX + str(_godot_project_settings_json["AppSettings"]["application/run/main_scene"]) + ".tscn"
 					"3dmenu":
-						_start_scene_path = MENUS3D_PATH + MENU3D_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = MENUS3D_PATH + MENU3D_SCENES_PREFIX + str(_godot_project_settings_json["AppSettings"]["application/run/main_scene"]) + ".tscn"
 					"2dmenu":
-						_start_scene_path = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + str(_godot_project_settings_json["application/run/main_scene"]) + ".tscn"
+						_start_scene_path = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + str(_godot_project_settings_json["AppSettings"]["application/run/main_scene"]) + ".tscn"
 			"application/boot_splash/bg_color":
-				var _splits = _godot_project_settings_json["application/boot_splash/bg_color"].split(",")
+				var _splits = _godot_project_settings_json["AppSettings"]["application/boot_splash/bg_color"].split(",")
 				var _color : Color = Color(_splits[0], _splits[1], _splits[2], _splits[3])
 				ProjectSettings.set_setting("application/boot_splash/bg_color", _color)
 			_:
-				ProjectSettings.set_setting(_key, _godot_project_settings_json[_key])
+				ProjectSettings.set_setting(_key, _godot_project_settings_json["AppSettings"][_key])
+	# Display settings
+	for _key in _godot_project_settings_json["DisplaySettings"].keys():
+		ProjectSettings.set_setting(_key, _godot_project_settings_json["DisplaySettings"][_key])
+	
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()
 	_gm.startup_scene_filepath = _start_scene_path
 	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
@@ -560,7 +568,7 @@ func create_menus2d():
 		#_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
 		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
 		_new_menu2d.texture = load(_texture_path)
-		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
 		#_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
@@ -811,7 +819,7 @@ func mount_scenes():
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
-	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["display/window/size/width"]), int(_godot_project_settings_json["display/window/size/height"]))
+	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 28.5
 	for _menu_object_key in _menu_objects.keys():
 #		print(_menu_object_key)

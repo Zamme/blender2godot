@@ -170,7 +170,8 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         box1.prop(scene, "game_icon", icon="IMAGE")
         if not scene.game_icon.endswith(".png"):
             box1.label(text="Icon must be a png image!")
-        box1.prop(scene, "project_template", icon="SHADERFX")
+        #box1.prop(scene, "project_template", icon="SHADERFX")
+        #box1.prop(scene, "scene_environment", text="Default environment")
 
 '''
 class UpdateCurrentTemplateOperator(bpy.types.Operator):

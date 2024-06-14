@@ -365,25 +365,39 @@ class ExportGameOperator(bpy.types.Operator):
 
         self.find_godot_project_settings_file_path(context)
 
+        self.app_settings_dict = my_dictionary()
+        self.display_settings_dict = my_dictionary()
+        self.other_settings_dict = my_dictionary()
+        self.default_environment_dict = my_dictionary()
+
         # Config name
-        self.dict_godot_project_settings.add("application/config/name", context.scene.game_name)
+        self.app_settings_dict.add("application/config/name", context.scene.game_name)
         # Startup scene
-        self.dict_godot_project_settings.add("startup_scene_type", context.scene.startup_scene.scene_type)
-        self.dict_godot_project_settings.add("application/run/main_scene", context.scene.startup_scene.name)
+        self.other_settings_dict.add("startup_scene_type", context.scene.startup_scene.scene_type)
+        self.app_settings_dict.add("application/run/main_scene", context.scene.startup_scene.name)
         # Display settings
-        self.dict_godot_project_settings.add("display/window/size/width", bpy.data.scenes["B2G_GameManager"].render.resolution_x)
-        self.dict_godot_project_settings.add("display/window/size/height", bpy.data.scenes["B2G_GameManager"].render.resolution_y)
-        self.dict_godot_project_settings.add("display/window/size/resizable", context.scene.display_resizable)
-        self.dict_godot_project_settings.add("display/window/size/borderless", context.scene.display_borderless)
-        self.dict_godot_project_settings.add("display/window/size/fullscreen", context.scene.display_fullscreen)
-        self.dict_godot_project_settings.add("display/window/size/always_on_top", context.scene.display_alwaysontop)
+        self.display_settings_dict.add("display/window/size/width", bpy.data.scenes["B2G_GameManager"].render.resolution_x)
+        self.display_settings_dict.add("display/window/size/height", bpy.data.scenes["B2G_GameManager"].render.resolution_y)
+        self.display_settings_dict.add("display/window/size/resizable", context.scene.display_resizable)
+        self.display_settings_dict.add("display/window/size/borderless", context.scene.display_borderless)
+        self.display_settings_dict.add("display/window/size/fullscreen", context.scene.display_fullscreen)
+        self.display_settings_dict.add("display/window/size/always_on_top", context.scene.display_alwaysontop)
         # Boot splash settings
-        self.dict_godot_project_settings.add("application/boot_splash/show_image", context.scene.splash_showimage)
-        self.dict_godot_project_settings.add("application/boot_splash/image", context.scene.splash_imagefilepath)
-        self.dict_godot_project_settings.add("application/boot_splash/fullsize", context.scene.splash_fullsize)
-        self.dict_godot_project_settings.add("application/boot_splash/use_filter", context.scene.splash_usefilter)
+        self.app_settings_dict.add("application/boot_splash/show_image", context.scene.splash_showimage)
+        self.app_settings_dict.add("application/boot_splash/image", context.scene.splash_imagefilepath)
+        self.app_settings_dict.add("application/boot_splash/fullsize", context.scene.splash_fullsize)
+        self.app_settings_dict.add("application/boot_splash/use_filter", context.scene.splash_usefilter)
         _color_string = str(context.scene.splash_bgcolor[0]) + "," + str(context.scene.splash_bgcolor[1]) + "," + str(context.scene.splash_bgcolor[2]) + "," + str(context.scene.splash_bgcolor[3])
-        self.dict_godot_project_settings.add("application/boot_splash/bg_color", _color_string)
+        self.app_settings_dict.add("application/boot_splash/bg_color", _color_string)
+        # Default environment
+        _color_string = str(context.scene.world.color[0]) + "," + str(context.scene.world.color[1]) + "," + str(context.scene.world.color[2])
+        self.default_environment_dict.add("Color", _color_string)
+
+        # Add all dicts
+        self.dict_godot_project_settings.add("AppSettings", self.app_settings_dict)
+        self.dict_godot_project_settings.add("DisplaySettings", self.display_settings_dict)
+        self.dict_godot_project_settings.add("OtherSettings", self.other_settings_dict)
+        self.dict_godot_project_settings.add("DefaultEnvironment", self.default_environment_dict)
 
         self.data_settings = json.dumps(self.dict_godot_project_settings, indent=1, ensure_ascii=True)
         with open(self.godot_project_settings_filepath, 'w') as outfile:
