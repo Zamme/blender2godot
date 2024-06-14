@@ -390,7 +390,15 @@ class ExportGameOperator(bpy.types.Operator):
         _color_string = str(context.scene.splash_bgcolor[0]) + "," + str(context.scene.splash_bgcolor[1]) + "," + str(context.scene.splash_bgcolor[2]) + "," + str(context.scene.splash_bgcolor[3])
         self.app_settings_dict.add("application/boot_splash/bg_color", _color_string)
         # Default environment
-        _color_string = str(context.scene.world.color[0]) + "," + str(context.scene.world.color[1]) + "," + str(context.scene.world.color[2])
+        if context.scene.world.use_nodes:
+            _nodes = context.scene.world.node_tree.nodes
+            for _node in _nodes:
+                if _node.bl_idname == "ShaderNodeBackground":
+                    _background_color = _node.color
+                    #_surface_input = _node.inputs["Surface"]
+            _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
+        else:
+            _color_string = str(context.scene.world.color[0]) + "," + str(context.scene.world.color[1]) + "," + str(context.scene.world.color[2])
         self.default_environment_dict.add("Color", _color_string)
 
         # Add all dicts
