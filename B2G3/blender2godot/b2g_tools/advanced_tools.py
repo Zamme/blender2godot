@@ -320,7 +320,6 @@ class ExportGameOperator(bpy.types.Operator):
         context.window.scene = _last_scene
     
     def export_environment(self, context, _scene):
-        # TODO : sky
         print("Exporting environment ...")
         _dict = my_dictionary()
         _sky = None
@@ -346,7 +345,7 @@ class ExportGameOperator(bpy.types.Operator):
                                         print("Sky found!", _bg_color_input.links[0].from_node.name)
                                         _sky = _bg_color_input.links[0].from_node
                 if _background_color is not None:
-                    _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
+                    _color_string = Vector3ToString(_background_color)
                 if _sky:
                     _skydict.add("Type", _sky.sky_type)
                     _skydict.add("SunDirection", Vector3ToString(_sky.sun_direction))
@@ -356,7 +355,7 @@ class ExportGameOperator(bpy.types.Operator):
                     _skydict.add("SunSize", _sky.sun_size)
                     _dict.add("Sky", _skydict)
             else:
-                _color_string = str(_scene.world.color[0]) + "," + str(_scene.world.color[1]) + "," + str(_scene.world.color[2])
+                _color_string = Vector3ToString(_scene.world.color)
             _dict.add("Color", _color_string)
         else:
             _dict = "None"

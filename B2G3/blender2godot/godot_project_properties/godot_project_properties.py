@@ -77,6 +77,18 @@ def get_templates_info(self, context, template_name):
                         #print("not found;", _filename, template_name)
     return _template_info
 
+def load_game_icon(self, context):
+    texture = None
+    if os.path.isfile(context.scene.game_icon):
+        img = bpy.data.images.load(context.scene.game_icon, check_existing=True)
+        if bpy.data.textures.find("gameIconImage") == -1:
+            texture = bpy.data.textures.new(name="gameIconImage", type="IMAGE")
+        else:
+            texture = bpy.data.textures["gameIconImage"]
+        texture.image = img
+        tex = bpy.data.textures['gameIconImage']
+        tex.extension = 'CLIP'
+
 def update_scene_exportable(self, context):
     print("Updatting exportable", context.scene.scene_type)
     context.scene.scene_exportable = (context.scene.scene_type != "none")       
@@ -167,9 +179,15 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
         if len(scene.game_name) == 0:
             box1.label(text="Give a name to your game!", icon="ERROR")
         #box1.prop(scene, "game_folder", icon="FILE_FOLDER")
-        box1.prop(scene, "game_icon", icon="IMAGE")
+        box2 = box1.box()
+        box2.prop(scene, "game_icon", icon="IMAGE")
         if not scene.game_icon.endswith(".png"):
-            box1.label(text="Icon must be a png image!")
+            box2.label(text="Icon must be a png image!", icon="CANCEL")
+        else:
+            if bpy.data.textures.find("gameIconImage") > -1:
+                row1 = box2.row()
+                row1.alignment = "CENTER"
+                row1.template_preview(bpy.data.textures["gameIconImage"])
         #box1.prop(scene, "project_template", icon="SHADERFX")
         #box1.prop(scene, "scene_environment", text="Default environment")
 
@@ -196,7 +214,7 @@ def init_properties():
     # Project props
     bpy.types.Scene.game_name = bpy.props.StringProperty(name="Name", default="NEW_GAME", update=update_game_folder)
     bpy.types.Scene.game_folder = bpy.props.StringProperty(name="Game Folder", subtype="DIR_PATH", default=" ")
-    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ", update=load_game_icon)
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
 

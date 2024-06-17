@@ -21,6 +21,7 @@ Editor main panel
 """
 
 import os
+import subprocess
 from bpy_extras.io_utils import ImportHelper
 from bpy.utils import previews
 
@@ -32,6 +33,27 @@ subscribe_to = bpy.types.Window, "scene"
 
 global preview_collections
 preview_collections = []
+
+global godot_engine_ok
+godot_engine_ok = False
+
+def check_godot(self, context):
+    global godot_engine_ok
+    godot_engine_ok = False
+    print("Checking", self.godot_executable)
+    if os.path.isfile(self.godot_executable):
+        _filename = os.path.basename(self.godot_executable)
+        if _filename.startswith("Godot"):
+            _result = subprocess.run([self.godot_executable, "--version"], capture_output=True, text=True)
+            if _result.returncode == 0:
+                if _result.stdout.startswith("3.5"):
+                    print("Godot Engine version 3.5 OK")
+                elif _result.stdout.startswith("4."):
+                    print("Godot Engine version 4.x OK")
+                godot_engine_ok = True
+            else:
+                print("Godot Engine Error")
+                godot_engine_ok = False
 
 def load_custom_icons():
     custom_icons = previews.new()
@@ -61,7 +83,7 @@ def msgbus_callback(*args):
     bpy.context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
 
 def init_properties():
-    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine")  
+    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine", update=check_godot)  
 
 def clear_properties():
     del bpy.types.Scene.godot_executable
@@ -145,8 +167,9 @@ class Blender2GodotPanel(bpy.types.Panel):
                 row2.operator("scene.saveblendfile_operator", text="Save File")
             else:
                 box.prop(scene, "godot_executable", icon="FILE")
-                if not os.path.exists(scene.godot_executable):
-                    box.label(text="This executable does not exist!", icon="ERROR")
+                global godot_engine_ok
+                if not godot_engine_ok:
+                    box.label(text="Set godot executable path", icon="ERROR")
 
 def register():
     bpy.msgbus.subscribe_rna(
