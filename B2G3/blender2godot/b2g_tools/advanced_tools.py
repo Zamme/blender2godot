@@ -315,6 +315,24 @@ class ExportGameOperator(bpy.types.Operator):
             outfile.write(self.data_colliders + '\n')
         context.window.scene = _last_scene
     
+    def export_environment(self, context, _scene):
+        # TODO : sky
+        _dict = my_dictionary()
+        if _scene.world:
+            if _scene.world.use_nodes:
+                _nodes = _scene.world.node_tree.nodes
+                for _node in _nodes:
+                    if _node.bl_idname == "ShaderNodeBackground":
+                        _background_color = _node.inputs[0].default_value
+                        #_surface_input = _node.inputs["Surface"]
+                _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
+            else:
+                _color_string = str(_scene.world.color[0]) + "," + str(_scene.world.color[1]) + "," + str(_scene.world.color[2])
+            _dict.add("Color", _color_string)
+        else:
+            _dict = "None"
+        return _dict
+
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
         self.infos_dirpath = os.path.join(context.scene.project_folder, INFOS_FOLDER_NAME)
@@ -344,6 +362,7 @@ class ExportGameOperator(bpy.types.Operator):
                             _temp_dict.add("PlayerSpawnObjectName", "")
                         else:
                             _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
+                        _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
                         self.dict_stages_info.add(_sc_index, _temp_dict)
                         _sc_index += 1                            
                     case "player":
@@ -390,16 +409,7 @@ class ExportGameOperator(bpy.types.Operator):
         _color_string = str(context.scene.splash_bgcolor[0]) + "," + str(context.scene.splash_bgcolor[1]) + "," + str(context.scene.splash_bgcolor[2]) + "," + str(context.scene.splash_bgcolor[3])
         self.app_settings_dict.add("application/boot_splash/bg_color", _color_string)
         # Default environment
-        if context.scene.world.use_nodes:
-            _nodes = context.scene.world.node_tree.nodes
-            for _node in _nodes:
-                if _node.bl_idname == "ShaderNodeBackground":
-                    _background_color = _node.color
-                    #_surface_input = _node.inputs["Surface"]
-            _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
-        else:
-            _color_string = str(context.scene.world.color[0]) + "," + str(context.scene.world.color[1]) + "," + str(context.scene.world.color[2])
-        self.default_environment_dict.add("Color", _color_string)
+        self.default_environment_dict = self.export_environment(context, context.scene)
 
         # Add all dicts
         self.dict_godot_project_settings.add("AppSettings", self.app_settings_dict)
@@ -613,6 +623,8 @@ class ExportGameOperator(bpy.types.Operator):
                     _action_parameter_rename = _pref_param + _obj.special_object_info.action_parameter
                     _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
         _temp_dict.add("SpecialObjects", _special_objects)
+        # ENVIRONMENT
+        _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
         # ADD DICT TO INFO
         self.dict_menus3d_info.add(_sc_added.name, _temp_dict)
 

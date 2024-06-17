@@ -477,6 +477,17 @@ func apply_new_config():
 	ProjectSettings.set_setting("application/run/main_scene", GAMEMANAGER_FILEPATH)
 	ProjectSettings.save()
 
+func create_environment(_environment_json):
+	var _new_world_environment : WorldEnvironment = WorldEnvironment.new()
+	_new_world_environment.name = "world_environment"
+	var _new_environment : Environment = Environment.new()
+	_new_environment.background_mode = Environment.BG_COLOR
+	var _splits = _environment_json["Color"].split(",")
+	var _color : Color = Color(_splits[0], _splits[1], _splits[2])
+	_new_environment.background_color = _color
+	_new_world_environment.environment = _new_environment
+	return _new_world_environment
+
 func clear_lights(_scene):
 	print("Clearing lights...")
 	for _light in lights_to_remove_from_scene:
@@ -609,6 +620,11 @@ func create_menus3d(_files_to_import):
 					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
 					_new_menu.add_child(_new_camera)
 					_new_camera.set_owner(_new_menu)
+					if _menus3d_json[_key].has("DefaultEnvironment"):
+						if _menus3d_json[_key]["DefaultEnvironment"] is Dictionary:
+							var _new_world_environment = create_environment(_menus3d_json[_key]["DefaultEnvironment"])
+							_new_menu.add_child(_new_world_environment)
+							_new_world_environment.set_owner(_new_menu)
 					yield(get_tree(),"idle_frame")
 					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
 					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
@@ -741,6 +757,11 @@ func create_stages(_files_to_import):
 					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 					_new_stage.player_spawn_name = _stages_json[_key]["PlayerSpawnObjectName"]
+					if _stages_json[_key].has("DefaultEnvironment"):
+						if _stages_json[_key]["DefaultEnvironment"] is Dictionary:
+							var _new_world_environment = create_environment(_stages_json[_key]["DefaultEnvironment"])
+							_new_stage.add_child(_new_world_environment)
+							_new_world_environment.set_owner(_new_stage)
 					self.repack_scene(_new_stage, _new_stage_path)
 					break
 
