@@ -485,6 +485,10 @@ func create_environment(_environment_json):
 	var _splits = _environment_json["Color"].split(",")
 	var _color : Color = Color(_splits[0], _splits[1], _splits[2])
 	_new_environment.background_color = _color
+	if _environment_json.has("Sky"):
+		_new_environment.background_mode = Environment.BG_SKY
+		var _proc_sky : ProceduralSky = ProceduralSky.new()
+		_new_environment.background_sky = _proc_sky
 	_new_world_environment.environment = _new_environment
 	return _new_world_environment
 

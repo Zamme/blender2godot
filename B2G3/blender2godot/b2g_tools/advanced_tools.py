@@ -41,6 +41,10 @@ LOADING_INFO_FILENAME = "loadings_info.json"
 LIGHTS_INFO_FILENAME = "lights_info.json"
 GODOT_PROJECT_SETTINGS_INFO_FILENAME = "godot_project_settings.json"
 
+def Vector3ToString(_vector3):
+    _string = str(_vector3[0]) + "," + str(_vector3[1]) + "," + str(_vector3[2])
+    return _string
+
 class my_dictionary(dict): 
     # __init__ function 
     def __init__(self): 
@@ -317,20 +321,46 @@ class ExportGameOperator(bpy.types.Operator):
     
     def export_environment(self, context, _scene):
         # TODO : sky
+        print("Exporting environment ...")
         _dict = my_dictionary()
+        _sky = None
+        _skydict = my_dictionary()
         if _scene.world:
             if _scene.world.use_nodes:
-                _nodes = _scene.world.node_tree.nodes
-                for _node in _nodes:
-                    if _node.bl_idname == "ShaderNodeBackground":
-                        _background_color = _node.inputs[0].default_value
-                        #_surface_input = _node.inputs["Surface"]
-                _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
+                _background_color = None
+                _color_string = ""
+                _world_nodes = _scene.world.node_tree.nodes
+                for _world_node in _world_nodes:
+                    print("Scanning node:", _world_node.bl_idname)
+                    if _world_node.bl_idname == "ShaderNodeOutputWorld":
+                        print("World output:", _world_node.name)
+                        _surface_socket = _world_node.inputs["Surface"]
+                        _surface_socket_links = _surface_socket.links
+                        for _sslink in _surface_socket_links:
+                            if _sslink.from_node.bl_idname == "ShaderNodeBackground":
+                                _bg_node = _sslink.from_node
+                                _background_color = _bg_node.inputs["Color"].default_value
+                                _bg_color_input = _bg_node.inputs["Color"]
+                                if len(_bg_color_input.links) > 0:
+                                    if _bg_color_input.links[0].from_node.bl_idname == "ShaderNodeTexSky":
+                                        print("Sky found!", _bg_color_input.links[0].from_node.name)
+                                        _sky = _bg_color_input.links[0].from_node
+                if _background_color is not None:
+                    _color_string = str(_background_color[0]) + "," + str(_background_color[1]) + "," + str(_background_color[2])
+                if _sky:
+                    _skydict.add("Type", _sky.sky_type)
+                    _skydict.add("SunDirection", Vector3ToString(_sky.sun_direction))
+                    _skydict.add("SunElevation", _sky.sun_elevation)
+                    _skydict.add("SunIntensity", _sky.sun_intensity)
+                    _skydict.add("SunRotation", _sky.sun_rotation)
+                    _skydict.add("SunSize", _sky.sun_size)
+                    _dict.add("Sky", _skydict)
             else:
                 _color_string = str(_scene.world.color[0]) + "," + str(_scene.world.color[1]) + "," + str(_scene.world.color[2])
             _dict.add("Color", _color_string)
         else:
             _dict = "None"
+        print("Environment exported.")
         return _dict
 
     def export_game_project(self, context):
