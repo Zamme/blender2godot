@@ -21,9 +21,21 @@ For splash properties
 """
 
 import os
-import shutil
 
 import bpy
+
+
+# TODO: FLICKERING ISSUE
+def load_splash_image(self, context):
+    print("splash:", context.scene.splash_image)
+    if os.path.isfile(context.scene.splash_image):
+        _image = bpy.data.images.load(context.scene.splash_image, check_existing=True)
+        if bpy.data.textures.find("SplashImage") == -1:
+            bpy.data.textures.new(name="SplashImage", type="IMAGE")
+        bpy.data.textures["SplashImage"].image = _image #bpy.data.images[os.path.basename(context.scene.splash_image)]
+        bpy.data.textures["SplashImage"].extension = 'CLIP'
+        bpy.data.textures["SplashImage"].use_fake_user = True
+
 
 class SplashPropertiesPanel(bpy.types.Panel):
     """Splash Properties Panel"""
@@ -46,7 +58,6 @@ class SplashPropertiesPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        blend_data = context.blend_data
         
         if not bpy.data.is_saved:       
             return
@@ -61,7 +72,17 @@ class SplashPropertiesPanel(bpy.types.Panel):
         # Splash properties box
         box1.prop(scene, "splash_showimage", text="Image")
         if scene.splash_showimage:
-            box1.prop(scene, "splash_imagefilepath")
+            row3 = box1.row()
+            row3.prop(scene, "splash_image", icon="IMAGE")
+            if not scene.splash_image.endswith(".png"):
+                row4 = box1.row()
+                row4.label(text="Splash image must be a png image!", icon="CANCEL")
+            else:
+                row4 = box1.row()
+                if bpy.data.textures.find("SplashImage") > -1:
+                    row4.alignment = "CENTER"
+                    row4.template_preview(bpy.data.textures["SplashImage"], preview_id="SplashImagePreview")
+                    #row4.template_icon(bpy.data.textures["SplashImage"].)
         row2 = layout.row()
         box2 = row2.box()
         box2.prop(scene, "splash_fullsize")
@@ -71,14 +92,14 @@ class SplashPropertiesPanel(bpy.types.Panel):
 def init_properties():
     # Splash vars
     bpy.types.Scene.splash_showimage = bpy.props.BoolProperty(name="Show splash image", default=True)
-    bpy.types.Scene.splash_imagefilepath = bpy.props.StringProperty(name="Splash Image Filepath", subtype="FILE_PATH", default="res://icon.png")
+    bpy.types.Scene.splash_image = bpy.props.StringProperty(name="Splash Image", subtype="FILE_PATH", default=" ", update=load_splash_image)
     bpy.types.Scene.splash_fullsize = bpy.props.BoolProperty(name="Full size", default=False)
     bpy.types.Scene.splash_usefilter = bpy.props.BoolProperty(name="Use filter", default=False)
     bpy.types.Scene.splash_bgcolor = bpy.props.FloatVectorProperty(name="BG Color", subtype = "COLOR", default = (0.0,0.0,0.0,1.0), min = 0.0, max = 1.0, size = 4)
 
 def clear_properties():
     del bpy.types.Scene.splash_showimage
-    del bpy.types.Scene.splash_imagefilepath
+    del bpy.types.Scene.splash_image
     del bpy.types.Scene.splash_fullsize
     del bpy.types.Scene.splash_usefilter
     del bpy.types.Scene.splash_bgcolor

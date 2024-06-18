@@ -225,8 +225,8 @@ class B2G_ToolsPanel(bpy.types.Panel):
             layout.enabled = True
 
         # Game structure
-        row = layout.row()
-        box0 = row.box()
+        row1 = layout.row()
+        box0 = row1.box()
         box1 = box0.box()
         box1.label(text="Check scenes to export")
         if len(bpy.data.scenes) > 0:
@@ -236,28 +236,34 @@ class B2G_ToolsPanel(bpy.types.Panel):
             box1.label(text="No scenes to add")
 
         # Export project to godot button
-        if (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene == None):
+        self._err_detected = False
+        if (context.scene.startup_scene == None):
             box1.label(text="Select startup scene", icon="ERROR")
-            return
-        elif (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.name == "B2G_GameManager"):
+            self._err_detected = True
+        if (context.scene.startup_scene.name == "B2G_GameManager"):
             box1.label(text="Startup scene can't be Game Manager", icon="ERROR")
-            return
-        elif hasattr(bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene, "scene_type"):
-            if (bpy.data.scenes[context.scene.gamemanager_scene_name].startup_scene.scene_type == "player"):
+            self._err_detected = True
+        if hasattr(context.scene.startup_scene, "scene_type"):
+            if (context.scene.startup_scene.scene_type == "player"):
                 box1.label(text="Startup scene can't be a player", icon="ERROR")
-                return
+                self._err_detected = True
+        if (context.scene.godot_engine_ok == False):
+            box1.label(text="Godot Engine is not set", icon="ERROR")
+            self._err_detected = True
 
-        row = box0.row()
-        row.scale_y = 2.0
-        row.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
-        
-        row = layout.row()
-        row.alignment="CENTER"
-        row.prop(context.scene, 'advanced_tools', icon="PLUS")
-        
+        row2 = box0.row()
+        row2.scale_y = 2.0
+        row2.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
+        row2.enabled = not self._err_detected
+
+        row3 = layout.row()
+        row3.alignment="CENTER"
+        row3.prop(context.scene, 'advanced_tools', icon="PLUS")
+        row3.enabled = not self._err_detected
+
         if context.scene.advanced_tools:
-            row2 = layout.row()
-            box2 = row2.box()
+            row4 = layout.row()
+            box2 = row4.box()
             # Create project button
             box2.operator("scene.create_godot_project_operator", icon="PRESET_NEW")
             if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
@@ -266,6 +272,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
                 # Open godot project button
                 box2.operator("scene.open_godot_project_operator", icon="GHOST_ENABLED")
                 box2.operator("scene.open_godot_project_folder_operator", icon="FOLDER_REDIRECT")
+            row4.enabled = not self._err_detected
 
 class ExportGameOperator(bpy.types.Operator):
     """Export Game Operator"""
@@ -432,7 +439,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.display_settings_dict.add("display/window/size/always_on_top", context.scene.display_alwaysontop)
         # Boot splash settings
         self.app_settings_dict.add("application/boot_splash/show_image", context.scene.splash_showimage)
-        self.app_settings_dict.add("application/boot_splash/image", context.scene.splash_imagefilepath)
+        self.app_settings_dict.add("application/boot_splash/image", context.scene.splash_image)
         self.app_settings_dict.add("application/boot_splash/fullsize", context.scene.splash_fullsize)
         self.app_settings_dict.add("application/boot_splash/use_filter", context.scene.splash_usefilter)
         _color_string = str(context.scene.splash_bgcolor[0]) + "," + str(context.scene.splash_bgcolor[1]) + "," + str(context.scene.splash_bgcolor[2]) + "," + str(context.scene.splash_bgcolor[3])

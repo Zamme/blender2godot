@@ -78,16 +78,13 @@ def get_templates_info(self, context, template_name):
     return _template_info
 
 def load_game_icon(self, context):
-    texture = None
     if os.path.isfile(context.scene.game_icon):
-        img = bpy.data.images.load(context.scene.game_icon, check_existing=True)
+        bpy.data.images.load(context.scene.game_icon, check_existing=True)
         if bpy.data.textures.find("gameIconImage") == -1:
-            texture = bpy.data.textures.new(name="gameIconImage", type="IMAGE")
-        else:
-            texture = bpy.data.textures["gameIconImage"]
-        texture.image = img
-        tex = bpy.data.textures['gameIconImage']
-        tex.extension = 'CLIP'
+            bpy.data.textures.new(name="gameIconImage", type="IMAGE")
+        bpy.data.textures["gameIconImage"].image = bpy.data.images[os.path.basename(context.scene.game_icon)]
+        bpy.data.textures["gameIconImage"].extension = 'CLIP'
+        bpy.data.textures["gameIconImage"].use_fake_user = True
 
 def update_scene_exportable(self, context):
     print("Updatting exportable", context.scene.scene_type)
@@ -187,7 +184,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
             if bpy.data.textures.find("gameIconImage") > -1:
                 row1 = box2.row()
                 row1.alignment = "CENTER"
-                row1.template_preview(bpy.data.textures["gameIconImage"])
+                row1.template_preview(bpy.data.textures["gameIconImage"], preview_id="GameIconPreview")
         #box1.prop(scene, "project_template", icon="SHADERFX")
         #box1.prop(scene, "scene_environment", text="Default environment")
 

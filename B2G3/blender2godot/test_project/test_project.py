@@ -166,7 +166,10 @@ class TestGamePanel(bpy.types.Panel):
         box = row.box()
         if (os.path.isdir(context.scene.project_folder) and (context.scene.godot_export_ok)):
             row.alignment="CENTER"
-            box.operator("scene.test_project_game_operator", icon="PLAY")
+            if bpy.data.scenes[context.scene.gamemanager_scene_name].godot_engine_ok:
+                box.operator("scene.test_project_game_operator", icon="PLAY")
+            else:
+                box.label(text="Godot Engine not set", icon="ERROR")
             if os.path.isfile(context.scene.web_exe_filepath + ".html"):
                 global testing
                 if testing:

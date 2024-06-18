@@ -458,17 +458,12 @@ func apply_new_config():
 	for _key in _godot_project_settings_json["DisplaySettings"].keys():
 		ProjectSettings.set_setting(_key, _godot_project_settings_json["DisplaySettings"][_key])
 	# Default environment
-	var _filepath : String = "res://default_env.tres"
-	var _env : Environment = load(_filepath)
-	for _key in _godot_project_settings_json["DefaultEnvironment"].keys():
-		var _value = _godot_project_settings_json["DefaultEnvironment"][_key]
-		match _key:
-			"Color":
-				_env.background_mode = Environment.BG_COLOR
-				var _splits = _value.split(",")
-				var _color : Color = Color(_splits[0], _splits[1], _splits[2])
-				_env.background_color = Color(_splits[0], _splits[1], _splits[2], 1.0)
-	ResourceSaver.save(_filepath, _env)
+	if typeof(_godot_project_settings_json["DefaultEnvironment"]) == TYPE_STRING:
+		pass
+	else:
+		var _filepath : String = "res://default_env.tres"
+		var _env : Environment = create_environment(_godot_project_settings_json["DefaultEnvironment"]).environment
+		ResourceSaver.save(_filepath, _env)
 
 	
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()

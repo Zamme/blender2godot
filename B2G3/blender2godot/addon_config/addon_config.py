@@ -34,26 +34,32 @@ subscribe_to = bpy.types.Window, "scene"
 global preview_collections
 preview_collections = []
 
-global godot_engine_ok
-godot_engine_ok = False
 
 def check_godot(self, context):
-    global godot_engine_ok
-    godot_engine_ok = False
+    context.scene.godot_engine_ok = False
     print("Checking", self.godot_executable)
     if os.path.isfile(self.godot_executable):
         _filename = os.path.basename(self.godot_executable)
         if _filename.startswith("Godot"):
-            _result = subprocess.run([self.godot_executable, "--version"], capture_output=True, text=True)
-            if _result.returncode == 0:
-                if _result.stdout.startswith("3.5"):
-                    print("Godot Engine version 3.5 OK")
-                elif _result.stdout.startswith("4."):
-                    print("Godot Engine version 4.x OK")
-                godot_engine_ok = True
+            _result = None
+            try:
+                _result = subprocess.run([self.godot_executable, "--version"], capture_output=True, text=True)
+                #print("Type:", type(_result))
+            except:
+                context.scene.godot_engine_ok = False
             else:
-                print("Godot Engine Error")
-                godot_engine_ok = False
+                if type(_result) is subprocess.CompletedProcess:
+                    if _result.returncode == 0:
+                        if _result.stdout.startswith("3.5"):
+                            print("Godot Engine version 3.5 OK")
+                        elif _result.stdout.startswith("4."):
+                            print("Godot Engine version 4.x OK")
+                        context.scene.godot_engine_ok = True
+                    else:
+                        print("Godot Engine Error")
+                        context.scene.godot_engine_ok = False
+                else:
+                    context.scene.godot_engine_ok = False
 
 def load_custom_icons():
     custom_icons = previews.new()
@@ -84,8 +90,10 @@ def msgbus_callback(*args):
 
 def init_properties():
     bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine", update=check_godot)  
+    bpy.types.Scene.godot_engine_ok = bpy.props.BoolProperty(name="Godot OK", default=False)
 
 def clear_properties():
+    del bpy.types.Scene.godot_engine_ok
     del bpy.types.Scene.godot_executable
     for pcoll in preview_collections:
         bpy.utils.previews.remove(pcoll)
@@ -148,7 +156,6 @@ class Blender2GodotPanel(bpy.types.Panel):
             layout.enabled = True
 
         scene = context.scene
-        blend_data = context.blend_data
         if not self._gamemanager_added:
             row = layout.row()
             box = row.box()
@@ -167,9 +174,12 @@ class Blender2GodotPanel(bpy.types.Panel):
                 row2.operator("scene.saveblendfile_operator", text="Save File")
             else:
                 box.prop(scene, "godot_executable", icon="FILE")
-                global godot_engine_ok
-                if not godot_engine_ok:
-                    box.label(text="Set godot executable path", icon="ERROR")
+                row3 = box.row()
+                row3.alignment="CENTER"
+                if context.scene.godot_engine_ok:
+                    row3.label(text="Godot Engine OK", icon_value=preview_collections[0]["ok_green"].icon_id)
+                else:
+                    row3.label(text="Set godot executable path", icon_value=preview_collections[0]["error_yellow"].icon_id)
 
 def register():
     bpy.msgbus.subscribe_rna(
