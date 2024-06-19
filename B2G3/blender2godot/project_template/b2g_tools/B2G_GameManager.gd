@@ -14,6 +14,10 @@ export var current_player_name : String = ""
 var b2g_current_scene
 var current_state = GameState.None
 
+# DEBUG
+const B2G_HUD_FILEPATH = "res://b2g_tools/B2G_HUD.tscn"
+var b2g_hud
+
 
 func _ready():
 	print("GameManager Loaded")
@@ -22,6 +26,9 @@ func _ready():
 	else:
 		load_scene(startup_scene_filepath)
 		set_state(GameState.Starting)
+	# DEBUG
+	add_b2g_hud()
+	show_message("Debug hud enabled")
 
 static func get_all_children(in_node,arr:=[]):
 	arr.push_back(in_node)
@@ -38,7 +45,11 @@ func load_menu3d():
 func load_scene(_new_scene_path : String = "", _unload_current : bool = false):
 	if _unload_current:
 		b2g_current_scene.queue_free()
-	b2g_current_scene = load(_new_scene_path).instance()
+	var _file : File = File.new()
+	if _file.file_exists(_new_scene_path):
+		b2g_current_scene = load(_new_scene_path).instance()
+	else:
+		b2g_current_scene = Spatial.new()
 	add_child(b2g_current_scene)
 
 func load_stage():
@@ -62,3 +73,11 @@ func update_state():
 			pass
 		GameState.Finished:
 			pass
+
+	# DEBUG
+func add_b2g_hud():
+	b2g_hud = load(B2G_HUD_FILEPATH).instance()
+	add_child(b2g_hud)
+
+func show_message(_text):
+	b2g_hud.show_message(_text)

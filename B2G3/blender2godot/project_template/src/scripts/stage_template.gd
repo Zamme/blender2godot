@@ -39,6 +39,8 @@ const HUD_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "hud_behavior.gd"
 const MENUS2D_PATH = SCENES_PATH + "menus2d/"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
 const MENUS2D_BEHAVIOR_FILEPATH = B2G_TOOLS_PATH + "B2G_Pause.gd"
+const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
+const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const INFOS_DIRPATH = "res://infos/"
@@ -69,6 +71,7 @@ var matrix_offset : Vector3
 var lights_to_remove_from_scene = []
 
 var quit_timer : Timer
+var _start_scene_path : String
 
 # JSONS
 var _stages_json
@@ -82,6 +85,7 @@ var _godot_project_settings_json
 
 
 func _ready():
+	var mounted_scenes : bool
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
@@ -93,8 +97,7 @@ func _ready():
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
 			_godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
-			if !self.mount_scenes():
-				return
+			mounted_scenes = self.mount_scenes()
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
 			yield(get_tree(),"idle_frame")
@@ -431,7 +434,6 @@ func apply_import_changes_to_list(scenes_list, path):
 
 func apply_new_config():
 	var startup_scene_type : String
-	var _start_scene_path : String
 	# Other settings
 	for _key in _godot_project_settings_json["OtherSettings"].keys():
 		match _key:
@@ -464,8 +466,7 @@ func apply_new_config():
 		var _filepath : String = "res://default_env.tres"
 		var _env : Environment = create_environment(_godot_project_settings_json["DefaultEnvironment"]).environment
 		ResourceSaver.save(_filepath, _env)
-
-	
+	# Gamemanager
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()
 	_gm.startup_scene_filepath = _start_scene_path
 	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
@@ -545,7 +546,9 @@ func create_gamemanager():
 	var _new_gamemanager : Spatial = Spatial.new()
 	_new_gamemanager.name = GAMEMANAGER_NAME
 	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
-	_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
+	if _player_json.has("PlayerSceneName"):
+		_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
+#		_new_gamemanager.startup_scene_filepath = _start_scene_path
 	self.repack_scene(_new_gamemanager, GAMEMANAGER_FILEPATH)
 
 func create_huds():
@@ -837,7 +840,6 @@ func mount_scenes():
 	import_files(files_to_import)
 	if (len(files_to_import) < 1):
 		print("Mount scenes finished with no imported files")
-		return false
 	else:
 		print("Imported files: ", len(files_to_import))
 	
@@ -876,11 +878,11 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 			_new_pool_vector.append(_new_vector)
 		_new_collision_polygon2d.polygon = _new_pool_vector
 		_new_polygon2d.polygon = _new_pool_vector
-		_new_polygon2d.color = GameManager.SELECTED_OBJECT_OVERLAY_COLOR
+		_new_polygon2d.color = SELECTED_OBJECT_OVERLAY_COLOR
 		# Actions
 		match _menu_objects[_menu_object_key]["Type"]:
 			"button":
-				_new_area2d.script = load(GameManager.MENU2D_BUTTON_BEHAVIOR_PATH)
+				_new_area2d.script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
 				_new_area2d.action_to_do = _menu_objects[_menu_object_key]["Action"]
 				_new_area2d.action_parameter = _menu_objects[_menu_object_key]["ActionParameter"]
 			"check":

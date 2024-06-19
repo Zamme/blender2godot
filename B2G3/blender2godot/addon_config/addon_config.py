@@ -180,6 +180,11 @@ class Blender2GodotPanel(bpy.types.Panel):
                     row3.label(text="Godot Engine OK", icon_value=preview_collections[0]["ok_green"].icon_id)
                 else:
                     row3.label(text="Set godot executable path", icon_value=preview_collections[0]["error_yellow"].icon_id)
+                    row4 = box.row()
+                    box2 = row4.box()
+                    box2.label(text="If you have no Godot installed...", icon="HELP")
+                    row5 = box2.row()
+                    box2.operator("wm.url_open", text="Download Godot").url = "https://godotengine.org/download/3.x/"
 
 def register():
     bpy.msgbus.subscribe_rna(

@@ -34,7 +34,7 @@ from blender2godot.addon_config import addon_config # type: ignore
 
 t1 = None
 t2 = None
-testing = None
+testing = False
 handler = None
 server = None
 output = None
@@ -170,7 +170,7 @@ class TestGamePanel(bpy.types.Panel):
                 box.operator("scene.test_project_game_operator", icon="PLAY")
             else:
                 box.label(text="Godot Engine not set", icon="ERROR")
-            if os.path.isfile(context.scene.web_exe_filepath + ".html"):
+            if os.path.isfile(context.scene.web_exe_filepath):
                 global testing
                 if testing:
                     box.operator("scene.stop_test_browser_game_operator", icon="CANCEL")

@@ -409,6 +409,7 @@ class ExportGameOperator(bpy.types.Operator):
                         self.export_menu3d_dict(context, _sc_added)
         #bpy.ops.scene.set_godot_project_environment_operator()
         self.export_stages_info(context)
+        self.export_players_info(context)
         self.export_menus2d_info(context)
         self.export_menus3d_info(context)
         self.export_huds_info(context)
@@ -672,16 +673,16 @@ class ExportGameOperator(bpy.types.Operator):
 
     def export_player_info(self, context, _player_scene):
         print("Exporting player...")
-        self.find_players_info_file_path(context)
         # GENERAL PROPS
-        self.dict_players_info.add("PlayerSceneName", _player_scene.name)
-        self.dict_players_info.add("GravityOn", _player_scene.player_gravity_on)
+        self.dict_player_info = my_dictionary()
+        self.dict_player_info.add("PlayerSceneName", _player_scene.name)
+        self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
         # DIMENSIONS
-        self.dict_players_info.add("PlayerDimensions", {"DimX" : _player_scene.player_object.dimensions.x,
+        self.dict_player_info.add("PlayerDimensions", {"DimX" : _player_scene.player_object.dimensions.x,
                                                        "DimY" : _player_scene.player_object.dimensions.y,
                                                        "DimZ" : _player_scene.player_object.dimensions.z})
         # PLAYER CAMERA
-        self.dict_players_info.add("PlayerCameraObject", {"CameraName" : _player_scene.camera_object.name,
+        self.dict_player_info.add("PlayerCameraObject", {"CameraName" : _player_scene.camera_object.name,
                                                          "PosX" : _player_scene.camera_object.location.x,
                                                          "PosY" : _player_scene.camera_object.location.y,
                                                          "PosZ" : _player_scene.camera_object.location.z,
@@ -694,7 +695,7 @@ class ExportGameOperator(bpy.types.Operator):
         _animation_dictionary = my_dictionary()
         for _player_action in bpy.data.actions:
             _animation_dictionary.add(_player_action.animation_type , _player_action.name)
-        self.dict_players_info.add("PlayerAnimations", _animation_dictionary)
+        self.dict_player_info.add("PlayerAnimations", _animation_dictionary)
         # CONTROLS
         _controls_dictionary = my_dictionary()
         for _control_setting in _player_scene.controls_settings:
@@ -707,19 +708,24 @@ class ExportGameOperator(bpy.types.Operator):
                             _mot_input.motion_input_modifier]
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
-        self.dict_players_info.add("PlayerControls", _controls_dictionary)
+        self.dict_player_info.add("PlayerControls", _controls_dictionary)
         # ACTIONS
         _actions_dictionary = my_dictionary()
         for _action_setting in _player_scene.actions_settings:
             _actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
-        self.dict_players_info.add("PlayerActions", _actions_dictionary)
+        self.dict_player_info.add("PlayerActions", _actions_dictionary)
         # HUD
         _hud_dictionary = my_dictionary()
         _hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
-        self.dict_players_info.add("PlayerHUD", _hud_dictionary)
+        self.dict_player_info.add("PlayerHUD", _hud_dictionary)
         # PAUSE MENU
-        self.dict_players_info.add("PauseMenu", _player_scene.pause_menu2d)
+        self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
+        # ADD to global
+        self.dict_players_info.add(_player_scene.name, self.dict_player_info)
+
+    def export_players_info(self, context):
         # EXPORT JSON
+        self.find_players_info_file_path(context)
         self.data_players_info = json.dumps(self.dict_players_info, indent=1, ensure_ascii=True)
         with open(self.players_info_filepath, 'w') as outfile:
             outfile.write(self.data_players_info + '\n')   
