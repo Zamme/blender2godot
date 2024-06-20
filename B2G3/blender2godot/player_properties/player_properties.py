@@ -468,7 +468,8 @@ class PlayerActionsPanel(bpy.types.Panel):
         _ret = False
         if hasattr(context.scene, "scene_type"):
             if (context.scene.scene_type == "player"):
-                _ret = True
+                if context.scene.player_object:
+                    _ret = True
         return _ret
     
     def draw_header(self, context):
@@ -509,7 +510,8 @@ class PlayerAnimationsPanel(bpy.types.Panel):
         _ret = False
         if hasattr(context.scene, "scene_type"):
             if (context.scene.scene_type == "player"):
-                _ret = True
+                if context.scene.player_object:
+                    _ret = True
         return _ret
     
     def draw_header(self, context):
@@ -558,7 +560,8 @@ class PlayerControlsPanel(bpy.types.Panel):
         _ret = False
         if hasattr(context.scene, "scene_type"):
             if (context.scene.scene_type == "player"):
-                _ret = True
+                if context.scene.player_object:
+                    _ret = True
         return _ret
     
     def draw_header(self, context):

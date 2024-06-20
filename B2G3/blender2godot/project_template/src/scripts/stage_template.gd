@@ -75,7 +75,8 @@ var _start_scene_path : String
 
 # JSONS
 var _stages_json
-var _player_json
+var _players_json
+var _player_json # TODO: PENDING TO FIX MULTI
 var _menus3d_json
 var _colliders_json
 var _lights_json
@@ -90,7 +91,8 @@ func _ready():
 		print("Stage template present!")
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
 			_stages_json = read_json_file(STAGES_INFO_JSON_PATH)
-			_player_json = read_json_file(PLAYER_INFO_JSON_PATH)
+			_players_json = read_json_file(PLAYER_INFO_JSON_PATH)
+			_player_json = _players_json[_players_json.keys()[0]]
 			_menus3d_json = read_json_file(MENUS3D_INFO_JSON_PATH)
 			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)

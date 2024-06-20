@@ -29,8 +29,7 @@ var GAMEPAD_AXIS_SENSITIVITY = 25.0
 
 
 
-#var player_json
-var player_mesh : PlayerMesh
+var player_mesh
 var _hud
 var mouse_rotation_axises = [false, false, false, false]
 
@@ -61,12 +60,13 @@ func add_hud():
 		add_child(_hud)
 
 func animate():
-	if vel.z > 0.1:
-		player_mesh._play_animation(_animations["forward"])
-	elif vel.z < -0.1:
-		player_mesh._play_animation(_animations["backward"])
-	else:
-		player_mesh._play_animation(_animations["idle"])
+	if player_mesh:
+		if vel.z > 0.1:
+			player_mesh._play_animation(_animations["forward"])
+		elif vel.z < -0.1:
+			player_mesh._play_animation(_animations["backward"])
+		else:
+			player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
 	print(PAUSE_MENU_PATH)

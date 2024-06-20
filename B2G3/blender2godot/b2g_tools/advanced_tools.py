@@ -27,6 +27,7 @@ import shutil
 import imghdr
 
 import bpy
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 INFOS_FOLDER_NAME = "infos"
@@ -236,30 +237,33 @@ class B2G_ToolsPanel(bpy.types.Panel):
             box1.label(text="No scenes to add")
 
         # Export project to godot button
-        self._err_detected = False
-        if (context.scene.startup_scene == None):
-            box1.label(text="Select startup scene", icon="ERROR")
-            self._err_detected = True
-        if (context.scene.startup_scene.name == "B2G_GameManager"):
-            box1.label(text="Startup scene can't be Game Manager", icon="ERROR")
-            self._err_detected = True
-        if hasattr(context.scene.startup_scene, "scene_type"):
-            if (context.scene.startup_scene.scene_type == "player"):
-                box1.label(text="Startup scene can't be a player", icon="ERROR")
-                self._err_detected = True
-        if (context.scene.godot_engine_ok == False):
-            box1.label(text="Godot Engine is not set", icon="ERROR")
-            self._err_detected = True
-
         row2 = box0.row()
         row2.scale_y = 2.0
         row2.operator("scene.export_project_to_godot_operator", icon="EXPORT")        
-        row2.enabled = not self._err_detected
+        #row2.enabled = (len(context.scene.current_export_issues) == 0)
+        # ERRORS
+        row5 = box0.row()
+        if (len(context.scene.current_export_errors) == 0):
+            row5.label(text="No errors", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
+        else:
+            #row5.label(text="Errors:", icon="CANCEL")
+            for _issue in context.scene.current_export_errors:
+                _new_row = box0.row()
+                _new_row.label(text=_issue.description, icon="CANCEL")
+        # WARNINGS
+        row6 = box0.row()
+        if (len(context.scene.current_export_warnings) == 0):
+            row6.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
+        else:
+            #row6.label(text="Last export warnings:", icon="ERROR")
+            for _issue in context.scene.current_export_warnings:
+                _new_row = box0.row()
+                _new_row.label(text=_issue.description, icon="ERROR")
 
         row3 = layout.row()
         row3.alignment="CENTER"
         row3.prop(context.scene, 'advanced_tools', icon="PLUS")
-        row3.enabled = not self._err_detected
+        #row3.enabled = not self._err_detected
 
         if context.scene.advanced_tools:
             row4 = layout.row()
@@ -272,7 +276,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
                 # Open godot project button
                 box2.operator("scene.open_godot_project_operator", icon="GHOST_ENABLED")
                 box2.operator("scene.open_godot_project_folder_operator", icon="FOLDER_REDIRECT")
-            row4.enabled = not self._err_detected
+            #row4.enabled = not self._err_detected
 
 class ExportGameOperator(bpy.types.Operator):
     """Export Game Operator"""
@@ -302,7 +306,7 @@ class ExportGameOperator(bpy.types.Operator):
     dict_huds_info = my_dictionary()
 
     controls_list = get_controls_list()
-    
+  
     def check_custom_icon(self, context):
         _checked = False
         if os.path.exists(context.scene.game_icon):
@@ -429,8 +433,9 @@ class ExportGameOperator(bpy.types.Operator):
         # Config name
         self.app_settings_dict.add("application/config/name", context.scene.game_name)
         # Startup scene
-        self.other_settings_dict.add("startup_scene_type", context.scene.startup_scene.scene_type)
-        self.app_settings_dict.add("application/run/main_scene", context.scene.startup_scene.name)
+        if context.scene.startup_scene:
+            self.other_settings_dict.add("startup_scene_type", context.scene.startup_scene.scene_type)
+            self.app_settings_dict.add("application/run/main_scene", context.scene.startup_scene.name)
         # Display settings
         self.display_settings_dict.add("display/window/size/width", bpy.data.scenes["B2G_GameManager"].render.resolution_x)
         self.display_settings_dict.add("display/window/size/height", bpy.data.scenes["B2G_GameManager"].render.resolution_y)
@@ -682,7 +687,8 @@ class ExportGameOperator(bpy.types.Operator):
                                                        "DimY" : _player_scene.player_object.dimensions.y,
                                                        "DimZ" : _player_scene.player_object.dimensions.z})
         # PLAYER CAMERA
-        self.dict_player_info.add("PlayerCameraObject", {"CameraName" : _player_scene.camera_object.name,
+        if _player_scene.camera_object:
+            self.dict_player_info.add("PlayerCameraObject", {"CameraName" : _player_scene.camera_object.name,
                                                          "PosX" : _player_scene.camera_object.location.x,
                                                          "PosY" : _player_scene.camera_object.location.y,
                                                          "PosZ" : _player_scene.camera_object.location.z,
@@ -853,6 +859,8 @@ def clear_properties():
     del bpy.types.Scene.startup_scene
     del bpy.types.Scene.scenes_added_index
     del bpy.types.Scene.advanced_tools
+    del bpy.types.Scene.godot_export_ok
+    del bpy.types.Scene.godot_exporting
 
 def register():
     init_properties()
