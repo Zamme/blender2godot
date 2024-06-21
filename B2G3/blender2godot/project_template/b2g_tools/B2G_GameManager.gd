@@ -10,6 +10,7 @@ enum GameState {None, Starting, Loading, Menu, Playing, Pause, Finished}
 
 export var startup_scene_filepath : String = ""
 export var current_player_name : String = ""
+export var debug_hud_enabled : bool
 
 var b2g_current_scene
 var current_state = GameState.None
@@ -21,14 +22,17 @@ var b2g_hud
 
 func _ready():
 	print("GameManager Loaded")
+	# DEBUG
+	if debug_hud_enabled:
+		add_b2g_hud()
+	# END DEBUG
 	if startup_scene_filepath == "":
 		print("No startup scene.")
+		show_message("No startup scene")
 	else:
 		load_scene(startup_scene_filepath)
 		set_state(GameState.Starting)
-	# DEBUG
-	add_b2g_hud()
-	show_message("Debug hud enabled")
+
 
 static func get_all_children(in_node,arr:=[]):
 	arr.push_back(in_node)
@@ -80,4 +84,5 @@ func add_b2g_hud():
 	add_child(b2g_hud)
 
 func show_message(_text):
-	b2g_hud.show_message(_text)
+	if b2g_hud:
+		b2g_hud.show_message(_text)

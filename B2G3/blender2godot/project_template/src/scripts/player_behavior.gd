@@ -9,7 +9,7 @@ export var camera_inverted : bool = true
 export var _controls : Dictionary
 export var _animations : Dictionary
 export var _actions_dict : Dictionary
-
+export var _player_mesh_name : String = ""
 
 const GRAVITY = -24.8
 var vel = Vector3()
@@ -61,12 +61,13 @@ func add_hud():
 
 func animate():
 	if player_mesh:
-		if vel.z > 0.1:
-			player_mesh._play_animation(_animations["forward"])
-		elif vel.z < -0.1:
-			player_mesh._play_animation(_animations["backward"])
-		else:
-			player_mesh._play_animation(_animations["idle"])
+		if not(_animations.empty()):
+			if vel.z > 0.1:
+				player_mesh._play_animation(_animations["forward"])
+			elif vel.z < -0.1:
+				player_mesh._play_animation(_animations["backward"])
+			else:
+				player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
 	print(PAUSE_MENU_PATH)
@@ -82,9 +83,14 @@ func create_pause():
 		add_child(pause_control)
 
 func find_camera(_camera_object_name):
-	print("Searching ", _camera_object_name, " on ", self.name)
+#	print("Searching ", _camera_object_name, " on ", self.name)
 	var _camera
 	_camera = find_child_by_name(self, _camera_object_name)
+	if not _camera:
+		_camera = Camera.new()
+		_camera.name = "TestCamera"
+		add_child(_camera)
+		get_tree().current_scene.show_message("No player camera found")
 	return _camera
 
 func find_child_by_name(root_node, _object_name):
@@ -102,7 +108,7 @@ func find_child_by_name(root_node, _object_name):
 func find_player_mesh():
 	var _player_mesh = null
 	for _child in get_children():
-		if _child is PlayerMesh:
+		if _child.name == _player_mesh_name:
 			_player_mesh = _child
 			break
 	return _player_mesh

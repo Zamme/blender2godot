@@ -92,7 +92,8 @@ func _ready():
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
 			_stages_json = read_json_file(STAGES_INFO_JSON_PATH)
 			_players_json = read_json_file(PLAYER_INFO_JSON_PATH)
-			_player_json = _players_json[_players_json.keys()[0]]
+			if len(_players_json.keys()) > 0:
+				_player_json = _players_json[_players_json.keys()[0]]
 			_menus3d_json = read_json_file(MENUS3D_INFO_JSON_PATH)
 			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
@@ -471,6 +472,7 @@ func apply_new_config():
 	# Gamemanager
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()
 	_gm.startup_scene_filepath = _start_scene_path
+	_gm.debug_hud_enabled = _godot_project_settings_json["DebugHudEnabled"]
 	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
 	ProjectSettings.set_setting("application/run/main_scene", GAMEMANAGER_FILEPATH)
 	ProjectSettings.save()
@@ -515,41 +517,14 @@ func create_collision_shape(scene_object):
 func create_convex_collision_shape(scene_object):
 	scene_object.create_convex_collision()
 
-func create_players(_files_to_import):
-	var _directory : Directory = Directory.new()
-	if !_directory.dir_exists(PLAYERS_PATH):
-		_directory.make_dir(PLAYERS_PATH)
-	# Create Players
-	for _file_to_import in _files_to_import:
-		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		if _player_json:
-			if not _player_json.empty():
-				if _player_json.has("PlayerSceneName"):
-					if _player_json["PlayerSceneName"] == _fn_without_ext:
-						var _cam_props = _player_json["PlayerCameraObject"]
-						var _shape_props = _player_json["PlayerDimensions"]
-						var _anims_props = _player_json["PlayerAnimations"]
-						var _controls_props = _player_json["PlayerControls"]
-						var _pause_menu_name = _player_json["PauseMenu"]
-						var _gravity_enabled = _player_json["GravityOn"]
-						var _animations = _player_json["PlayerAnimations"]
-						var _actions = _player_json["PlayerActions"]
-						var _cam_name = _player_json["PlayerCameraObject"]["CameraName"]
-						var _controls = _player_json["PlayerControls"]
-						var _hud = _player_json["PlayerHUD"]["HudSceneName"]
-						create_player_props(_fn_without_ext, _cam_props, _shape_props,
-											 _controls_props, _pause_menu_name, _gravity_enabled,
-											 _animations, _actions, _cam_name, _controls, _hud)
-		else:
-			print("No player added")
-
 func create_gamemanager():
 	# Create GameManager
 	var _new_gamemanager : Spatial = Spatial.new()
 	_new_gamemanager.name = GAMEMANAGER_NAME
 	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
-	if _player_json.has("PlayerSceneName"):
-		_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
+	if _player_json:
+		if _player_json.has("PlayerSceneName"):
+			_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
 #		_new_gamemanager.startup_scene_filepath = _start_scene_path
 	self.repack_scene(_new_gamemanager, GAMEMANAGER_FILEPATH)
 
@@ -644,52 +619,67 @@ func create_menus3d(_files_to_import):
 					self.repack_scene(_new_menu, _new_menu_path)
 
 func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
-						 _controls_props, _pause_menu, _gravity_enabled,
-						 _animations, _actions, _camera_name, _controls,
+						 _pause_menu, _gravity_enabled,
+						 _animations, _actions, _controls,
 						 _hud):
 	print("Creating player...")
+	# CREATE ENTITY AND PHYSICS BODY
 	var player_entity_instance : KinematicBody = KinematicBody.new()
 	player_entity_instance.name = _player_mesh_scene_name + "Entity"
 	var player_collision_shape : CollisionShape = CollisionShape.new()
 	player_entity_instance.add_child(player_collision_shape)
 	player_collision_shape.set_owner(player_entity_instance)
 	var caps_shape : CapsuleShape = CapsuleShape.new()
-	caps_shape.height = _shape_props["DimZ"]/2.0
-	caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
+	if _shape_props:
+		caps_shape.height = _shape_props["DimZ"]/2.0
+		caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
 	player_collision_shape.shape = caps_shape
-	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
-	# PASS JSON INFO TO SCRIPT
-	player_entity_instance.gravity_enabled = _gravity_enabled
-	player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
-	player_entity_instance._animations = _animations
-	player_entity_instance._actions_dict = _actions
-	player_entity_instance.camera_name = _camera_name
-	player_entity_instance._controls = _controls
-	player_entity_instance.hud_scene_name = _hud
-	# CONTINUE
+	# ADD MESH
 	var _player_mesh_scene = load(SOURCES_SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
 	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
-	var _player_camera = self.create_camera(_camera_props["CameraName"])
-	player_entity_instance.add_child(_player_camera)
-	_player_camera.set_owner(player_entity_instance)
+	# ADD ENTITY BEHAVIOR
+	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
+	# JSON INFO TO ENTITY BEHAVIOR
+	player_entity_instance._player_mesh_name = _player_mesh_scene_name
+	player_entity_instance.gravity_enabled = _gravity_enabled
+	if _pause_menu:
+		player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
+	if _animations:
+		player_entity_instance._animations = _animations
+	if _actions:
+		player_entity_instance._actions_dict = _actions
+	if _camera_props:
+		player_entity_instance.camera_name = get_dict_property(_camera_props, "CameraName")
+	if _controls:
+		player_entity_instance._controls = _controls
+	if _hud:
+		player_entity_instance.hud_scene_name = get_dict_property(_hud, "HudSceneName")
+	# PLAYER CAMERA
+	var _player_camera
+	if _camera_props:
+		_player_camera = self.create_camera(get_dict_property(_camera_props, "CameraName"))
+		player_entity_instance.add_child(_player_camera)
+		_player_camera.set_owner(player_entity_instance)
 	
 	add_child(player_entity_instance)
 	yield(get_tree(), "idle_frame")
 	# TRANSFORMATIONS
-	player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/2.5, 0.0))
+	if _shape_props:
+		player_collision_shape.translate(Vector3(0.0, _shape_props["DimZ"]/2.5, 0.0))
 	player_collision_shape.global_rotate(Vector3.RIGHT, deg2rad(-90.0))
-	_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], -_camera_props["PosY"]))
-	_player_camera.rotation_degrees = Vector3(rad2deg(_camera_props["RotX"]) - 90.0, rad2deg(_camera_props["RotZ"]), rad2deg(_camera_props["RotY"]))
-	_player_camera.fov = rad2deg(_camera_props["FOV"])
-	match _camera_props["KeepFOV"]:
-		"AUTO":
-			_player_camera.keep_aspect = Camera.KEEP_WIDTH
-		"VERTICAL":
-			_player_camera.keep_aspect = Camera.KEEP_HEIGHT
-		"HORIZONTAL":
-			_player_camera.keep_aspect = Camera.KEEP_WIDTH
+	if _camera_props:
+		_player_camera.translate(Vector3(_camera_props["PosX"], _camera_props["PosZ"], -_camera_props["PosY"]))
+		_player_camera.rotation_degrees = Vector3(rad2deg(_camera_props["RotX"]) - 90.0, rad2deg(_camera_props["RotZ"]), rad2deg(_camera_props["RotY"]))
+		_player_camera.fov = rad2deg(_camera_props["FOV"])
+		match _camera_props["KeepFOV"]:
+			"AUTO":
+				_player_camera.keep_aspect = Camera.KEEP_WIDTH
+			"VERTICAL":
+				_player_camera.keep_aspect = Camera.KEEP_HEIGHT
+			"HORIZONTAL":
+				_player_camera.keep_aspect = Camera.KEEP_WIDTH
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()
@@ -699,49 +689,75 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 	print("Player created.")
 	
 	# PLAYER CONTROLS
-	for _control_prop_key in _controls_props.keys():
-		var _action = InputEventAction.new()
-		var _prop_path : String = "input/" + _control_prop_key
-		ProjectSettings.set(_prop_path, 0)
-		var property_info = {
-			"name": _prop_path,
-			"type": TYPE_INT,
-			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": ""
-		}
-		ProjectSettings.add_property_info(property_info)
-		var _input_evs = []
-		for _input_entry in _controls_props[_control_prop_key]:
-			match _input_entry[0]:
-				"keyboard":
-					var event_key = InputEventKey.new()
-					event_key.scancode = int(_input_entry[3])
-					_input_evs.append(event_key)
-				"gamepad":
-					var event_joypad
-					if _input_entry[1].find("BUTTON") > -1:
-						event_joypad = InputEventJoypadButton.new()
-						event_joypad.button_index = int(_input_entry[3])
-					else:
-						event_joypad = InputEventJoypadMotion.new()
-						event_joypad.axis = int(_input_entry[3])
-						if _input_entry[4]:
-							event_joypad.axis_value = -1.0
+	if _controls:
+		for _control_prop_key in _controls.keys():
+			var _action = InputEventAction.new()
+			var _prop_path : String = "input/" + _control_prop_key
+			ProjectSettings.set(_prop_path, 0)
+			var property_info = {
+				"name": _prop_path,
+				"type": TYPE_INT,
+				"hint": PROPERTY_HINT_ENUM,
+				"hint_string": ""
+			}
+			ProjectSettings.add_property_info(property_info)
+			var _input_evs = []
+			for _input_entry in _controls[_control_prop_key]:
+				match _input_entry[0]:
+					"keyboard":
+						var event_key = InputEventKey.new()
+						event_key.scancode = int(_input_entry[3])
+						_input_evs.append(event_key)
+					"gamepad":
+						var event_joypad
+						if _input_entry[1].find("BUTTON") > -1:
+							event_joypad = InputEventJoypadButton.new()
+							event_joypad.button_index = int(_input_entry[3])
 						else:
-							event_joypad.axis_value = 1.0
-					_input_evs.append(event_joypad)
-				"mouse":
-					var event_mouse
-					if _input_entry[3] != null:
-						event_mouse = InputEventMouseButton.new()
-						event_mouse.button_index = int(_input_entry[3])
-						_input_evs.append(event_mouse)
-		var _total_input = {
-							"deadzone": 0.5,
-							"events": _input_evs
-							}
-		ProjectSettings.set_setting(_prop_path, _total_input)
-	ProjectSettings.save()
+							event_joypad = InputEventJoypadMotion.new()
+							event_joypad.axis = int(_input_entry[3])
+							if _input_entry[4]:
+								event_joypad.axis_value = -1.0
+							else:
+								event_joypad.axis_value = 1.0
+						_input_evs.append(event_joypad)
+					"mouse":
+						var event_mouse
+						if _input_entry[3] != null:
+							event_mouse = InputEventMouseButton.new()
+							event_mouse.button_index = int(_input_entry[3])
+							_input_evs.append(event_mouse)
+			var _total_input = {
+								"deadzone": 0.5,
+								"events": _input_evs
+								}
+			ProjectSettings.set_setting(_prop_path, _total_input)
+		ProjectSettings.save()
+
+func create_players(_files_to_import):
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(PLAYERS_PATH):
+		_directory.make_dir(PLAYERS_PATH)
+	# Create Players
+	for _file_to_import in _files_to_import:
+		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		if _player_json:
+			if not _player_json.empty():
+				if _player_json.has("PlayerSceneName"):
+					if _player_json["PlayerSceneName"] == _fn_without_ext:
+						var _cam_props = get_dict_property(_player_json, "PlayerCameraObject")
+						var _shape_props = get_dict_property(_player_json, "PlayerDimensions")
+						var _pause_menu_name = get_dict_property(_player_json, "PauseMenu")
+						var _gravity_enabled = get_dict_property(_player_json, "GravityOn")
+						var _animations = get_dict_property(_player_json, "PlayerAnimations")
+						var _actions = get_dict_property(_player_json, "PlayerActions")
+						var _controls = get_dict_property(_player_json, "PlayerControls")
+						var _hud = get_dict_property(_player_json, "PlayerHUD")
+						create_player_props(_fn_without_ext, _cam_props, _shape_props,
+											 _pause_menu_name, _gravity_enabled,
+											 _animations, _actions, _controls, _hud)
+		else:
+			print("No player added")
 
 func create_stages(_files_to_import):
 	# Create Stages
@@ -796,6 +812,12 @@ func get_all_scene_objects(scene):
 		self.scene_objects_list.append(ob)
 		if ob.get_child_count() > 0:
 			self.get_all_scene_objects(ob)
+
+func get_dict_property(_dict, _prop_name):
+	var _dict_value
+	if _dict.has(_prop_name):
+		_dict_value = _dict[_prop_name]
+	return _dict_value
 
 func get_file_to_import_path(_filename):
 #	print("Looking for ", _filename)

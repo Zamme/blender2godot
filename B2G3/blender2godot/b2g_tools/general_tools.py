@@ -21,6 +21,7 @@ Building utils for exporting to different platforms
 """
 
 import bpy
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
@@ -60,6 +61,8 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     def check_export_requirements(self, context):
         context.scene.current_export_warnings.clear()
         context.scene.current_export_errors.clear()
+        if context.scene.game_name == "":
+            self.add_error(context, 8, "Project has no name")
         if (context.scene.startup_scene == None):
             self.add_warning(context, 2, "Startup scene not set")
             if hasattr(context.scene.startup_scene, "scene_type"):
@@ -68,25 +71,19 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         if (context.scene.godot_engine_ok == False):
             self.add_error(context, 4, "Godot Engine not set")
         for _scene in bpy.data.scenes:
-            self.check_scene_requirements(context, _scene)
-        return (len(context.scene.current_export_warnings) == 0)
+            if _scene.scene_exportable:
+                self.check_scene_requirements(context, _scene)
 
     def check_scene_requirements(self, context, _scene):
         match _scene.scene_type:
             case "player":
                 if not _scene.player_object:
-                    self.add_warning(context, 5, "Player object lacks on " + _scene.name)
-                else:
-                    if not _scene.camera_object:
-                        self.add_warning(context, 6, _scene.name + " scene has no camera")
+                    self.add_error(context, 5, "Player object lacks on " + _scene.name)
+                if not _scene.camera_object:
+                    self.add_warning(context, 6, _scene.name + " scene has no camera")
+                if len(_scene.controls_settings) < 0:
+                    self.add_error(context, 7, _scene + " player has no controls")
         
-    def check_conditions(self, context):
-        self._errors = []
-        # Check game name
-        if context.scene.game_name == "":
-            self._errors.append("Game name not set")
-        return self._errors
-
     def cancel(self, context):
         context.scene.godot_export_ok = self._last_export_state
         context.scene.godot_exporting = False
@@ -94,8 +91,27 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.label(text="Godot project will be overwritten", icon="ERROR")
+        row0 = layout.row()
+        box0 = row0.box()
+        row1 = box0.row()
+        if (len(context.scene.current_export_errors) == 0):
+            row1.label(text="No errors", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
+        else:
+            for _issue in context.scene.current_export_errors:
+                _new_row = box0.row()
+                _new_row.label(text=_issue.description, icon="CANCEL")
+        # WARNINGS
+        if (len(context.scene.current_export_warnings) > 0):
+            for _issue in context.scene.current_export_warnings:
+                _new_row = box0.row()
+                _new_row.label(text=_issue.description, icon="ERROR")
+        # TOTAL REPORT
+        row7 = box0.row()
+        if (len(context.scene.current_export_warnings) == 0) and (len(context.scene.current_export_errors) == 0):
+            row7.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
+
+        row2 = layout.row()
+        row2.label(text="Godot project will be overwritten", icon="ERROR")
     
     def invoke(self, context, event):
         self._last_export_state = context.scene.godot_export_ok
@@ -112,19 +128,15 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     
     def execute(self, context):
         context.scene.godot_export_ok = False
-        checked_errors = self.check_conditions(context)
-        if len(checked_errors) == 0:
-            context.window.cursor_set(cursor="WAIT")
-            context.window.cursor_modal_set(cursor="WAIT")
-            print("Deleting last export...")
-            bpy.ops.scene.delete_project_operator()
-            print("Last export deleted!")
-            print("Exporting to godot project...")
-            bpy.ops.scene.create_godot_project_operator()
-            bpy.ops.scene.export_game_operator()
-            bpy.ops.scene.open_godot_project_operator(no_window = True)
-        else:
-            show_error_popup(self._errors, "Errors detected", "CANCEL")
+        context.window.cursor_set(cursor="WAIT")
+        context.window.cursor_modal_set(cursor="WAIT")
+        print("Deleting last export...")
+        bpy.ops.scene.delete_project_operator()
+        print("Last export deleted!")
+        print("Exporting to godot project...")
+        bpy.ops.scene.create_godot_project_operator()
+        bpy.ops.scene.export_game_operator()
+        bpy.ops.scene.open_godot_project_operator(no_window = True)
         context.window.cursor_set(cursor="DEFAULT")
         context.window.cursor_modal_restore()
         return {'FINISHED'}

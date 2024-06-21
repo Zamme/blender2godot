@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://b2g_tools/B2G_HUD.gd" type="Script" id=1]
 [ext_resource path="res://b2g_tools/FreeMonoBold.ttf" type="DynamicFontData" id=2]
@@ -7,6 +7,36 @@
 size = 64
 outline_size = 2
 font_data = ExtResource( 2 )
+
+[sub_resource type="Animation" id=3]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ) ]
+}
+
+[sub_resource type="Animation" id=4]
+resource_name = "fade_out"
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 1, 1, 1, 0 ) ]
+}
 
 [sub_resource type="DynamicFont" id=2]
 size = 36
@@ -58,11 +88,15 @@ valign = 2
 [node name="HudMessageLabel" type="Label" parent="."]
 anchor_right = 1.0
 margin_bottom = 180.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_colors/font_color = Color( 0.972549, 0.917647, 0, 1 )
 custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
 custom_fonts/font = SubResource( 1 )
 align = 1
 autowrap = true
+
+[node name="HudMessageLabelAnimationPlayer" type="AnimationPlayer" parent="HudMessageLabel"]
+anims/RESET = SubResource( 3 )
+anims/fade_out = SubResource( 4 )
 
 [node name="HudGeneralInfo" type="Label" parent="."]
 anchor_top = 1.0
@@ -80,4 +114,5 @@ autowrap = true
 
 [node name="b2g_hud_Timer" type="Timer" parent="."]
 
+[connection signal="animation_finished" from="HudMessageLabel/HudMessageLabelAnimationPlayer" to="." method="_on_HudMessageLabelAnimationPlayer_animation_finished"]
 [connection signal="timeout" from="b2g_hud_Timer" to="." method="_on_b2g_hud_Timer_timeout"]

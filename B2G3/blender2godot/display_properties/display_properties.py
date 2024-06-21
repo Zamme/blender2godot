@@ -68,6 +68,8 @@ class DisplayPropertiesPanel(bpy.types.Panel):
         box2.prop(scene, "display_borderless")
         box2.prop(scene, "display_fullscreen")
         box2.prop(scene, "display_alwaysontop")
+        box3 = box0.box()
+        box3.prop(scene, "debug_hud_enabled", text="Debug HUD")
 
 def init_properties():
     # Display vars
@@ -75,12 +77,14 @@ def init_properties():
     bpy.types.Scene.display_borderless = bpy.props.BoolProperty(name="Borderless", default=False)
     bpy.types.Scene.display_fullscreen = bpy.props.BoolProperty(name="Fullscreen", default=False)
     bpy.types.Scene.display_alwaysontop = bpy.props.BoolProperty(name="Always on top", default=False)
+    bpy.types.Scene.debug_hud_enabled = bpy.props.BoolProperty(name="Debug Hud", default=True)
 
 def clear_properties():
     del bpy.types.Scene.display_resizable
     del bpy.types.Scene.display_borderless
     del bpy.types.Scene.display_fullscreen
     del bpy.types.Scene.display_alwaysontop
+    del bpy.types.Scene.debug_hud_enabled
 
 def register():
     init_properties()

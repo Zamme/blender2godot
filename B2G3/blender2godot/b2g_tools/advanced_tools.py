@@ -246,24 +246,22 @@ class B2G_ToolsPanel(bpy.types.Panel):
         if (len(context.scene.current_export_errors) == 0):
             row5.label(text="No errors", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
         else:
-            #row5.label(text="Errors:", icon="CANCEL")
             for _issue in context.scene.current_export_errors:
                 _new_row = box0.row()
                 _new_row.label(text=_issue.description, icon="CANCEL")
         # WARNINGS
-        row6 = box0.row()
-        if (len(context.scene.current_export_warnings) == 0):
-            row6.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
-        else:
-            #row6.label(text="Last export warnings:", icon="ERROR")
+        if (len(context.scene.current_export_warnings) > 0):
             for _issue in context.scene.current_export_warnings:
                 _new_row = box0.row()
                 _new_row.label(text=_issue.description, icon="ERROR")
+        # TOTAL REPORT
+        row7 = box0.row()
+        if (len(context.scene.current_export_warnings) == 0) and (len(context.scene.current_export_errors) == 0):
+            row7.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
 
         row3 = layout.row()
         row3.alignment="CENTER"
         row3.prop(context.scene, 'advanced_tools', icon="PLUS")
-        #row3.enabled = not self._err_detected
 
         if context.scene.advanced_tools:
             row4 = layout.row()
@@ -458,6 +456,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_godot_project_settings.add("DisplaySettings", self.display_settings_dict)
         self.dict_godot_project_settings.add("OtherSettings", self.other_settings_dict)
         self.dict_godot_project_settings.add("DefaultEnvironment", self.default_environment_dict)
+        self.dict_godot_project_settings.add("DebugHudEnabled", context.scene.debug_hud_enabled)
 
         self.data_settings = json.dumps(self.dict_godot_project_settings, indent=1, ensure_ascii=True)
         with open(self.godot_project_settings_filepath, 'w') as outfile:

@@ -35,36 +35,39 @@ def scene_emptyobject_poll(self, object):
     return object.type == 'EMPTY'
 
 def scene_type_update(self, context):
-    if context.scene.scene_type == "player":
-        if (len(context.scene.controls_settings) == 0):
-            print("controls updated")
-            context.scene.controls_settings.clear()
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_go_forward"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_go_backward"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_strafe_left"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_strafe_right"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_rotate_left"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_rotate_right"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_rotate_up"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_rotate_down"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_action_0"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_action_1"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_action_2"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_action_3"
-            _new_setting = context.scene.controls_settings.add()
-            _new_setting.motion_name = "b2g_pause_game"
+    context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
+    context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
+    match context.scene.scene_type:
+        case "player":
+            if (len(context.scene.controls_settings) == 0):
+                print("controls updated")
+                context.scene.controls_settings.clear()
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_go_forward"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_go_backward"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_strafe_left"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_strafe_right"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_rotate_left"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_rotate_right"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_rotate_up"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_rotate_down"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_action_0"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_action_1"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_action_2"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_action_3"
+                _new_setting = context.scene.controls_settings.add()
+                _new_setting.motion_name = "b2g_pause_game"
 
 def update_scene_exportable(self, context):
     if bpy.data.scenes[self.name].scene_type == "player":

@@ -87,7 +87,7 @@ class StagePropertiesPanel(bpy.types.Panel):
         row.prop(context.scene, "player_spawn_empty")
         if context.scene.player_spawn_empty == None:
             row = layout.row()
-            row.label(text="Select a spawn position!", icon="ERROR")
+            row.label(text="Select an EMPTY object as spawn position.", icon="ERROR")
        
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
