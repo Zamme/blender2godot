@@ -1,5 +1,16 @@
-class_name Menu2dButton extends Area2D
+class_name Menu2dButton_Behavior extends Area2D
 
+
+# TODO: HERE???
+const SRC_PATH = "res://src/"
+const SCENES_PATH = SRC_PATH + "scenes/"
+const STAGES_PATH = SCENES_PATH + "stages/"
+const STAGE_SCENES_PREFIX = "Stage_"
+const MENUS3D_PATH = SCENES_PATH + "menus3d/"
+const MENU3D_SCENES_PREFIX = "Menu3d_"
+const MENUS2D_PATH = SCENES_PATH + "menus2d/"
+const MENUS2D_SCENES_PREFIX = "Menu2d_"
+# END HERE
 
 export var action_to_do : String = "None"
 export var action_parameter = "None"
@@ -23,15 +34,15 @@ func do_click_action():
 		"close_menu":
 			menu_scene.create_exit_timer()
 		"load_stage":
-			_param = StageTemplate.STAGES_PATH + StageTemplate.STAGE_SCENES_PREFIX + action_parameter + ".tscn"
+			_param = STAGES_PATH + STAGE_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
 		"load_3dmenu":
-			_param = StageTemplate.MENUS3D_PATH + StageTemplate.MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
+			_param = MENUS3D_PATH + MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
 		"load_2dmenu":
-			_param = StageTemplate.MENUS2D_PATH + StageTemplate.MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
+			_param = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
 			if _dir.file_exists(_param):
 				get_tree().current_scene.load_scene(_param, true)
 		"quit_game":

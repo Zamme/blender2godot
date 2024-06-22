@@ -59,6 +59,9 @@ func load_scene(_new_scene_path : String = "", _unload_current : bool = false):
 func load_stage():
 	pass
 
+func quit_game():
+	push_warning("Game Finished")
+
 func set_state(_state):
 	current_state = _state
 	update_state()

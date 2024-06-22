@@ -1,4 +1,4 @@
-extends Sprite
+class_name Menu2DBehavior extends Sprite
 
 
 const PAUSE_TIME = 0.15
@@ -21,8 +21,8 @@ func _ready():
 
 func get_selectable_objects():
 	var _sel_objects = []
-	for _object in GameManager.get_all_children(self):
-		if _object is Menu2dButton:
+	for _object in get_tree().current_scene.get_all_children(self):
+		if _object.is_in_group("menus2d_buttons"):
 			_sel_objects.append(_object)
 	return _sel_objects
 
@@ -81,8 +81,19 @@ func set_player_scene(_scene):
 func _on_exit_timer():
 #	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	_player_scene.stage_scene.is_paused = false
-	queue_free()
+	if _player_scene:
+		_player_scene.stage_scene.is_paused = false
+	else:
+		var _children = get_tree().current_scene.get_child_count()
+		if get_tree().current_scene.debug_hud_enabled:
+			_children -= 1
+#		print("GM children: " + str(_children))
+		if _children == 1:
+			get_tree().quit()
+		else:
+#			for _child in get_tree().current_scene.get_children():
+#				print("Child ", _child.name)
+			queue_free()
 
 func _process(delta):
 	if Input.is_action_just_pressed("b2g_pause_game"):

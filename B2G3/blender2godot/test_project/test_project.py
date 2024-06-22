@@ -105,8 +105,12 @@ class TestProjectGameOperator(bpy.types.Operator): # It blocks blender execution
     
     def start_project_game(self, context):
         print("Starting project game", context.scene.project_folder)
-        self.cmd = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--path", context.scene.project_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
+        self.cmd = subprocess.Popen([bpy.path.abspath(context.scene.godot_executable), "--path", context.scene.project_folder], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = self.cmd.communicate()
+        print("stdout: ", stdout)
+        if stdout.find("Game Finished"):
+            pass
+
     def main(self, context):
         self.start_project_game(context)        
 

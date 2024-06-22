@@ -13,11 +13,17 @@ func _ready():
 	if len(selectable_objects) > 0:
 		select_object(0)
 
+static func get_all_children(in_node,arr:=[]):
+	arr.push_back(in_node)
+	for child in in_node.get_children():
+		arr = get_all_children(child,arr)
+	return arr
+
 func get_selectable_objects():
 	# TODO: Add by position order
 	var _sel_objects = []
-	for _object in GameManager.get_all_children(_menu):
-		if _object is Menu3d_Button:
+	for _object in get_all_children(_menu):
+		if _object.is_in_group("menus3d_buttons"):
 			_sel_objects.append(_object)
 	return _sel_objects
 

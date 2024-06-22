@@ -35,8 +35,10 @@ def scene_emptyobject_poll(self, object):
     return object.type == 'EMPTY'
 
 def scene_type_update(self, context):
+    # ADAPT SCENE RESOLUTION TO DISPLAY SETTINGS
     context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
     context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
+    # INITIALIZE SOME SCENE TYPES ON SCENE TYPE CRITERIA
     match context.scene.scene_type:
         case "player":
             if (len(context.scene.controls_settings) == 0):

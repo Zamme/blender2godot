@@ -38,8 +38,8 @@ const HUD_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "hud_behavior.gd"
 
 const MENUS2D_PATH = SCENES_PATH + "menus2d/"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
-const MENUS2D_BEHAVIOR_FILEPATH = B2G_TOOLS_PATH + "B2G_Pause.gd"
-const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
+const MENUS2D_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "Menu2d_Behavior.gd"
+const MENU2D_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "Menu2dButton_Behavior.gd"
 const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
@@ -73,6 +73,7 @@ var lights_to_remove_from_scene = []
 var quit_timer : Timer
 var _start_scene_path : String
 
+
 # JSONS
 var _stages_json
 var _players_json
@@ -86,7 +87,6 @@ var _godot_project_settings_json
 
 
 func _ready():
-	var mounted_scenes : bool
 	if Engine.editor_hint:
 		print("Stage template present!")
 		if ProjectSettings.get_setting("application/run/main_scene").find("Stage_Template.tscn"):
@@ -100,7 +100,7 @@ func _ready():
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
 			_godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
-			mounted_scenes = self.mount_scenes()
+			self.mount_scenes()
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
 			yield(get_tree(),"idle_frame")
@@ -356,6 +356,7 @@ func apply_import_changes(scene):
 						"button":
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
 							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
+							ob.add_to_group("menus3d_buttons")
 							ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
 							ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
 		elif _lights_json.has(ob.name):
@@ -563,19 +564,20 @@ func create_menus2d():
 		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
 		var _new_menu2d : Sprite = Sprite.new()
 		_new_menu2d.name = _new_menu2d_name
-		#_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
-		#var _new_texture_rect : TextureRect = TextureRect.new()
-		#_new_texture_rect.name = "TextureRect_" + _new_menu2d_name
-		#_new_menu2d.add_child(_new_texture_rect)
-		#_new_texture_rect.set_owner(_new_menu2d)
-		#_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
 		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
+		if ResourceLoader.has_cached(_texture_path):
+			print(_texture_path + " already cached")
+		else:
+			print(_texture_path + " not cached")
 		_new_menu2d.texture = load(_texture_path)
 		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
 		#_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
+		_new_menu2d.add_to_group("menus2d")
+		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
+		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
 func create_menus3d(_files_to_import):
@@ -867,14 +869,13 @@ func mount_scenes():
 	else:
 		print("Imported files: ", len(files_to_import))
 	
+	create_gamemanager()
 	create_stages(files_to_import)
 	create_players(files_to_import)
 	create_menus3d(files_to_import)
 	create_huds()
+	yield(get_tree(),"idle_frame")
 	create_menus2d()
-	create_gamemanager()
-	
-	return true
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
@@ -907,6 +908,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 		match _menu_objects[_menu_object_key]["Type"]:
 			"button":
 				_new_area2d.script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
+				_new_area2d.add_to_group("menus2d_buttons")
 				_new_area2d.action_to_do = _menu_objects[_menu_object_key]["Action"]
 				_new_area2d.action_parameter = _menu_objects[_menu_object_key]["ActionParameter"]
 			"check":
