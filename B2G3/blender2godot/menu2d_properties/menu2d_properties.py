@@ -20,7 +20,7 @@
 For menus 2D
 """
 
-import bpy
+import bpy, math
 
 
 def get_action_scenes(self, context):
@@ -64,6 +64,57 @@ class Menu2DObjectProperties(bpy.types.PropertyGroup):
     check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
+class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
+    bl_idname = "scene.create_menu2d_base_button_operator"
+    bl_label = "Create Menu 2D Base Button"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    new_button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
+
+    def draw(self, context):
+        layout = self.layout
+        row0 = layout.row()
+        box0 = row0.box()
+        row1 = box0.row()
+        row1.prop(self, "new_button_name")
+        
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        print("Creating menu 2d base button...")
+        bpy.ops.object.gpencil_add(type="EMPTY")
+        gp_name = bpy.context.object.name
+        gp = bpy.data.grease_pencils[gp_name]
+        # Reference grease pencil layer or create one of none exists
+        if gp.layers:
+            gpl = gp.layers[0]
+        else:
+            gpl = gp.layers.new('gpl', set_active = True )
+        # Reference active GP frame or create one of none exists    
+        if gpl.frames:
+            fr = gpl.active_frame
+        else:
+            fr = gpl.frames.new(1) 
+        # Create a new stroke
+        str = fr.strokes.new()
+        str.display_mode = '3DSPACE'
+        # Add points
+        str.points.add(count = 4 )
+        points = str.points
+        points[0].co = (-5.0,-2.0,0.0)
+        points[1].co = (5.0,-2.0,0.0)
+        points[2].co = (5.0,2.0,0.0)
+        points[3].co = (-5.0,2.0,0.0)
+        str.use_cyclic = True
+        gpl.line_change = 50
+        bpy.context.object.active_material.grease_pencil.color = (1.0, 1.0, 1.0, 1.0)
+        bpy.context.object.active_material.grease_pencil.show_fill = True
+        bpy.context.object.active_material.grease_pencil.fill_color = (1.0, 0.0, 0.0, 1.0)
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
+        return {'FINISHED'}
+    
 class CreateMenu2dViewOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_view_operator"
     bl_label = "Create Menu 2D View"
@@ -73,7 +124,7 @@ class CreateMenu2dViewOperator(bpy.types.Operator):
         print("Creating menu 2d view...")
         bpy.ops.object.camera_add(align="WORLD", location=(0.0, 0.0, 50.0), rotation=(0.0,0.0,0.0))
         bpy.ops.view3d.object_as_camera()
-        bpy.ops.object.gpencil_add()
+        #bpy.ops.object.mode_set(mode = 'OBJECT')
         return {'FINISHED'}
 
 class Menu2DPropertiesPanel(bpy.types.Panel):
@@ -88,7 +139,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
     
     _gamemanager_added = False
     _not_in_gamemanager = False
-
+   
     @classmethod 
     def poll(self, context):
         _ret = False
@@ -114,6 +165,8 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
         if len(context.scene.objects) < 1:
             box1.operator("scene.create_menu2d_view_operator")
             return
+        else:
+            box1.operator("scene.create_menu2d_base_button_operator")
         
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
@@ -153,10 +206,12 @@ def register():
     bpy.utils.register_class(Menu2DObjectProperties)
     init_properties()
     bpy.utils.register_class(CreateMenu2dViewOperator)
+    bpy.utils.register_class(CreateMenu2dBaseButtonOperator)
     bpy.utils.register_class(Menu2DPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(Menu2DPropertiesPanel)
+    bpy.utils.unregister_class(CreateMenu2dBaseButtonOperator)
     bpy.utils.unregister_class(CreateMenu2dViewOperator)
     clear_properties()
     bpy.utils.unregister_class(Menu2DObjectProperties)
