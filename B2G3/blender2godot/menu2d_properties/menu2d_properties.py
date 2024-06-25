@@ -21,7 +21,19 @@ For menus 2D
 """
 
 import bpy, math
+from blender2godot.addon_config import addon_config # type: ignore
 
+'''
+shape_options = [("square", "Square", "Square shape", addon_config.preview_collections[0]["square_icon"].icon_id, 0),
+                ("round", "Round", "Round shape", addon_config.preview_collections[0]["round_icon"].icon_id, 1),
+                ("triangle", "Triangle", "Triangle shape", addon_config.preview_collections[0]["triangle_icon"].icon_id, 2)
+                ]
+'''
+shape_options = [("square", "Square", "Square shape", "", 0),
+                ("round", "Round", "Round shape", "", 1),
+                ("triangle", "Triangle", "Triangle shape", "", 2)
+                ]
+#'''
 
 def get_action_scenes(self, context):
     _scenes = [("none", "None", "", "NONE", 0)]
@@ -68,7 +80,7 @@ class Button2dProperties(bpy.types.PropertyGroup):
     button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
     button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
     button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
-    #button_text_object : bpy.props.PointerProperty(type=bpy.types.Text) # type: ignore
+    button_shape : bpy.props.EnumProperty(items=shape_options, name="Button shape") # type: ignore
 
 class CreateMenu2dButtonTextOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_button_text_operator"
@@ -78,8 +90,11 @@ class CreateMenu2dButtonTextOperator(bpy.types.Operator):
     def execute(self, context):
         _last_active = context.active_object
         bpy.ops.object.text_add()
+        _text_object = context.active_object
         context.active_object.parent = _last_active
         context.active_object.name = context.active_object.parent.name + "_Text"
+        _text_object.delta_location = (0.0,0.0,1.0)
+        _text_object.data.align_x = "CENTER"
         bpy.context.view_layer.objects.active = _last_active
         return {'FINISHED'}
 
@@ -97,11 +112,13 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
         row1 = box0.row()
         box1 = row1.box()
         row2 = box1.row()
-        row2.prop(self.new_button_props, "button_name")
+        row2.prop(self.new_button_props, "button_name", text="Name")
         row3 = box1.row()
         row3.prop(self.new_button_props, "button_border_color")
         row4 = box1.row()
         row4.prop(self.new_button_props, "button_fill_color")
+        row5 = box1.row()
+        row5.prop_tabs_enum(self.new_button_props, "button_shape")
         
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
