@@ -64,19 +64,44 @@ class Menu2DObjectProperties(bpy.types.PropertyGroup):
     check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
+class Button2dProperties(bpy.types.PropertyGroup):
+    button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
+    button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
+    button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
+    #button_text_object : bpy.props.PointerProperty(type=bpy.types.Text) # type: ignore
+
+class CreateMenu2dButtonTextOperator(bpy.types.Operator):
+    bl_idname = "scene.create_menu2d_button_text_operator"
+    bl_label = "Create Menu 2D Button Text"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        _last_active = context.active_object
+        bpy.ops.object.text_add()
+        context.active_object.parent = _last_active
+        context.active_object.name = context.active_object.parent.name + "_Text"
+        bpy.context.view_layer.objects.active = _last_active
+        return {'FINISHED'}
+
 class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_base_button_operator"
     bl_label = "Create Menu 2D Base Button"
     bl_options = {'REGISTER', 'UNDO'}
 
-    new_button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
+    new_button_props : bpy.props.PointerProperty(type=Button2dProperties) # type: ignore
 
     def draw(self, context):
         layout = self.layout
         row0 = layout.row()
         box0 = row0.box()
         row1 = box0.row()
-        row1.prop(self, "new_button_name")
+        box1 = row1.box()
+        row2 = box1.row()
+        row2.prop(self.new_button_props, "button_name")
+        row3 = box1.row()
+        row3.prop(self.new_button_props, "button_border_color")
+        row4 = box1.row()
+        row4.prop(self.new_button_props, "button_fill_color")
         
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -108,10 +133,10 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
         points[3].co = (-5.0,2.0,0.0)
         str.use_cyclic = True
         gpl.line_change = 50
-        bpy.context.object.active_material.grease_pencil.color = (1.0, 1.0, 1.0, 1.0)
+        bpy.context.object.active_material.grease_pencil.color = self.new_button_props.button_border_color
         bpy.context.object.active_material.grease_pencil.show_fill = True
-        bpy.context.object.active_material.grease_pencil.fill_color = (1.0, 0.0, 0.0, 1.0)
-        bpy.ops.object.mode_set(mode = 'OBJECT')
+        bpy.context.object.active_material.grease_pencil.fill_color = self.new_button_props.button_fill_color
+        bpy.context.object.menu2d_object_properties.menu2d_object_type = "button"
 
         return {'FINISHED'}
     
@@ -174,6 +199,20 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             box3 = row2.box()
             _nl = "Active Object: " + context.active_object.name
             box3.label(text=_nl)
+            if context.active_object.type == "GPENCIL":
+                gpl = bpy.data.grease_pencils[context.active_object.name].layers[0]
+                box5 = box3.box()
+                row3 = box5.row()
+                row3.prop(gpl, "line_change", text="Border thickness")
+                row4 = box5.row()
+                row4.prop(context.active_object.active_material.grease_pencil, "color", text="Border color")
+                row6 = box5.row()
+                row6.prop(context.active_object.active_material.grease_pencil, "show_fill", text="Fill")
+                if context.active_object.active_material.grease_pencil.show_fill:
+                    row5 = box5.row()
+                    row5.prop(context.active_object.active_material.grease_pencil, "fill_color", text="Fill color")
+                row7 = box5.row()
+                row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
             box4 = box3.box()
             box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
             match context.active_object.menu2d_object_properties.menu2d_object_type:
@@ -185,7 +224,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                         box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
                 case "check":
                     box4.prop(context.active_object.menu2d_object_properties, "check_action")
-            '''
+            ''' DEBUG
             if context.active_object.type == "GPENCIL":
                 for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
                     if _point.select:
@@ -203,6 +242,8 @@ def clear_properties():
     del bpy.types.Object.menu2d_object_properties
 
 def register():
+    bpy.utils.register_class(Button2dProperties)
+    bpy.utils.register_class(CreateMenu2dButtonTextOperator)
     bpy.utils.register_class(Menu2DObjectProperties)
     init_properties()
     bpy.utils.register_class(CreateMenu2dViewOperator)
@@ -215,5 +256,8 @@ def unregister():
     bpy.utils.unregister_class(CreateMenu2dViewOperator)
     clear_properties()
     bpy.utils.unregister_class(Menu2DObjectProperties)
+    bpy.utils.unregister_class(CreateMenu2dButtonTextOperator)
+    bpy.utils.unregister_class(Button2dProperties)
+
 
 
