@@ -81,6 +81,10 @@ class Button2dProperties(bpy.types.PropertyGroup):
     button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
     button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
     button_shape : bpy.props.EnumProperty(items=shape_options, name="Button shape") # type: ignore
+    radius_parameter : bpy.props.FloatProperty(name="Button Radius", min=1.0, max=10.0) # type: ignore
+    segments_parameter : bpy.props.IntProperty(name="Button Segments", min=8, max=64) # type: ignore
+    width_parameter : bpy.props.FloatProperty(name="Button Width", min=2.0, max=10.0, default=3.0) # type: ignore
+    height_parameter : bpy.props.FloatProperty(name="Button Height", min=2.0, max=10.0, default=3.0) # type: ignore
 
 class CreateMenu2dButtonTextOperator(bpy.types.Operator):
     bl_idname = "scene.create_menu2d_button_text_operator"
@@ -142,12 +146,32 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
         str = fr.strokes.new()
         str.display_mode = '3DSPACE'
         # Add points
-        str.points.add(count = 4 )
-        points = str.points
-        points[0].co = (-5.0,-2.0,0.0)
-        points[1].co = (5.0,-2.0,0.0)
-        points[2].co = (5.0,2.0,0.0)
-        points[3].co = (-5.0,2.0,0.0)
+        match self.new_button_props.button_shape:
+            case "square":
+                str.points.add(count = 4)
+                points = str.points
+                points[0].co = (-5.0,-2.0,0.0)
+                points[1].co = (5.0,-2.0,0.0)
+                points[2].co = (5.0,2.0,0.0)
+                points[3].co = (-5.0,2.0,0.0)
+            case "round":
+                str.points.add(count = 12)
+                points = str.points
+                segments = 12
+                r = 3
+                cx = 0
+                cy = 0
+                for ii in range(segments):
+                    theta = 2.0 * 3.1415926 * float(ii) / float(segments)
+                    x = r * math.cos(theta) 
+                    y = r * math.sin(theta)
+                    points[ii].co = (x + cx, y + cy, 0.0)
+            case "triangle":
+                str.points.add(count = 3 )
+                points = str.points
+                points[0].co = (0.0,-2.0, 0.0)
+                points[1].co = (3.0, 2.0, 0.0)
+                points[2].co = (-3.0,2.0,0.0)
         str.use_cyclic = True
         gpl.line_change = 50
         bpy.context.object.active_material.grease_pencil.color = self.new_button_props.button_border_color
