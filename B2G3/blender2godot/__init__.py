@@ -58,6 +58,10 @@ from blender2godot.game_export import game_export
 
 from blender2godot.help_and_docs import help_and_docs
 
+from blender2godot.loading_properties import loading_properties
+
+from blender2godot.npc_properties import npc_properties
+
 
 bl_info = {
     "name": "Blender2Godot",
@@ -104,6 +108,8 @@ def register():
     test_project.register()
     game_export.register()
     help_and_docs.register()
+    loading_properties.register()
+    npc_properties.register()
     #init_handlers()
     print("Blender2Godot addon loaded.")
 
@@ -125,6 +131,8 @@ def unregister():
     test_project.unregister()
     game_export.unregister()
     help_and_docs.unregister()
+    loading_properties.unregister()
+    npc_properties.unregister()
     print("Blender2Godot addon unloaded.")
 
 if __name__ == "__main__":

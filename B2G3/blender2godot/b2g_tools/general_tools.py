@@ -81,12 +81,12 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             for _object in _scene.objects:
                 for _inv_char in _invalid_characters:
                     if (_object.name.find(_inv_char) > -1):
-                        _objects_with_bad_name.append(_object.name)
+                        _objects_with_bad_name.append([_object.name, _scene.name])
                         break
         if len(_objects_with_bad_name) > 0:
             self.add_error(context, 20, 'Bad naming objects: (".", ":", "@", "/", "%")')
             for _bno in _objects_with_bad_name:
-                self.add_error(context, 21, _bno)
+                self.add_error(context, 21, _bno[0] + " from scene " + _bno[1])
 
     def check_scene_requirements(self, context, _scene):
         match _scene.scene_type:
@@ -146,6 +146,10 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                                         case "load_3dmenu":
                                             if _object.special_object_info.scene_parameter == "none":
                                                 self.add_warning(context, 16, _scene.name + " has load 3d menu with no linked scene")
+            case "loading":
+                self.add_error(context, 99, "Loading scene type is not available")
+            case "npc":
+                self.add_error(context, 99, "NPC scene type is not available")
 
     def cancel(self, context):
         context.scene.godot_export_ok = self._last_export_state
@@ -173,7 +177,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         if (len(context.scene.current_export_warnings) == 0) and (len(context.scene.current_export_errors) == 0):
             row7.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
         else:
-            row7.label(text="Press ESC to abort exporting", icon="INFO")
+            row7.label(text="There are some issues but you can export", icon="INFO")
 
         row2 = layout.row()
         row2.label(text="Godot project will be overwritten", icon="ERROR")
