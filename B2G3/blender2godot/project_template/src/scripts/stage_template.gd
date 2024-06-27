@@ -356,7 +356,7 @@ func apply_import_changes(scene):
 						"button":
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
 							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
-							ob.add_to_group("menus3d_buttons")
+							ob.add_to_group("menus3d_buttons", true)
 							ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
 							ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
 		elif _lights_json.has(ob.name):
@@ -574,7 +574,7 @@ func create_menus2d():
 		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
 		#_new_texture_rect.expand = true
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
-		_new_menu2d.add_to_group("menus2d")
+		_new_menu2d.add_to_group("menus2d", true)
 		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
 		yield(get_tree(),"idle_frame")
@@ -908,7 +908,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 		match _menu_objects[_menu_object_key]["Type"]:
 			"button":
 				_new_area2d.script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
-				_new_area2d.add_to_group("menus2d_buttons")
+				_new_area2d.add_to_group("menus2d_buttons", true)
 				_new_area2d.action_to_do = _menu_objects[_menu_object_key]["Action"]
 				_new_area2d.action_parameter = _menu_objects[_menu_object_key]["ActionParameter"]
 			"check":
@@ -945,6 +945,7 @@ func repack_scene(scene, filepath):
 	print("Repacking Scene: " + scene.name)
 	packed_scene.pack(scene)
 	ResourceSaver.save(filepath, packed_scene)
+	print("Scene " + filepath + " repacked")
 
 
 func read_json_file(filepath):

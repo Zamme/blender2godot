@@ -82,7 +82,25 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                 if not _scene.camera_object:
                     self.add_warning(context, 6, _scene.name + " scene has no camera")
                 if len(_scene.controls_settings) < 0:
-                    self.add_error(context, 7, _scene + " player has no controls")
+                    self.add_error(context, 7, _scene.name + " player has no controls")
+            case "2dmenu":
+                if len(_scene.objects) == 0:
+                    self.add_error(context, 9, _scene.name + " scene is empty")
+                else:
+                    _cameras = 0
+                    for _child in _scene.objects:
+                        match _child.type:
+                            case "CAMERA":
+                                _cameras += 1
+                            case "GPENCIL":
+                                match _child.menu2d_object_properties.menu2d_object_type:
+                                    case "button":
+                                        match _child.menu2d_object_properties.button_action:
+                                            case "load_stage":
+                                                if _child.menu2d_object_properties.scene_parameter == "none":
+                                                    self.add_warning(context, 11, "Load Stage button no linked on " + _scene.name)
+                    if _cameras != 1:
+                        self.add_error(context, 10, _scene.name + " must have 1 camera")
         
     def cancel(self, context):
         context.scene.godot_export_ok = self._last_export_state

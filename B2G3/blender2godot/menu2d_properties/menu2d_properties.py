@@ -39,15 +39,26 @@ def get_action_scenes(self, context):
     _scenes = [("none", "None", "", "NONE", 0)]
     _index = 1
     for _sc in bpy.data.scenes:
-        if _sc.scene_type == context.active_object.menu2d_object_properties.button_action.removeprefix("load_"):
-            if _sc.scene_exportable:
-                _scenes.append((_sc.name, _sc.name, "", "", _index))
-                _index += 1
+        if hasattr(context.active_object, "menu2d_object_properties"):
+            if _sc.scene_type == context.active_object.menu2d_object_properties.button_action.removeprefix("load_"):
+                if _sc.scene_exportable:
+                    _scenes.append((_sc.name, _sc.name, "", "", _index))
+                    _index += 1
     return _scenes
 
 def get_scene_parameter_name(self, context):
-    _parameter_name = context.active_object.menu2d_object_properties.button_action.removeprefix("load_").capitalize()
+    _parameter_name = ""
+    if hasattr(context.active_object, "menu2d_object_properties"):
+        _parameter_name = context.active_object.menu2d_object_properties.button_action.removeprefix("load_").capitalize()
     return _parameter_name
+
+def has_text_child(self, context):
+    _has_text = False
+    for _child in context.active_object.children:
+        if _child.type == "FONT":
+            _has_text = True
+            break
+    return _has_text
 
 def update_action_parameter(self, context):
     context.active_object.menu2d_object_properties.action_parameter = context.active_object.menu2d_object_properties.scene_parameter
@@ -81,8 +92,8 @@ class Button2dProperties(bpy.types.PropertyGroup):
     button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
     button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
     button_shape : bpy.props.EnumProperty(items=shape_options, name="Button shape") # type: ignore
-    radius_parameter : bpy.props.FloatProperty(name="Button Radius", min=1.0, max=10.0) # type: ignore
-    segments_parameter : bpy.props.IntProperty(name="Button Segments", min=8, max=64) # type: ignore
+    radius_parameter : bpy.props.FloatProperty(name="Button Radius", min=1.0, max=10.0, default=3.0) # type: ignore
+    segments_parameter : bpy.props.IntProperty(name="Button Segments", min=8, max=64, default=12) # type: ignore
     width_parameter : bpy.props.FloatProperty(name="Button Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Button Height", min=2.0, max=10.0, default=3.0) # type: ignore
 
@@ -123,6 +134,21 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
         row4.prop(self.new_button_props, "button_fill_color")
         row5 = box1.row()
         row5.prop_tabs_enum(self.new_button_props, "button_shape")
+        box2 = box1.box()
+        row6 = box2.row()
+        match self.new_button_props.button_shape:
+            case "square":
+                row6.prop(self.new_button_props, "width_parameter")
+                row7 = box2.row()
+                row7.prop(self.new_button_props, "height_parameter")
+            case "round":
+                row6.prop(self.new_button_props, "radius_parameter")
+                row7 = box2.row()
+                row7.prop(self.new_button_props, "segments_parameter")
+            case "triangle":
+                row6.prop(self.new_button_props, "width_parameter")
+                row7 = box2.row()
+                row7.prop(self.new_button_props, "height_parameter")
         
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -150,28 +176,30 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
             case "square":
                 str.points.add(count = 4)
                 points = str.points
-                points[0].co = (-5.0,-2.0,0.0)
-                points[1].co = (5.0,-2.0,0.0)
-                points[2].co = (5.0,2.0,0.0)
-                points[3].co = (-5.0,2.0,0.0)
+                _width = self.new_button_props.width_parameter/2.0
+                _height = self.new_button_props.height_parameter/2.0
+                points[0].co = (-_width,-_height,0.0)
+                points[1].co = (_width,-_height,0.0)
+                points[2].co = (_width,_height,0.0)
+                points[3].co = (-_width,_height,0.0)
             case "round":
-                str.points.add(count = 12)
+                segments = self.new_button_props.segments_parameter
+                r = self.new_button_props.radius_parameter
+                str.points.add(count = segments)
                 points = str.points
-                segments = 12
-                r = 3
-                cx = 0
-                cy = 0
                 for ii in range(segments):
                     theta = 2.0 * 3.1415926 * float(ii) / float(segments)
                     x = r * math.cos(theta) 
                     y = r * math.sin(theta)
-                    points[ii].co = (x + cx, y + cy, 0.0)
+                    points[ii].co = (x, y, 0.0)
             case "triangle":
+                _width = self.new_button_props.width_parameter/2.0
+                _height = self.new_button_props.height_parameter/2.0
                 str.points.add(count = 3 )
                 points = str.points
-                points[0].co = (0.0,-2.0, 0.0)
-                points[1].co = (3.0, 2.0, 0.0)
-                points[2].co = (-3.0,2.0,0.0)
+                points[0].co = (0.0,-_height, 0.0)
+                points[1].co = (_width, _height, 0.0)
+                points[2].co = (-_width,_height,0.0)
         str.use_cyclic = True
         gpl.line_change = 50
         bpy.context.object.active_material.grease_pencil.color = self.new_button_props.button_border_color
@@ -226,13 +254,18 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             return
 
         # PROPERTIES
+        row9 = layout.row()
         row1 = layout.row()
         box1 = row1.box()
+        box2 = row9.box()
+        row10 = box2.row()
+        row10.label(text="Tools:")
+        row8 = box2.row()
         if len(context.scene.objects) < 1:
-            box1.operator("scene.create_menu2d_view_operator")
+            row8.operator("scene.create_menu2d_view_operator")
             return
         else:
-            box1.operator("scene.create_menu2d_base_button_operator")
+            row8.operator("scene.create_menu2d_base_button_operator")
         
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
@@ -252,19 +285,20 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                 if context.active_object.active_material.grease_pencil.show_fill:
                     row5 = box5.row()
                     row5.prop(context.active_object.active_material.grease_pencil, "fill_color", text="Fill color")
-                row7 = box5.row()
-                row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
-            box4 = box3.box()
-            box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
-            match context.active_object.menu2d_object_properties.menu2d_object_type:
-                case "button":
-                    box4.prop(context.active_object.menu2d_object_properties, "button_action")
-                    _act = context.active_object.menu2d_object_properties.button_action
-                    if ((_act != "none") and (_act != "close_menu") and (_act != "quit_game")):
-                        _param_name = get_scene_parameter_name(self, context)
-                        box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
-                case "check":
-                    box4.prop(context.active_object.menu2d_object_properties, "check_action")
+                if not has_text_child(self, context):
+                    row7 = box5.row()
+                    row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
+                box4 = box3.box()
+                box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
+                match context.active_object.menu2d_object_properties.menu2d_object_type:
+                    case "button":
+                        box4.prop(context.active_object.menu2d_object_properties, "button_action")
+                        _act = context.active_object.menu2d_object_properties.button_action
+                        if ((_act != "none") and (_act != "close_menu") and (_act != "quit_game")):
+                            _param_name = get_scene_parameter_name(self, context)
+                            box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
+                    case "check":
+                        box4.prop(context.active_object.menu2d_object_properties, "check_action")
             ''' DEBUG
             if context.active_object.type == "GPENCIL":
                 for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
