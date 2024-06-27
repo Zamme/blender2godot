@@ -550,6 +550,8 @@ func create_huds():
 		_new_texture_rect.texture = load(_svg_path)
 		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
+		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
+		_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		self.repack_scene(_new_hud, _new_hud_path)

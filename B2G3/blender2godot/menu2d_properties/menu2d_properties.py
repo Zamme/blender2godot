@@ -157,6 +157,8 @@ class CreateMenu2dBaseButtonOperator(bpy.types.Operator):
     def execute(self, context):
         print("Creating menu 2d base button...")
         bpy.ops.object.gpencil_add(type="EMPTY")
+        context.active_object.name = self.new_button_props.button_name
+        context.active_object.data.name = context.active_object.name
         gp_name = bpy.context.object.name
         gp = bpy.data.grease_pencils[gp_name]
         # Reference grease pencil layer or create one of none exists

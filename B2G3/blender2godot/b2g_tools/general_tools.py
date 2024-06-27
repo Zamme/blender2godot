@@ -147,8 +147,10 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                                             if _object.special_object_info.scene_parameter == "none":
                                                 self.add_warning(context, 16, _scene.name + " has load 3d menu with no linked scene")
             case "loading":
+                # TODO : Pending to add
                 self.add_error(context, 99, "Loading scene type is not available")
             case "npc":
+                # TODO : Pending to add
                 self.add_error(context, 99, "NPC scene type is not available")
 
     def cancel(self, context):

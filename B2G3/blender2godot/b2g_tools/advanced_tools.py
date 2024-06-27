@@ -484,6 +484,10 @@ class ExportGameOperator(bpy.types.Operator):
         for _obj in _hud_scene.objects:
             _obj.select_set(_obj.godot_exportable)
             bpy.ops.object.mode_set(mode = 'OBJECT')
+            if _obj.type == "GPENCIL":
+                #print("Is gpencil")
+                for _layer in _obj.data.layers:
+                    _layer.use_lights = False
         bpy.ops.view3d.view_camera()
         hud_path = os.path.join(self.huds_folder_path, _hud_scene.name)
         if len(_hud_scene.objects) > 0:
@@ -498,6 +502,8 @@ class ExportGameOperator(bpy.types.Operator):
                     hud_path = hud_path + ".png"
                     _hud_scene.render.engine = "BLENDER_EEVEE"
                     bpy.context.scene.render.filepath = hud_path
+                    bpy.context.scene.render.film_transparent = True
+                    bpy.context.scene.view_layers["ViewLayer"].use_pass_z = True
                     bpy.ops.render.render(write_still = True)
             print("Scene", _hud_scene.name, "exported.")
         else:

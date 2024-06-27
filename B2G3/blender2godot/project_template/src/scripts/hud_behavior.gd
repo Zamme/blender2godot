@@ -1,8 +1,8 @@
 class_name HudBehavior extends Control
 
 
-var hud_objects_info
-var hud_settings
+export var hud_objects_info : Dictionary
+export var hud_settings : Dictionary
 
 var fade_timer : Timer
 var fade_tween : Tween
@@ -10,7 +10,7 @@ var fade_tween : Tween
 
 func _ready():
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
-	get_json_info()
+#	get_json_info()
 	start_hud()
 
 func add_fade_timer():
@@ -25,12 +25,12 @@ func add_fade_tween():
 	fade_tween.name = "FadeTween"
 	add_child(fade_tween)
 
-func get_json_info():
-	var _json_result = read_json_file(StageTemplate.HUDS_JSON_PATH)
-	var _hud_name : String = name.trim_prefix("Hud_")
-	var hud_info = _json_result[_hud_name]
-	hud_objects_info = hud_info["Objects"]
-	hud_settings = hud_info["Settings"]
+#func get_json_info():
+#	var _json_result = read_json_file(StageTemplate.HUDS_JSON_PATH)
+#	var _hud_name : String = name.trim_prefix("Hud_")
+#	var hud_info = _json_result[_hud_name]
+#	hud_objects_info = hud_info["Objects"]
+#	hud_settings = hud_info["Settings"]
 
 func read_json_file(filepath):
 	var file = File.new()

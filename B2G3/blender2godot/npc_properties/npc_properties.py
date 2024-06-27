@@ -21,6 +21,7 @@ NPC properties panel
 """
 
 import bpy
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 class NpcPropertiesPanel(bpy.types.Panel):
@@ -46,7 +47,7 @@ class NpcPropertiesPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.label(icon="SEQ_PREVIEW")
+        layout.label(icon_value=addon_config.preview_collections[0]["npc_icon"].icon_id)        
     
     def draw(self, context):
         layout = self.layout
