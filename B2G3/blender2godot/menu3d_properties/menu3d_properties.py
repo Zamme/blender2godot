@@ -117,15 +117,15 @@ class Menu3DPropertiesPanel(bpy.types.Panel):
             box4 = box3.box()
             if context.active_object.type == "CAMERA":
                 box4.prop(context.active_object.data, "angle")
-            #else:
-                #if context.active_object.has_attr("special_object_info"):
-            box4.prop(context.active_object.special_object_info, "menu_object_type")
-            if context.active_object.special_object_info.menu_object_type == "button":
-                box4.prop(context.active_object.special_object_info, "button_action_on_click")
-                _act = context.active_object.special_object_info.button_action_on_click
-                if _act != "none" and _act != "quit_game":
-                    _param_name = get_scene_parameter_name(self, context)
-                    box4.prop(context.active_object.special_object_info, "scene_parameter", text=_param_name)
+            else:
+                if hasattr(context.active_object, "special_object_info"):
+                    box4.prop(context.active_object.special_object_info, "menu_object_type")
+                    if context.active_object.special_object_info.menu_object_type == "button":
+                        box4.prop(context.active_object.special_object_info, "button_action_on_click")
+                        _act = context.active_object.special_object_info.button_action_on_click
+                        if _act != "none" and _act != "quit_game":
+                            _param_name = get_scene_parameter_name(self, context)
+                            box4.prop(context.active_object.special_object_info, "scene_parameter", text=_param_name)
             box3.prop(context.active_object, "godot_exportable")
                  
 

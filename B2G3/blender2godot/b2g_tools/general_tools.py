@@ -39,7 +39,6 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     bl_idname = "scene.export_project_to_godot_operator"
     bl_label = "Export To Godot"
     
-    _errors = []
     _last_export_state = False
 
     @classmethod 
@@ -61,6 +60,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
     def check_export_requirements(self, context):
         context.scene.current_export_warnings.clear()
         context.scene.current_export_errors.clear()
+        self.check_naming_conventions(context)
         if context.scene.game_name == "":
             self.add_error(context, 8, "Project has no name")
         if (context.scene.startup_scene == None):
@@ -73,6 +73,20 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         for _scene in bpy.data.scenes:
             if _scene.scene_exportable:
                 self.check_scene_requirements(context, _scene)
+
+    def check_naming_conventions(self, context):
+        _invalid_characters = [".", ":", "@", '"', "/", "%"]
+        _objects_with_bad_name = []
+        for _scene in bpy.data.scenes:
+            for _object in _scene.objects:
+                for _inv_char in _invalid_characters:
+                    if (_object.name.find(_inv_char) > -1):
+                        _objects_with_bad_name.append(_object.name)
+                        break
+        if len(_objects_with_bad_name) > 0:
+            self.add_error(context, 20, 'Bad naming objects: (".", ":", "@", "/", "%")')
+            for _bno in _objects_with_bad_name:
+                self.add_error(context, 21, _bno)
 
     def check_scene_requirements(self, context, _scene):
         match _scene.scene_type:
@@ -99,9 +113,40 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                                             case "load_stage":
                                                 if _child.menu2d_object_properties.scene_parameter == "none":
                                                     self.add_warning(context, 11, "Load Stage button no linked on " + _scene.name)
+                                            case "load_2dmenu":
+                                                if _child.menu2d_object_properties.scene_parameter == "none":
+                                                    self.add_warning(context, 17, "Load 2D Menu button no linked on " + _scene.name)
+                                            case "load_3dmenu":
+                                                if _child.menu2d_object_properties.scene_parameter == "none":
+                                                    self.add_warning(context, 18, "Load 3D Menu button no linked on " + _scene.name)
                     if _cameras != 1:
                         self.add_error(context, 10, _scene.name + " must have 1 camera")
-        
+            case "3dmenu":
+                if not _scene.menu_camera_object:
+                    self.add_error(context, 12, _scene.name + " menu has no camera assigned")
+                _has_meshes = False
+                for _object in _scene.objects:
+                    if _object.type == "MESH":
+                        _has_meshes = True
+                        break
+                if not _has_meshes:
+                    self.add_error(context, 13, _scene.name + " menu has no meshes")
+                else:
+                    for _object in _scene.objects:
+                        if _object.type == "MESH":
+                            if hasattr(_object, "special_object_info"):
+                                if _object.special_object_info.menu_object_type == "button":
+                                    match _object.special_object_info.button_action_on_click:
+                                        case "load_stage":
+                                            if _object.special_object_info.scene_parameter == "none":
+                                                self.add_warning(context, 14, _scene.name + " has load stage with no linked scene")
+                                        case "load_2dmenu":
+                                            if _object.special_object_info.scene_parameter == "none":
+                                                self.add_warning(context, 15, _scene.name + " has load 2d menu with no linked scene")
+                                        case "load_3dmenu":
+                                            if _object.special_object_info.scene_parameter == "none":
+                                                self.add_warning(context, 16, _scene.name + " has load 3d menu with no linked scene")
+
     def cancel(self, context):
         context.scene.godot_export_ok = self._last_export_state
         context.scene.godot_exporting = False
@@ -127,6 +172,8 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         row7 = box0.row()
         if (len(context.scene.current_export_warnings) == 0) and (len(context.scene.current_export_errors) == 0):
             row7.label(text="All OK", icon_value=addon_config.preview_collections[0]["ok_green"].icon_id)
+        else:
+            row7.label(text="Press ESC to abort exporting", icon="INFO")
 
         row2 = layout.row()
         row2.label(text="Godot project will be overwritten", icon="ERROR")

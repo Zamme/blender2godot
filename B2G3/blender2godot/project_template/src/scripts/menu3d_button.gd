@@ -1,5 +1,16 @@
 class_name Menu3d_Button extends MeshInstance
 
+# TODO: HERE???
+const SRC_PATH = "res://src/"
+const SCENES_PATH = SRC_PATH + "scenes/"
+const STAGES_PATH = SCENES_PATH + "stages/"
+const STAGE_SCENES_PREFIX = "Stage_"
+const MENUS3D_PATH = SCENES_PATH + "menus3d/"
+const MENU3D_SCENES_PREFIX = "Menu3d_"
+const MENUS2D_PATH = SCENES_PATH + "menus2d/"
+const MENUS2D_SCENES_PREFIX = "Menu2d_"
+# END HERE
+const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
 export var action_to_do : String = "None"
 export var action_parameter = "None"
@@ -25,7 +36,7 @@ func create_selected_effect_mesh():
 	_mesh.set_owner(get_parent())
 	var _new_mat : SpatialMaterial = SpatialMaterial.new()
 	_new_mat.flags_transparent = true
-	_new_mat.albedo_color = GameManager.SELECTED_OBJECT_OVERLAY_COLOR
+	_new_mat.albedo_color = SELECTED_OBJECT_OVERLAY_COLOR
 	_mesh.material_overlay = _new_mat
 	return _mesh
 
@@ -36,13 +47,13 @@ func do_click_action():
 	var _param : String
 	match action_to_do:
 		"load_stage":
-			_param = StageTemplate.STAGES_PATH + action_parameter + ".tscn"
+			_param = STAGES_PATH + action_parameter + ".tscn"
 			get_tree().current_scene.load_scene(_param, true)
 		"load_3dmenu":
-			_param = StageTemplate.MENUS3D_PATH + action_parameter + ".tscn"
+			_param = MENUS3D_PATH + action_parameter + ".tscn"
 			get_tree().current_scene.load_scene(_param, true)
 		"load_2dmenu":
-			_param = StageTemplate.MENUS2D_PATH + action_parameter + ".tscn"
+			_param = MENUS2D_PATH + action_parameter + ".tscn"
 			get_tree().current_scene.load_scene(_param, true)
 		"quit_game":
 			get_tree().quit()

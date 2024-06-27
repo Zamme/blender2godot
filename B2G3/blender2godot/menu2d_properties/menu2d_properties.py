@@ -110,6 +110,7 @@ class CreateMenu2dButtonTextOperator(bpy.types.Operator):
         context.active_object.name = context.active_object.parent.name + "_Text"
         _text_object.delta_location = (0.0,0.0,1.0)
         _text_object.data.align_x = "CENTER"
+        _text_object.data.align_x = "MIDDLE"
         bpy.context.view_layer.objects.active = _last_active
         return {'FINISHED'}
 
@@ -256,7 +257,6 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
         # PROPERTIES
         row9 = layout.row()
         row1 = layout.row()
-        box1 = row1.box()
         box2 = row9.box()
         row10 = box2.row()
         row10.label(text="Tools:")
@@ -269,6 +269,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
         
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
+            box1 = row1.box()
             row2 = box1.row()
             box3 = row2.box()
             _nl = "Active Object: " + context.active_object.name
