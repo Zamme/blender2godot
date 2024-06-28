@@ -21,6 +21,7 @@ HUD properties panel
 """
 
 import bpy, math
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 shape_options = [("square", "Square", "Square shape", "", 0),
@@ -28,6 +29,30 @@ shape_options = [("square", "Square", "Square shape", "", 0),
                 ("triangle", "Triangle", "Triangle shape", "", 2)
                 ]
 
+element_type_options = [
+    ("none", "None", "None", "", 0),
+    ("text_container", "Text Container", "Text Container", "", 1),
+    ("horizontal_container", "Horizontal Container", "Horizontal Container", "", 2),
+    ("vertical_container", "Vertical Container", "Vertical Container", "", 3)
+]
+
+def update_hud_element_type(self, context):
+    print(self)
+    _ao = context.active_object
+    if _ao:
+        for _child in context.active_object.children:
+            bpy.ops.object.select_all(action='DESELECT')
+            _child.select_set(True)
+            bpy.ops.object.delete()
+        match self.element_type:
+            case "text_container":
+                bpy.ops.object.text_add()
+                _text_object = context.active_object
+                context.active_object.parent = _ao
+                context.active_object.name = _ao.name + "_Text"
+                _text_object.delta_location = (0.0,0.0,1.0)
+                _text_object.data.align_x = "CENTER"
+                _text_object.data.align_y = "CENTER"
 
 class HUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
@@ -38,6 +63,18 @@ class HUDElementProperties(bpy.types.PropertyGroup):
     segments_parameter : bpy.props.IntProperty(name="Element Segments", min=8, max=64, default=12) # type: ignore
     width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
+    element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options, update=update_hud_element_type) # type: ignore
+
+class NewHUDElementProperties(bpy.types.PropertyGroup):
+    element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
+    element_border_color : bpy.props.FloatVectorProperty(name="Element Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
+    element_fill_color : bpy.props.FloatVectorProperty(name="Element Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
+    element_shape : bpy.props.EnumProperty(items=shape_options, name="Element shape") # type: ignore
+    radius_parameter : bpy.props.FloatProperty(name="Element Radius", min=1.0, max=10.0, default=3.0) # type: ignore
+    segments_parameter : bpy.props.IntProperty(name="Element Segments", min=8, max=64, default=12) # type: ignore
+    width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
+    height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
+    element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options) # type: ignore
 
 class HudSettings(bpy.types.PropertyGroup):
     visibility_type : bpy.props.EnumProperty(items=[
@@ -64,7 +101,7 @@ class CreateHUDBaseElementOperator(bpy.types.Operator):
     bl_label = "Create HUD Base Element"
     bl_options = {'REGISTER', 'UNDO'}
 
-    new_element_props : bpy.props.PointerProperty(type=HUDElementProperties) # type: ignore
+    new_element_props : bpy.props.PointerProperty(type=NewHUDElementProperties) # type: ignore
 
     def draw(self, context):
         layout = self.layout
@@ -79,7 +116,11 @@ class CreateHUDBaseElementOperator(bpy.types.Operator):
         row4 = box1.row()
         row4.prop(self.new_element_props, "element_fill_color")
         row5 = box1.row()
-        row5.prop_tabs_enum(self.new_element_props, "element_shape")
+        box3 = row5.box()
+        row11 = box3.row()
+        row11.label(text="Base Shape:", icon_value=addon_config.preview_collections[0]["shapes_icon"].icon_id)
+        row10 = box3.row()
+        row10.prop_tabs_enum(self.new_element_props, "element_shape")
         box2 = box1.box()
         row6 = box2.row()
         match self.new_element_props.element_shape:
@@ -95,12 +136,16 @@ class CreateHUDBaseElementOperator(bpy.types.Operator):
                 row6.prop(self.new_element_props, "width_parameter")
                 row7 = box2.row()
                 row7.prop(self.new_element_props, "height_parameter")
+        row8 = box1.row()
+        row8.label(text="Type:")
+        row9 = box1.row()
+        row9.props_enum(self.new_element_props, "element_type")
         
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        print("Creating HUD base element...")
+        print("Creating HUD base element with shape", self.new_element_props.element_shape)
         bpy.ops.object.gpencil_add(type="EMPTY")
         context.active_object.name = self.new_element_props.element_name
         context.active_object.data.name = context.active_object.name
@@ -153,6 +198,7 @@ class CreateHUDBaseElementOperator(bpy.types.Operator):
         bpy.context.object.active_material.grease_pencil.color = self.new_element_props.element_border_color
         bpy.context.object.active_material.grease_pencil.show_fill = True
         bpy.context.object.active_material.grease_pencil.fill_color = self.new_element_props.element_fill_color
+        context.active_object.hud_element_properties.element_type = self.new_element_props.element_type
         #bpy.context.object.menu2d_object_properties.menu2d_object_type = "button"
 
         return {'FINISHED'}
@@ -233,22 +279,20 @@ class HUDPropertiesPanel(bpy.types.Panel):
             box2.label(text="Active Object")
             box3 = box2.box()
             box3.label(text=context.active_object.name)
-            box3.prop(context.active_object, "hud_object_type")
+            if context.active_object.type == "GPENCIL":
+                box3.prop(context.active_object.hud_element_properties, "element_type", text="Type")
             box3.prop(context.active_object, "godot_exportable")
 
 def init_properties():
-    bpy.types.Object.hud_object_type = bpy.props.EnumProperty(items=[
-                                                ("none", "None", "NONE", "", 0),
-                                                ("frame", "Frame", "FRAME", "", 1),
-                                                ("container", "Container", "CONTAINER", "", 2)
-                                                ], name="Type", description="HUD object type")
+    bpy.types.Object.hud_element_properties = bpy.props.PointerProperty(type=HUDElementProperties)
     bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
 
 def clear_properties():
-    del bpy.types.Object.hud_object_type
+    del bpy.types.Object.hud_element_properties
     del bpy.types.Scene.hud_settings
 
 def register():
+    bpy.utils.register_class(NewHUDElementProperties)
     bpy.utils.register_class(HUDElementProperties)
     bpy.utils.register_class(HudSettings)
     init_properties()
@@ -263,5 +307,6 @@ def unregister():
     clear_properties()
     bpy.utils.unregister_class(HudSettings)
     bpy.utils.unregister_class(HUDElementProperties)
+    bpy.utils.unregister_class(NewHUDElementProperties)
 
 

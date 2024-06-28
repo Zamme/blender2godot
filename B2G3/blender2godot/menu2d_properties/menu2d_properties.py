@@ -110,7 +110,7 @@ class CreateMenu2dButtonTextOperator(bpy.types.Operator):
         context.active_object.name = context.active_object.parent.name + "_Text"
         _text_object.delta_location = (0.0,0.0,1.0)
         _text_object.data.align_x = "CENTER"
-        _text_object.data.align_x = "MIDDLE"
+        _text_object.data.align_y = "CENTER"
         bpy.context.view_layer.objects.active = _last_active
         return {'FINISHED'}
 
