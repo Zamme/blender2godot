@@ -37,7 +37,6 @@ element_type_options = [
 ]
 
 def update_hud_element_type(self, context):
-    print(self)
     _ao = context.active_object
     if _ao:
         for _child in context.active_object.children:
@@ -48,11 +47,38 @@ def update_hud_element_type(self, context):
             case "text_container":
                 bpy.ops.object.text_add()
                 _text_object = context.active_object
+                context.active_object.is_containing_element = True
                 context.active_object.parent = _ao
-                context.active_object.name = _ao.name + "_Text"
+                context.active_object.name = _ao.name + "_Containing"
                 _text_object.delta_location = (0.0,0.0,1.0)
                 _text_object.data.align_x = "CENTER"
                 _text_object.data.align_y = "CENTER"
+            case "horizontal_container":
+                bpy.ops.object.select_all(action='DESELECT')
+                _ao.select_set(True)
+                context.view_layer.objects.active = _ao
+                bpy.ops.object.duplicate()
+                context.active_object.parent = _ao
+                context.active_object.name = _ao.name + "_Containing"
+                context.active_object.is_containing_element = True
+                bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
+                bpy.ops.gpencil.select_all(action='SELECT')
+                bpy.ops.transform.resize(value=(0.8, 0.8, 1.0))
+            case "vertical_container":
+                bpy.ops.object.select_all(action='DESELECT')
+                _ao.select_set(True)
+                context.view_layer.objects.active = _ao
+                bpy.ops.object.duplicate()
+                context.active_object.parent = _ao
+                context.active_object.name = _ao.name + "_Containing"
+                context.active_object.is_containing_element = True
+                bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
+                bpy.ops.gpencil.select_all(action='SELECT')
+                bpy.ops.transform.resize(value=(0.8, 0.8, 1.0))
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.ops.object.select_all(action='DESELECT')
+        _ao.select_set(True)
+        context.view_layer.objects.active = _ao
 
 class HUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
@@ -279,17 +305,22 @@ class HUDPropertiesPanel(bpy.types.Panel):
             box2.label(text="Active Object")
             box3 = box2.box()
             box3.label(text=context.active_object.name)
-            if context.active_object.type == "GPENCIL":
-                box3.prop(context.active_object.hud_element_properties, "element_type", text="Type")
+            match context.active_object.type:
+                case "GPENCIL":
+                    box3.prop(context.active_object.hud_element_properties, "element_type", text="Type")
+                case "FONT":
+                    box3.prop(context.active_object.data, "font", text="Font")
             box3.prop(context.active_object, "godot_exportable")
 
 def init_properties():
     bpy.types.Object.hud_element_properties = bpy.props.PointerProperty(type=HUDElementProperties)
+    bpy.types.Object.is_containing_element = bpy.props.BoolProperty(name="Is Containing Element", default=False)
     bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
 
 def clear_properties():
     del bpy.types.Object.hud_element_properties
     del bpy.types.Scene.hud_settings
+    del bpy.types.Object.is_containing_element
 
 def register():
     bpy.utils.register_class(NewHUDElementProperties)

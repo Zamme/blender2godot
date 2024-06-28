@@ -485,9 +485,11 @@ class ExportGameOperator(bpy.types.Operator):
             _obj.select_set(_obj.godot_exportable)
             bpy.ops.object.mode_set(mode = 'OBJECT')
             if _obj.type == "GPENCIL":
-                #print("Is gpencil")
                 for _layer in _obj.data.layers:
                     _layer.use_lights = False
+            if hasattr(_obj, "hud_element_properties"):
+                if _obj.is_containing_element:
+                    _obj.hide_render = True
         bpy.ops.view3d.view_camera()
         hud_path = os.path.join(self.huds_folder_path, _hud_scene.name)
         if len(_hud_scene.objects) > 0:
