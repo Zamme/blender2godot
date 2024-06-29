@@ -514,10 +514,17 @@ class ExportGameOperator(bpy.types.Operator):
 
     def export_hud_dict(self, context, _sc_added):
         _hud_dict = my_dictionary()
-        _hud_obj_dict = my_dictionary()
+        _hud_objects_dict = my_dictionary()
         for _hud_obj in _sc_added.objects:
-            _hud_obj_dict.add(_hud_obj.name, _hud_obj.type)
-        _hud_dict.add("Objects", _hud_obj_dict)
+            _hud_object_dict = my_dictionary()
+            _hud_object_dict.add("Type", _hud_obj.type)
+            match _hud_obj.type:
+                case "FONT":
+                    _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
+                    _hud_object_dict.add("Body", _hud_obj.data.body)
+                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.location))
+            _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
+        _hud_dict.add("Objects", _hud_objects_dict)
         _hud_settings_dict = my_dictionary()
         _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)
         _hud_settings_dict.add("ShowTransitionType", _sc_added.hud_settings.show_transition_type)
