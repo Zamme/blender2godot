@@ -30,6 +30,12 @@ from blender2godot.addon_config import addon_config # type: ignore
 
 current_template_controls = None
 
+player_property_types = [
+    ("boolean", "Boolean", "", "", 0),
+    ("integer", "Integer", "", "", 1),
+    ("float", "Float", "", "", 2),
+    ("string", "String", "", "", 3)
+]
 
 def scene_camera_object_poll(self, object):
     return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
@@ -580,6 +586,89 @@ class PlayerControlsPanel(bpy.types.Panel):
         box1.prop(scene, "controls_template", text="Template")
         box1.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
 
+def check_player_property_name(self, value):
+    _new_value = value
+    for _prop in bpy.context.scene.player_entity_properties:
+        if _new_value == "none": # name "none" is not allowed
+            _new_value = _prop["property_name"] + "0"
+            _new_value = check_player_property_name(self, _new_value)
+        if _prop != self:
+            if _prop["property_name"] == _new_value:
+                _new_value = _prop["property_name"] + "0"
+                _new_value = check_player_property_name(self, _new_value)
+    return _new_value
+
+def get_player_property_name(self):
+    return self["property_name"]
+
+def set_player_property_name(self, value):
+    _new_value = check_player_property_name(self, value)
+    self["property_name"] = _new_value
+
+class PlayerProperty(bpy.types.PropertyGroup):
+    property_name : bpy.props.StringProperty(name="Prop_Name", set=set_player_property_name, get=get_player_property_name) # type: ignore
+    property_type : bpy.props.EnumProperty(items=player_property_types, name="Type") # type: ignore
+    property_string : bpy.props.StringProperty(name="Init Value") # type: ignore
+    property_boolean : bpy.props.BoolProperty(name="Init Value") # type: ignore
+    property_float : bpy.props.FloatProperty(name="Init Value") # type: ignore
+    property_integer : bpy.props.IntProperty(name="Init Value") # type: ignore
+
+class AddPlayerPropertyOperator(bpy.types.Operator):
+    bl_idname = "scene.add_player_property_operator"
+    bl_label = "Add Property"
+    bl_description = "Add a new property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    property_name : bpy.props.StringProperty(name="Property Name", default="Property_Name") # type: ignore
+    property_type : bpy.props.EnumProperty(items=player_property_types) # type: ignore
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        row0 = box.row()
+        row0.prop(self, "property_name", text="Property Name")
+        row1 = box.row()
+        row1.prop(self, "property_type", text="Property Type")
+        #for _prop in context.scene.player_entity_properties:
+            #if _prop.property_name == self.property_name:
+                #row2 = box.row()
+                #row2.label(text="Prop name duplicated", icon="ERROR")
+    
+    def execute(self, context):
+        _new_property = context.scene.player_entity_properties.add()
+        _new_property.property_name = self.property_name
+        _new_property.property_type = self.property_type
+        return {"FINISHED"}
+
+class RemovePlayerPropertyOperator(bpy.types.Operator):
+    bl_idname = "scene.remove_player_property_operator"
+    bl_label = "Remove Property"
+    bl_description = "Remove property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    prop_to_remove_name : bpy.props.StringProperty(name="Propname") # type: ignore
+   
+    @classmethod
+    def poll(cls, context):
+        return True
+   
+    def execute(self, context):
+        prop_to_remove_index = -1
+        for _ind,_prop in enumerate(context.scene.player_entity_properties):
+            if _prop.property_name == self.prop_to_remove_name:
+                prop_to_remove_index = _ind
+                break
+        if prop_to_remove_index > -1:
+            context.scene.player_entity_properties.remove(prop_to_remove_index)
+        return {"FINISHED"}
+
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
     bl_label = "Player Properties"
@@ -620,9 +709,39 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         if not scene.player_object:
             return
 
+        # Motion Properties
         box3 = box1.box()
-        box3.prop(scene, "player_gravity_on")
-        box3.prop(scene, "camera_control_inverted")
+        row3 = box3.row()
+        row3.label(text="Motion Properties:")
+        row2 = box3.row()
+        row2.prop(scene, "player_gravity_on")
+        row2.prop(scene, "camera_control_inverted")
+
+        # Entity properties
+        box4 = box1.box()
+        row4 = box4.row()
+        row4.label(text="Entity Properties:")
+        for _property in scene.player_entity_properties:
+            box2 = box4.box()
+            row5 = box2.row()
+            column0 = row5.column()
+            column0.prop(_property, "property_name", text="Name")
+            column1 = row5.column()
+            column1.prop(_property, "property_type")
+            column2 = row5.column()
+            match _property.property_type:
+                case "boolean":
+                    column2.prop(_property, "property_boolean")
+                case "string":
+                    column2.prop(_property, "property_string")
+                case "integer":
+                    column2.prop(_property, "property_integer")
+                case "float":
+                    column2.prop(_property, "property_float")
+            column3 = row5.column()
+            column3.operator(operator="scene.remove_player_property_operator", text="X").prop_to_remove_name = _property.property_name
+        row6 = box4.row()
+        row6.operator("scene.add_player_property_operator")
 
         # Player camera
         box5 = box1.box()
@@ -651,9 +770,15 @@ def clear_properties():
     del bpy.types.Scene.camera_object
     del bpy.types.Scene.player_object
     del bpy.types.Scene.player_animation_sel
+    del bpy.types.Scene.player_hud_scene
+    del bpy.types.Scene.player_entity_properties
+    del bpy.types.Scene.controls_template
+    del bpy.types.Scene.controls_settings
+    del bpy.types.Scene.controls_settings_sel
     del bpy.types.Scene.actions_settings
     del bpy.types.Scene.actions_settings_sel
-
+    del bpy.types.Scene.pause_menu2d
+    
 def init_properties():
     # Player properties
     bpy.types.Action.animation_type = bpy.props.EnumProperty(
@@ -669,6 +794,8 @@ def init_properties():
     bpy.types.Scene.player_animation_sel = bpy.props.IntProperty(name="Player Selected Animation", default=0)
     bpy.types.Scene.player_hud_scene = bpy.props.EnumProperty(items=get_hud_scenes)
 
+    bpy.types.Scene.player_entity_properties = bpy.props.CollectionProperty(type=PlayerProperty, name="PlayerEntityProperties")
+
     bpy.types.Scene.controls_template = bpy.props.EnumProperty(items=get_input_templates, default=0, update=update_controls_template)
     bpy.types.Scene.controls_settings = bpy.props.CollectionProperty(type=ControlsProperties)
     bpy.types.Scene.controls_settings_sel = bpy.props.IntProperty(name="Input Selected", default=0)
@@ -680,6 +807,9 @@ def init_properties():
 
 def register():
     #bpy.utils.register_class(ControlSettingsType)
+    bpy.utils.register_class(PlayerProperty)
+    bpy.utils.register_class(AddPlayerPropertyOperator)
+    bpy.utils.register_class(RemovePlayerPropertyOperator)
     bpy.utils.register_class(InputType)
     bpy.utils.register_class(GamepadInputType)
     bpy.utils.register_class(SCENE_OT_add_control)
@@ -717,5 +847,8 @@ def unregister():
     bpy.utils.unregister_class(InputType)
     bpy.utils.unregister_class(GamepadInputType)
     bpy.utils.unregister_class(ActionsProperties)
+    bpy.utils.unregister_class(RemovePlayerPropertyOperator)
+    bpy.utils.unregister_class(AddPlayerPropertyOperator)
     clear_properties()
+    bpy.utils.unregister_class(PlayerProperty)
 

@@ -554,6 +554,9 @@ func create_huds():
 		_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		yield(get_tree(),"idle_frame")
+		self.prepare_hud_scene(_new_hud, _huds_json[_key]["Objects"])
+		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_hud, _new_hud_path)
 
 func create_menus2d():
@@ -878,6 +881,39 @@ func mount_scenes():
 	create_huds()
 	yield(get_tree(),"idle_frame")
 	create_menus2d()
+
+func prepare_hud_scene(_hud_scene, _hud_objects):
+	var FONT_POS_FACTOR_X = 38.0
+	var FONT_POS_FACTOR_Y = 38.0
+	var FONT_FACTOR = 38
+	var DEFAULT_FONT_PATH = "res://b2g_tools/Gill Sans.otf"
+	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
+	var SCALE_FACTOR = 28.5
+	for _hud_object_info in _hud_objects.keys():
+		match _hud_objects[_hud_object_info]["Type"]:
+			"FONT":
+				print(_hud_objects[_hud_object_info]["Location"])
+				var _new_label : Label = Label.new()
+				_new_label.name = _hud_object_info
+				_hud_scene.add_child(_new_label)
+				_new_label.set_owner(_hud_scene)
+				var _new_font : DynamicFont = DynamicFont.new()
+				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				_new_font.size = int(float(_hud_objects[_hud_object_info]["Size"])*FONT_FACTOR)
+				_new_label.set("custom_fonts/font", _new_font)
+				_new_label.text = _hud_objects[_hud_object_info]["Body"]
+				_new_label.align = Label.ALIGN_CENTER
+				_new_label.valign = Label.VALIGN_CENTER
+				_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
+				_new_label.set_pivot_offset(_new_label.rect_size/2)
+				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+				var _location_split = _hud_objects[_hud_object_info]["Location"].split(",")
+				#_new_label.rect_position = Vector2(_display_size.x/2, _display_size.y/2) + Vector2(float(_location_split[0]) * FONT_POS_FACTOR_X, -float(_location_split[1]) * FONT_POS_FACTOR_X)
+				_new_label.rect_position += Vector2(float(_location_split[0]) * FONT_POS_FACTOR_X, -float(_location_split[1]) * FONT_POS_FACTOR_Y)
+				#yield(get_tree(),"idle_frame")
+				#print( float(_hud_objects[_hud_object_info]["Size"]))
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")

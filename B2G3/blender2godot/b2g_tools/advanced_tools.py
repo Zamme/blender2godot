@@ -522,7 +522,10 @@ class ExportGameOperator(bpy.types.Operator):
                 case "FONT":
                     _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
                     _hud_object_dict.add("Body", _hud_obj.data.body)
-                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.location))
+#                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.matrix_world.to_translation()))
+                    loc, rot, sca = _hud_obj.matrix_world.decompose()
+                    _hud_object_dict.add("Location", Vector3ToString(loc))
+                    _hud_object_dict.add("Size", _hud_obj.data.size)
             _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
         _hud_dict.add("Objects", _hud_objects_dict)
         _hud_settings_dict = my_dictionary()

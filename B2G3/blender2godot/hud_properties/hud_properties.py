@@ -80,6 +80,18 @@ def update_hud_element_type(self, context):
         _ao.select_set(True)
         context.view_layer.objects.active = _ao
 
+def poll_source_scenes(self, object):
+    return (object.scene_type == "player")
+
+
+def get_source_info_property_items(self, context):
+    source_info_property_items = [("none", "None", "None", 0)]
+    if self.source_info_scene:
+        if self.source_info_scene.scene_type == "player":
+            for _ind,_prop in enumerate(self.source_info_scene.player_entity_properties):
+                source_info_property_items.append((_prop.property_name, _prop.property_name, _prop.property_name, _ind+1))
+    return source_info_property_items
+
 class HUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
     element_border_color : bpy.props.FloatVectorProperty(name="Element Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
@@ -90,6 +102,9 @@ class HUDElementProperties(bpy.types.PropertyGroup):
     width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
     element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options, update=update_hud_element_type) # type: ignore
+    source_info_scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Source Scene", poll=poll_source_scenes) # type: ignore
+    source_info_object : bpy.props.PointerProperty(type=bpy.types.Object, name="Source Object") # type: ignore
+    source_info_property : bpy.props.EnumProperty(items=get_source_info_property_items, name="Source Property") # type: ignore
 
 class NewHUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
@@ -239,7 +254,6 @@ class CreateHUDViewOperator(bpy.types.Operator):
         bpy.ops.object.camera_add(align="WORLD", location=(0.0, 0.0, 50.0), rotation=(0.0,0.0,0.0))
         context.active_object.name = context.scene.name + "_Camera"
         bpy.ops.view3d.object_as_camera()
-        #bpy.ops.object.gpencil_add()
         return {'FINISHED'}
 
 class HUDPropertiesPanel(bpy.types.Panel):
@@ -304,13 +318,28 @@ class HUDPropertiesPanel(bpy.types.Panel):
             box2 = row2.box()
             box2.label(text="Active Object")
             box3 = box2.box()
-            box3.label(text=context.active_object.name)
+            row5 = box3.row()
+            row5.label(text=context.active_object.name)
             match context.active_object.type:
                 case "GPENCIL":
-                    box3.prop(context.active_object.hud_element_properties, "element_type", text="Type")
+                    row7 = box3.row()
+                    row7.prop(context.active_object.hud_element_properties, "element_type", text="Type")
                 case "FONT":
-                    box3.prop(context.active_object.data, "font", text="Font")
-            box3.prop(context.active_object, "godot_exportable")
+                    row7 = box3.row()
+                    row7.prop(context.active_object.data, "font", text="Font")
+                    row8 = box3.row()
+                    row8.prop(context.active_object.data, "size", text="Font Size")
+                    box4 = box3.box()
+                    row11 = box4.row()
+                    row11.label(text="Property info")
+                    row9 = box4.row()
+                    row9.prop(context.active_object.hud_element_properties, "source_info_scene")
+                    if context.active_object.hud_element_properties.source_info_scene:
+                        row10 = box4.row()
+                        #row10.prop(context.active_object.hud_element_properties, "source_info_object")
+                        row10.prop(context.active_object.hud_element_properties, "source_info_property")
+            row6 = box3.row()
+            row6.prop(context.active_object, "godot_exportable")
 
 def init_properties():
     bpy.types.Object.hud_element_properties = bpy.props.PointerProperty(type=HUDElementProperties)
