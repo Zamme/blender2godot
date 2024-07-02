@@ -107,9 +107,9 @@ def register():
     hud_properties.register()
     test_project.register()
     game_export.register()
-    help_and_docs.register()
     loading_properties.register()
     npc_properties.register()
+    help_and_docs.register()
     #init_handlers()
     print("Blender2Godot addon loaded.")
 
@@ -117,6 +117,7 @@ def register():
 def unregister():
     #clear_handlers()
     addon_config.unregister()
+    help_and_docs.unregister()
     general_tools.unregister()
     godot_project_properties.unregister()
     display_properties.unregister()
@@ -130,7 +131,6 @@ def unregister():
     player_properties.unregister()
     test_project.unregister()
     game_export.unregister()
-    help_and_docs.unregister()
     loading_properties.unregister()
     npc_properties.unregister()
     print("Blender2Godot addon unloaded.")

@@ -480,7 +480,7 @@ class PlayerActionsPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.label(icon="ARMATURE_DATA")        
+        layout.label(icon_value=addon_config.preview_collections[0]["action_icon"].icon_id)        
     
     def draw(self, context):
         layout = self.layout
@@ -522,7 +522,7 @@ class PlayerAnimationsPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.label(icon="ARMATURE_DATA")        
+        layout.label(icon_value=addon_config.preview_collections[0]["motion_icon"].icon_id)        
     
     def draw(self, context):
         layout = self.layout
@@ -546,6 +546,47 @@ class PlayerAnimationsPanel(bpy.types.Panel):
                 _ic = "OUTLINER_OB_ARMATURE"
                 box2.template_list("ANIMATIONS_UL_armature_animations", "PlayerAnimationsList", bpy.data, "actions", scene, "player_animation_sel")
                 box2.label(text=_mess, icon=_ic)
+
+class PlayerCameraPanel(bpy.types.Panel):
+    """Player Camera Panel"""
+    bl_label = "Player Camera"
+    bl_idname = "PLAYERCAMERA_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 8
+    
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                if context.scene.player_object:
+                    _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon_value=addon_config.preview_collections[0]["camera_icon"].icon_id)        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        # Player Camera
+        row1 = layout.row(align=True)
+        box1 = row1.box()
+        box1.alignment = "EXPAND"
+        box1.prop(scene, "camera_object")
+        if scene.camera_object == None:
+            box1.label(text="No camera object assigned", icon="ERROR")
+        else:
+            box1.label(text="Camera Properties")
+            box1.prop(scene.camera_object.data, "angle")
 
 
 class PlayerControlsPanel(bpy.types.Panel):
@@ -572,7 +613,7 @@ class PlayerControlsPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.label(icon="ARMATURE_DATA")        
+        layout.label(icon_value=addon_config.preview_collections[0]["controls_icon"].icon_id)        
     
     def draw(self, context):
         layout = self.layout
@@ -585,6 +626,81 @@ class PlayerControlsPanel(bpy.types.Panel):
         box1.label(text="Player Controls")
         box1.prop(scene, "controls_template", text="Template")
         box1.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
+
+class PlayerHUDPanel(bpy.types.Panel):
+    """Player HUD Panel"""
+    bl_label = "Player HUD"
+    bl_idname = "PLAYERHUD_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 9
+    
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                if context.scene.player_object:
+                    _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon_value=addon_config.preview_collections[0]["hud_icon"].icon_id)        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        # Player hud
+        row1 = layout.row(align=True)
+        box1 = row1.box()
+        box1.alignment = "EXPAND"
+        box1.label(text="Player HUD")
+        box1.prop(scene, "player_hud_scene", text="HUD scene")
+
+class PlayerPausePanel(bpy.types.Panel):
+    """Player Pause Panel"""
+    bl_label = "Player Pause"
+    bl_idname = "PLAYERPAUSE_PT_layout"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_options = {"DEFAULT_CLOSED"}
+    bl_order = 10
+    
+    @classmethod 
+    def poll(self, context):
+        _ret = False
+        if hasattr(context.scene, "scene_type"):
+            if (context.scene.scene_type == "player"):
+                if context.scene.player_object:
+                    _ret = True
+        return _ret
+    
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon_value=addon_config.preview_collections[0]["pause_icon"].icon_id)        
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        if not bpy.data.is_saved:       
+            return
+
+        # Player Pause Menu 2D
+        row1 = layout.row(align=True)
+        box1 = row1.box()
+        box1.alignment = "EXPAND"
+        box1 = box1.box()
+        box1.label(text="Pause")
+        box1.prop(scene, "pause_menu2d", text="Pause menu 2D")
 
 def check_player_property_name(self, value):
     _new_value = value
@@ -692,7 +808,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
     
     def draw_header(self, context):
         layout = self.layout
-        layout.label(icon="ARMATURE_DATA")        
+        layout.label(icon_value=addon_config.preview_collections[0]["player_icon"].icon_id)        
     
     def draw(self, context):
         layout = self.layout
@@ -712,7 +828,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         # Motion Properties
         box3 = box1.box()
         row3 = box3.row()
-        row3.label(text="Motion Properties:")
+        row3.label(text="Motion Properties:", icon_value=addon_config.preview_collections[0]["motion_icon"].icon_id)
         row2 = box3.row()
         row2.prop(scene, "player_gravity_on")
         row2.prop(scene, "camera_control_inverted")
@@ -720,7 +836,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         # Entity properties
         box4 = box1.box()
         row4 = box4.row()
-        row4.label(text="Entity Properties:")
+        row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
         for _property in scene.player_entity_properties:
             box2 = box4.box()
             row5 = box2.row()
@@ -742,26 +858,6 @@ class PlayerPropertiesPanel(bpy.types.Panel):
             column3.operator(operator="scene.remove_player_property_operator", text="X").prop_to_remove_name = _property.property_name
         row6 = box4.row()
         row6.operator("scene.add_player_property_operator")
-
-        # Player camera
-        box5 = box1.box()
-        box5.label(text="Camera Properties")
-        box5.prop(scene, "camera_object")
-        if scene.camera_object == None:
-            box5.label(text="No camera object assigned", icon="ERROR")
-        else:
-            box5.prop(scene.camera_object.data, "angle")
-
-        # Player HUD
-        box6 = box1.box()
-        box6.label(text="Player HUD")
-        box6.prop(scene, "player_hud_scene", text="HUD scene")
-
-        # Pause Menu 2D
-        box7 = box1.box()
-        box7.label(text="Pause")
-        box7.prop(scene, "pause_menu2d", text="Pause menu 2D")
-
 
 def clear_properties():
     del bpy.types.Action.animation_type
@@ -826,12 +922,18 @@ def register():
     bpy.utils.register_class(SCENE_OT_add_mouse_input)
     bpy.utils.register_class(PlayerActionsPanel)
     bpy.utils.register_class(PlayerAnimationsPanel)
+    bpy.utils.register_class(PlayerCameraPanel)
     bpy.utils.register_class(PlayerControlsPanel)
+    bpy.utils.register_class(PlayerHUDPanel)
+    bpy.utils.register_class(PlayerPausePanel)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
+    bpy.utils.unregister_class(PlayerPausePanel)
+    bpy.utils.unregister_class(PlayerHUDPanel)
     bpy.utils.unregister_class(PlayerControlsPanel)
+    bpy.utils.unregister_class(PlayerCameraPanel)
     bpy.utils.unregister_class(PlayerAnimationsPanel)
     bpy.utils.unregister_class(PlayerActionsPanel)
     bpy.utils.unregister_class(SCENE_OT_add_mouse_input)

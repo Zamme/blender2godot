@@ -78,7 +78,7 @@ class HelpAndDocsPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}
-    bl_order = 6
+    bl_order = 20
     
     def draw_header(self, context):
         layout = self.layout

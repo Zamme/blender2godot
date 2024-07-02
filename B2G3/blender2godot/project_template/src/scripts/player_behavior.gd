@@ -10,6 +10,8 @@ export var _controls : Dictionary
 export var _animations : Dictionary
 export var _actions_dict : Dictionary
 export var _player_mesh_name : String = ""
+export var _actions : Dictionary
+export var _entity_properties : Dictionary
 
 const GRAVITY = -24.8
 var vel = Vector3()
@@ -36,7 +38,7 @@ var mouse_rotation_axises = [false, false, false, false]
 var current_delta = 0.0
 
 var pause_control
-var _actions : Dictionary
+
 var stage_scene
 
 
@@ -138,23 +140,6 @@ func set_actions():
 
 func toogle_pause():
 	pause_game_enable(!get_tree().paused)
-
-#func read_json_file(filepath):
-#	var file = File.new()
-#	if not file.file_exists(filepath):
-#		print("Missing classes.json file.")
-#	else:
-#		file.open(filepath, file.READ)
-#		var json = file.get_as_text()
-#		var json_result = JSON.parse(json)
-#		file.close()
-#		return json_result.result
-
-#func set_json_actions():
-#	var _json_actions = player_json["PlayerActions"]
-#	for _action_key in _json_actions.keys():
-#		_actions["b2g_" + _action_key] = _json_actions[_action_key]
-	#print(_actions)
 
 func set_stage_scene(_scene):
 	stage_scene = _scene

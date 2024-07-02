@@ -699,6 +699,24 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_player_info = my_dictionary()
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
+        # ENTITY PROPERTIES
+        _entity_properties = my_dictionary()
+        print("Jsoning entity properties...")
+        for _player_entity_property in _player_scene.player_entity_properties:
+            print("Adding property", _player_entity_property.property_name)
+            _prop_value = None
+            match _player_entity_property.property_type:
+                case "boolean":
+                    _prop_value = _player_entity_property.property_boolean
+                case "string":
+                    _prop_value = _player_entity_property.property_string
+                case "integer":
+                    _prop_value = _player_entity_property.property_integer
+                case "float":
+                    _prop_value = _player_entity_property.property_float
+            _entity_properties.add(_player_entity_property.property_name, {"Type" : _player_entity_property.property_type,
+                                                                        "Value" : _prop_value})
+        self.dict_player_info.add("PlayerEntityProperties", _entity_properties)
         # DIMENSIONS
         self.dict_player_info.add("PlayerDimensions", {"DimX" : _player_scene.player_object.dimensions.x,
                                                        "DimY" : _player_scene.player_object.dimensions.y,
