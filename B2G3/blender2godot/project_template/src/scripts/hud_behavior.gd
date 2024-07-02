@@ -6,8 +6,6 @@ const FONT_POS_FACTOR_Y = 42.0
 
 const FONT_FACTOR = 40
 
-
-
 export var hud_objects_info : Dictionary
 export var hud_settings : Dictionary
 
@@ -19,7 +17,8 @@ var fade_tween : Tween
 
 func _ready():
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
-#	config_hud()
+	link_objects()
+	update_hud_objects_info()
 	start_hud()
 
 func add_fade_timer():
@@ -34,20 +33,23 @@ func add_fade_tween():
 	fade_tween.name = "FadeTween"
 	add_child(fade_tween)
 
-#func config_hud():
-#	pass
+func find_child_by_name(root_node, _object_name):
+	var _object = null
+	for _node in root_node.get_children():
+		if _node.name == _object_name:
+			_object = _node
+			break
+		else:
+			_object = find_child_by_name(_node, _object_name)
+			if _object != null:
+				break
+	return _object
 
-func read_json_file(filepath):
-	var file = File.new()
-	if not file.file_exists(filepath):
-		print("Missing classes.json file.")
-	else:
-		file.open(filepath, file.READ)
-		var json = file.get_as_text()
-#		print("json ", filepath, " : ", json)
-		var json_result = JSON.parse(json)
-		file.close()
-		return json_result.result
+func link_objects():
+	for _key in hud_objects_info.keys():
+		hud_objects_info[_key]["LinkedControl"] = find_child_by_name(self, _key)
+		if hud_objects_info[_key].has("SourceInfoScene"):
+			hud_objects_info[_key]["LinkedEntity"] = find_child_by_name(get_tree().current_scene, hud_objects_info[_key]["SourceInfoScene"])
 
 func start_fade():
 	fade_tween.interpolate_property(self, "modulate",
@@ -63,6 +65,20 @@ func start_hud():
 	match hud_settings["VisibilityType"]:
 		"always":
 			fade_timer.start(hud_settings["ShowTransitionTime"])
+
+func update_hud_object_info(_key):
+	# TODO: If is not TEXT?
+	if hud_objects_info[_key].has("SourceInfoProperty"):
+		var _linked_entity = hud_objects_info[_key]["LinkedEntity"]
+#		print("Linked entity: " + _linked_entity.name)
+		var _source_info_property_name = hud_objects_info[_key]["SourceInfoProperty"]
+#		print("Property name: " + _source_info_property_name)
+		var _value_to_assign = _linked_entity._entity_properties[_source_info_property_name]["Value"]
+		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
+
+func update_hud_objects_info():
+	for _key in hud_objects_info.keys():
+		update_hud_object_info(_key)
 
 func _on_fade_timer_timeout():
 	start_fade()

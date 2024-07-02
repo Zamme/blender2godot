@@ -517,16 +517,28 @@ class ExportGameOperator(bpy.types.Operator):
         _hud_objects_dict = my_dictionary()
         for _hud_obj in _sc_added.objects:
             _hud_object_dict = my_dictionary()
-            _hud_object_dict.add("Type", _hud_obj.type)
-            match _hud_obj.type:
-                case "FONT":
-                    _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
-                    _hud_object_dict.add("Body", _hud_obj.data.body)
-#                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.matrix_world.to_translation()))
-                    loc, rot, sca = _hud_obj.matrix_world.decompose()
-                    _hud_object_dict.add("Location", Vector3ToString(loc))
-                    _hud_object_dict.add("Size", _hud_obj.data.size)
-            _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
+            if hasattr(_hud_obj, "is_containing_element"):
+                if _hud_obj.is_containing_element:
+                    _hud_object_dict.add("Type", _hud_obj.type)
+                    match _hud_obj.type:
+                        case "FONT":
+                            _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
+                            _hud_object_dict.add("Body", _hud_obj.data.body)
+        #                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.matrix_world.to_translation()))
+                            loc, rot, sca = _hud_obj.matrix_world.decompose()
+                            _hud_object_dict.add("Location", Vector3ToString(loc))
+                            _hud_object_dict.add("Size", _hud_obj.data.size)
+                    if hasattr(_hud_obj, "hud_element_properties"):
+                        if _hud_obj.hud_element_properties.source_info_scene:
+                            _scene_name = _hud_obj.hud_element_properties.source_info_scene.name
+                            match _hud_obj.hud_element_properties.source_info_scene.scene_type:
+                                case "stage":
+                                    _scene_name = "Stage_" + _scene_name
+                                case "player":
+                                    _scene_name = _scene_name + "Entity"
+                            _hud_object_dict.add("SourceInfoScene", _scene_name)
+                            _hud_object_dict.add("SourceInfoProperty", _hud_obj.hud_element_properties.source_info_property)
+                    _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
         _hud_dict.add("Objects", _hud_objects_dict)
         _hud_settings_dict = my_dictionary()
         _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)

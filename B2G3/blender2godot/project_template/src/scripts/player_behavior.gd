@@ -138,6 +138,20 @@ func set_actions():
 	for _action_key in _actions_dict.keys():
 		_actions["b2g_" + _action_key] = _actions_dict[_action_key]
 
+func set_entity_property_value(_property_name, _value):
+	var _translated_value
+	match typeof(_value):
+		TYPE_BOOL:
+			_translated_value = _value
+		TYPE_INT:
+			_translated_value = int(_value)
+		TYPE_REAL:
+			_translated_value = float(_value)
+		TYPE_STRING:
+			_translated_value = String(_value)
+	_entity_properties[_property_name]["Value"] = _translated_value
+	# TODO: EMIT A SIGNAL TO LINKED CONTROLS?
+
 func toogle_pause():
 	pause_game_enable(!get_tree().paused)
 
