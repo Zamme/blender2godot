@@ -33,7 +33,10 @@ element_type_options = [
     ("none", "None", "None", "", 0),
     ("text_container", "Text Container", "Text Container", "", 1),
     ("horizontal_container", "Horizontal Container", "Horizontal Container", "", 2),
-    ("vertical_container", "Vertical Container", "Vertical Container", "", 3)
+    ("vertical_container", "Vertical Container", "Vertical Container", "", 3),
+    ("text_content", "Text Content", "Text Content", "", 4),
+    ("horizontal_content", "Horizontal Content", "Horizontal Content", "", 5),
+    ("vertical_content", "Vertical Content", "Vertical Content", "", 6)
 ]
 
 def update_hud_element_type(self, context):
@@ -47,9 +50,9 @@ def update_hud_element_type(self, context):
             case "text_container":
                 bpy.ops.object.text_add()
                 _text_object = context.active_object
-                context.active_object.is_containing_element = True
+                #context.active_object.is_containing_element = True
                 context.active_object.parent = _ao
-                context.active_object.name = _ao.name + "_Containing"
+                context.active_object.name = _ao.name + "_Content"
                 _text_object.delta_location = (0.0,0.0,1.0)
                 _text_object.data.align_x = "CENTER"
                 _text_object.data.align_y = "CENTER"
@@ -59,8 +62,8 @@ def update_hud_element_type(self, context):
                 context.view_layer.objects.active = _ao
                 bpy.ops.object.duplicate()
                 context.active_object.parent = _ao
-                context.active_object.name = _ao.name + "_Containing"
-                context.active_object.is_containing_element = True
+                context.active_object.name = _ao.name + "_Content"
+                #context.active_object.is_containing_element = True
                 bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
                 bpy.ops.gpencil.select_all(action='SELECT')
                 bpy.ops.transform.resize(value=(0.8, 0.8, 1.0))
@@ -70,8 +73,8 @@ def update_hud_element_type(self, context):
                 context.view_layer.objects.active = _ao
                 bpy.ops.object.duplicate()
                 context.active_object.parent = _ao
-                context.active_object.name = _ao.name + "_Containing"
-                context.active_object.is_containing_element = True
+                context.active_object.name = _ao.name + "_Content"
+                #context.active_object.is_containing_element = True
                 bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
                 bpy.ops.gpencil.select_all(action='SELECT')
                 bpy.ops.transform.resize(value=(0.8, 0.8, 1.0))
@@ -320,15 +323,17 @@ class HUDPropertiesPanel(bpy.types.Panel):
             box3 = box2.box()
             row5 = box3.row()
             row5.label(text=context.active_object.name)
+            row7 = box3.row()
+            row7.prop(context.active_object.hud_element_properties, "element_type", text="Type")
             match context.active_object.type:
                 case "GPENCIL":
-                    row7 = box3.row()
-                    row7.prop(context.active_object.hud_element_properties, "element_type", text="Type")
+                    pass
                 case "FONT":
                     row7 = box3.row()
-                    row7.prop(context.active_object.data, "font", text="Font")
+                    row7.prop(context.active_object.data, "font", text="Font", slider=True)
                     row8 = box3.row()
                     row8.prop(context.active_object.data, "size", text="Font Size")
+                    '''
                     box4 = box3.box()
                     row11 = box4.row()
                     row11.label(text="Property info")
@@ -338,18 +343,19 @@ class HUDPropertiesPanel(bpy.types.Panel):
                         row10 = box4.row()
                         #row10.prop(context.active_object.hud_element_properties, "source_info_object")
                         row10.prop(context.active_object.hud_element_properties, "source_info_property")
+                    '''
             row6 = box3.row()
             row6.prop(context.active_object, "godot_exportable")
 
 def init_properties():
     bpy.types.Object.hud_element_properties = bpy.props.PointerProperty(type=HUDElementProperties)
-    bpy.types.Object.is_containing_element = bpy.props.BoolProperty(name="Is Containing Element", default=False)
+    #bpy.types.Object.is_containing_element = bpy.props.BoolProperty(name="Is Containing Element", default=False)
     bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
 
 def clear_properties():
     del bpy.types.Object.hud_element_properties
     del bpy.types.Scene.hud_settings
-    del bpy.types.Object.is_containing_element
+    #del bpy.types.Object.is_containing_element
 
 def register():
     bpy.utils.register_class(NewHUDElementProperties)

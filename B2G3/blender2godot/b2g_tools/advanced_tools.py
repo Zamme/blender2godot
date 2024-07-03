@@ -25,6 +25,9 @@ import json
 import subprocess
 import shutil
 import imghdr
+from mathutils import Vector, Matrix
+from mathutils.geometry import normal
+from numpy import cross, dot
 
 import bpy
 from blender2godot.addon_config import addon_config # type: ignore
@@ -474,6 +477,7 @@ class ExportGameOperator(bpy.types.Operator):
         else:
             print("Custom icon is not a png image. Loading default icon.")
     
+    ''' SECU EXPORT HUD
     def export_hud(self, context, _hud_scene):
         _last_scene = context.window.scene
         self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
@@ -511,34 +515,122 @@ class ExportGameOperator(bpy.types.Operator):
         else:
             print("Scene ", _hud_scene.name, " empty!")
         context.window.scene = _last_scene
+    '''
+
+    def export_hud(self, context, _hud_scene):
+        _last_scene = context.window.scene
+        self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
+        if not os.path.isdir(self.huds_folder_path):
+            os.mkdir(self.huds_folder_path)
+        print("Exporting hud scene", _hud_scene.name)
+        context.window.scene = _hud_scene
+        bpy.ops.view3d.view_camera()
+        _last_use_border = _hud_scene.render.use_border
+        _last_use_crop_to_border = _hud_scene.render.use_crop_to_border
+        _hud_scene.render.use_border = True
+        _hud_scene.render.use_crop_to_border = True
+        cam = _hud_scene.camera 
+        camType = cam.data.type
+        matrix = cam.matrix_world.normalized()
+        frame = [matrix @ v for v in cam.data.view_frame(scene=_hud_scene)]
+        origin = matrix.to_translation()
+        frame.append(origin)
+        p1, p2, p3, p4 = frame[0:4]
+        l = cam.location
+        v1 = p2 - p3
+        v2 = p4 - p3
+        normal = cross(v1, v2)
+        hud_path = os.path.join(self.huds_folder_path, _hud_scene.name)
+        _hud_scene.render.engine = "BLENDER_EEVEE"
+        objs = []
+        s1s = []
+        s2s = []
+        for _obj in _hud_scene.objects:
+            if _obj.type == "GPENCIL":
+                if _obj.godot_exportable:
+                    objs.append(_obj)
+                    for _obj2 in _hud_scene.objects:
+                        _obj2.hide_render = (_obj2 != _obj)
+                    for _layer in _obj.data.layers:
+                        _layer.use_lights = False
+                    bpy.ops.object.mode_set(mode = 'OBJECT')
+                    s1s.clear()
+                    s2s.clear()
+                    verts = [_obj.matrix_world @ v.co for v in _obj.data.layers[0].active_frame.strokes[0].points]
+                    for v in verts:
+                        # direction of line to be parameterized, if orthogonal, direction should be normal
+                        if camType == 'ORTHO':
+                            direction = normal
+                        else:
+                            direction = l - v
+                        # parametric value for projection to camera
+                        t = -(dot(normal, v) - dot(p1, normal))/dot(normal, direction)
+                        # vert projected to camera frustum
+                        vP = v + Vector(t * direction)
+                        # matrix with v1 and v2 as basis vectors (has to be square in order to invert)      
+                        mtxB = Matrix((v1, v2)).to_3x3()
+                        # find scalars to stretch basis vectors to projected point on frustum
+                        scalars = (vP - p3) @ mtxB.inverted() 
+                        # horizontal scalar append to all horizontal scalars:
+                        s1s.append(scalars[0])
+                        # vertical scalar append to all vertical scalars:
+                        s2s.append(scalars[1])
+                    x_min, y_min, x_max, y_max = min(s1s), min(s2s), max(s1s), max(s2s)
+
+                    _hud_scene.render.border_min_x = x_min
+                    _hud_scene.render.border_min_y = y_min
+                    _hud_scene.render.border_max_x = x_max
+                    _hud_scene.render.border_max_y = y_max
+
+                    _file_path = hud_path + "_" + _obj.name + ".png"
+                    _hud_scene.render.filepath = _file_path
+                    _hud_scene.render.film_transparent = True
+                    _hud_scene.view_layers["ViewLayer"].use_pass_z = True
+                    bpy.ops.render.render(write_still = True, use_viewport=True)
+        if len(objs) > 0:
+            print("Scene", _hud_scene.name, "exported with", str(len(objs)), "objects.")
+        else:
+            print("Scene ", _hud_scene.name, " empty!")
+        _hud_scene.render.use_border = _last_use_border
+        _hud_scene.render.use_crop_to_border = _last_use_border
+        for _obj in _hud_scene.objects:
+            _obj.hide_render = False
+        context.window.scene = _last_scene
 
     def export_hud_dict(self, context, _sc_added):
         _hud_dict = my_dictionary()
         _hud_objects_dict = my_dictionary()
         for _hud_obj in _sc_added.objects:
             _hud_object_dict = my_dictionary()
-            if hasattr(_hud_obj, "is_containing_element"):
-                if _hud_obj.is_containing_element:
-                    _hud_object_dict.add("Type", _hud_obj.type)
-                    match _hud_obj.type:
-                        case "FONT":
-                            _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
-                            _hud_object_dict.add("Body", _hud_obj.data.body)
-        #                    _hud_object_dict.add("Location", Vector3ToString(_hud_obj.matrix_world.to_translation()))
-                            loc, rot, sca = _hud_obj.matrix_world.decompose()
-                            _hud_object_dict.add("Location", Vector3ToString(loc))
-                            _hud_object_dict.add("Size", _hud_obj.data.size)
-                    if hasattr(_hud_obj, "hud_element_properties"):
-                        if _hud_obj.hud_element_properties.source_info_scene:
-                            _scene_name = _hud_obj.hud_element_properties.source_info_scene.name
-                            match _hud_obj.hud_element_properties.source_info_scene.scene_type:
-                                case "stage":
-                                    _scene_name = "Stage_" + _scene_name
-                                case "player":
-                                    _scene_name = _scene_name + "Entity"
-                            _hud_object_dict.add("SourceInfoScene", _scene_name)
-                            _hud_object_dict.add("SourceInfoProperty", _hud_obj.hud_element_properties.source_info_property)
-                    _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
+            #if hasattr(_hud_obj, "is_containing_element"):
+                #if _hud_obj.is_containing_element:
+            _hud_object_dict.add("Type", _hud_obj.type)
+            _hud_object_dict.add("ElementType", _hud_obj.hud_element_properties.element_type)
+            loc, rot, sca = _hud_obj.matrix_world.decompose()
+            _hud_object_dict.add("Location", Vector3ToString(loc))
+            match _hud_obj.type:
+                case "FONT":
+                    _hud_object_dict.add("FontFilepath", _hud_obj.data.font.filepath)
+                    _hud_object_dict.add("Body", _hud_obj.data.body)
+                    _hud_object_dict.add("Size", _hud_obj.data.size)
+                case "GPENCIL":
+                    _co_array = []
+                    for _point in _hud_obj.data.layers[0].active_frame.strokes[0].points:
+                        _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                    _hud_object_dict.add("Points", _co_array)
+            '''
+            if hasattr(_hud_obj, "hud_element_properties"):
+                if _hud_obj.hud_element_properties.source_info_scene:
+                    _scene_name = _hud_obj.hud_element_properties.source_info_scene.name
+                    match _hud_obj.hud_element_properties.source_info_scene.scene_type:
+                        case "stage":
+                            _scene_name = "Stage_" + _scene_name
+                        case "player":
+                            _scene_name = _scene_name + "Entity"
+                    _hud_object_dict.add("SourceInfoScene", _scene_name)
+                    _hud_object_dict.add("SourceInfoProperty", _hud_obj.hud_element_properties.source_info_property)
+            '''
+            _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
         _hud_dict.add("Objects", _hud_objects_dict)
         _hud_settings_dict = my_dictionary()
         _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)
@@ -634,8 +726,8 @@ class ExportGameOperator(bpy.types.Operator):
                 if _menu2d_obj.godot_exportable:
                     if _menu2d_obj.menu2d_object_properties.menu2d_object_type != "none":
                         _menu2d_obj_dict = my_dictionary()
-                        _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
                         _menu2d_obj_dict.add("Type", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
+                        _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
                         match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
                             case "button":
                                 _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.button_action)

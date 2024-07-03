@@ -418,6 +418,18 @@ class CONTROLS_UL_player_input(bpy.types.UIList):
             layout.alignment = 'CENTER'
             layout.label(text="", icon = "POSE_HLT")
 
+class PROPERTIES_UL_player(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        custom_icon = 'OUTLINER_DATA_ARMATURE'
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name, icon=custom_icon)
+            layout.label(text=item.property_name)
+            for _prop_links in item.property_links:
+                _hud_scene = context.scene.player_hud_scene
+            #layout.prop(item, "property_name", text="", icon="NONE")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = custom_icon)
 
 '''
 class ControlSettingsType(bpy.types.PropertyGroup):
@@ -660,9 +672,18 @@ class PlayerHUDPanel(bpy.types.Panel):
         # Player hud
         row1 = layout.row(align=True)
         box1 = row1.box()
+        row2 = box1.row()
         box1.alignment = "EXPAND"
-        box1.label(text="Player HUD")
-        box1.prop(scene, "player_hud_scene", text="HUD scene")
+        row2.label(text="Player HUD")
+        row3 = box1.row()
+        row3.prop(scene, "player_hud_scene", text="HUD scene")
+        if scene.player_hud_scene != "none":
+            if scene.player_entity_properties:
+                row4 = box1.row()
+                row4.label(text="Linked properties:")
+                row5 = box1.row()
+                row5.template_list("PROPERTIES_UL_player", "PlayerPropertiesList", context.scene, "player_entity_properties", scene, "player_entity_property_sel")
+
 
 class PlayerPausePanel(bpy.types.Panel):
     """Player Pause Panel"""
@@ -721,6 +742,10 @@ def set_player_property_name(self, value):
     _new_value = check_player_property_name(self, value)
     self["property_name"] = _new_value
 
+class PlayerPropertyLink(bpy.types.PropertyGroup):
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Property Scene Link") # type: ignore
+    property_name : bpy.props.StringProperty(name="Property Name Link") # type: ignore
+
 class PlayerProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name", set=set_player_property_name, get=get_player_property_name) # type: ignore
     property_type : bpy.props.EnumProperty(items=player_property_types, name="Type") # type: ignore
@@ -728,6 +753,7 @@ class PlayerProperty(bpy.types.PropertyGroup):
     property_boolean : bpy.props.BoolProperty(name="Init Value") # type: ignore
     property_float : bpy.props.FloatProperty(name="Init Value") # type: ignore
     property_integer : bpy.props.IntProperty(name="Init Value") # type: ignore
+    property_links : bpy.props.CollectionProperty(type=PlayerPropertyLink, name="Property Links") # type: ignore
 
 class AddPlayerPropertyOperator(bpy.types.Operator):
     bl_idname = "scene.add_player_property_operator"
@@ -891,6 +917,7 @@ def init_properties():
     bpy.types.Scene.player_hud_scene = bpy.props.EnumProperty(items=get_hud_scenes)
 
     bpy.types.Scene.player_entity_properties = bpy.props.CollectionProperty(type=PlayerProperty, name="PlayerEntityProperties")
+    bpy.types.Scene.player_entity_property_sel = bpy.props.IntProperty(name="Player Property Selected", default=0)
 
     bpy.types.Scene.controls_template = bpy.props.EnumProperty(items=get_input_templates, default=0, update=update_controls_template)
     bpy.types.Scene.controls_settings = bpy.props.CollectionProperty(type=ControlsProperties)
@@ -903,6 +930,7 @@ def init_properties():
 
 def register():
     #bpy.utils.register_class(ControlSettingsType)
+    bpy.utils.register_class(PlayerPropertyLink)
     bpy.utils.register_class(PlayerProperty)
     bpy.utils.register_class(AddPlayerPropertyOperator)
     bpy.utils.register_class(RemovePlayerPropertyOperator)
@@ -917,6 +945,7 @@ def register():
     bpy.utils.register_class(ACTIONS_UL_player_actions)
     bpy.utils.register_class(CONTROLS_UL_player_input)
     bpy.utils.register_class(ANIMATIONS_UL_armature_animations)
+    bpy.utils.register_class(PROPERTIES_UL_player)
     bpy.utils.register_class(SCENE_OT_get_input)
     bpy.utils.register_class(SCENE_OT_add_gamepad_input)
     bpy.utils.register_class(SCENE_OT_add_mouse_input)
@@ -939,6 +968,7 @@ def unregister():
     bpy.utils.unregister_class(SCENE_OT_add_mouse_input)
     bpy.utils.unregister_class(SCENE_OT_add_gamepad_input)
     bpy.utils.unregister_class(SCENE_OT_get_input)
+    bpy.utils.unregister_class(PROPERTIES_UL_player)
     bpy.utils.unregister_class(ANIMATIONS_UL_armature_animations)
     bpy.utils.unregister_class(CONTROLS_UL_player_input)
     bpy.utils.unregister_class(ControlsProperties)
@@ -953,4 +983,6 @@ def unregister():
     bpy.utils.unregister_class(AddPlayerPropertyOperator)
     clear_properties()
     bpy.utils.unregister_class(PlayerProperty)
+    bpy.utils.unregister_class(PlayerPropertyLink)
+
 

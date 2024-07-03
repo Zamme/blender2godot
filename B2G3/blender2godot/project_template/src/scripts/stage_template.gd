@@ -540,20 +540,20 @@ func create_huds():
 		var _new_hud : Control = Control.new()
 		_new_hud.name = _new_hud_name
 		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
-		var _new_texture_rect : TextureRect = TextureRect.new()
-		_new_texture_rect.name = "TextureRect_" + _new_hud_name
-		_new_hud.add_child(_new_texture_rect)
-		_new_texture_rect.set_owner(_new_hud)
-		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
+#		var _new_texture_rect : TextureRect = TextureRect.new()
+#		_new_texture_rect.name = "TextureRect_" + _new_hud_name
+#		_new_hud.add_child(_new_texture_rect)
+#		_new_texture_rect.set_owner(_new_hud)
+#		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
 		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
 		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + _texture_format
-		_new_texture_rect.texture = load(_svg_path)
-		_new_texture_rect.expand = true
+#		_new_texture_rect.texture = load(_svg_path)
+#		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
 		_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+#		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_hud_scene(_new_hud, _huds_json[_key]["Objects"])
 		yield(get_tree(),"idle_frame")
@@ -889,12 +889,10 @@ func mount_scenes():
 	create_menus2d()
 
 func prepare_hud_scene(_hud_scene, _hud_objects):
-	var FONT_POS_FACTOR_X = 38.0
-	var FONT_POS_FACTOR_Y = 38.0
-	var FONT_FACTOR = 38
-	var DEFAULT_FONT_PATH = "res://b2g_tools/Gill Sans.otf"
+	var FONT_FACTOR = 32
+	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
-	var SCALE_FACTOR = 28.5
+	var SCALE_FACTOR = 35.5
 	for _hud_object_info in _hud_objects.keys():
 		match _hud_objects[_hud_object_info]["Type"]:
 			"FONT":
@@ -916,10 +914,22 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 				_new_label.set_pivot_offset(_new_label.rect_size/2)
 				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
 				var _location_split = _hud_objects[_hud_object_info]["Location"].split(",")
-				#_new_label.rect_position = Vector2(_display_size.x/2, _display_size.y/2) + Vector2(float(_location_split[0]) * FONT_POS_FACTOR_X, -float(_location_split[1]) * FONT_POS_FACTOR_X)
-				_new_label.rect_position += Vector2(float(_location_split[0]) * FONT_POS_FACTOR_X, -float(_location_split[1]) * FONT_POS_FACTOR_Y)
-				#yield(get_tree(),"idle_frame")
-				#print( float(_hud_objects[_hud_object_info]["Size"]))
+#				_new_label.rect_position = _display_size/2
+				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+			"GPENCIL":
+				var _new_texrect : TextureRect = TextureRect.new()
+				_new_texrect.name = _hud_object_info
+				_hud_scene.add_child(_new_texrect)
+				_new_texrect.set_owner(_hud_scene)
+				var _filepath : String = HUDS_TEXTURES_PATH + _hud_scene.name.trim_prefix(HUD_SCENES_PREFIX) + "_" + _hud_object_info + ".png"
+				_new_texrect.texture = load(_filepath)
+				_new_texrect.grow_horizontal = Control.GROW_DIRECTION_BOTH
+				_new_texrect.grow_vertical = Control.GROW_DIRECTION_BOTH
+				_new_texrect.set_anchors_preset(Control.PRESET_CENTER, true)
+				_new_texrect.set_pivot_offset(_new_texrect.rect_size/2)
+				var _location_split = _hud_objects[_hud_object_info]["Location"].split(",")
+#				_new_texrect.rect_position = _display_size/2
+				_new_texrect.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
