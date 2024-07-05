@@ -96,7 +96,7 @@ def get_source_info_property_items(self, context):
     return source_info_property_items
 
 class HUDElementProperties(bpy.types.PropertyGroup):
-    element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
+    #element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
     element_border_color : bpy.props.FloatVectorProperty(name="Element Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
     element_fill_color : bpy.props.FloatVectorProperty(name="Element Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
     element_shape : bpy.props.EnumProperty(items=shape_options, name="Element shape") # type: ignore

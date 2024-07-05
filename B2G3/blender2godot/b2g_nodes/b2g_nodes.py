@@ -23,8 +23,12 @@ For B2G Nodes
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 
-# Implementation of custom nodes from Python
-
+property_node_sockets = {
+    "boolean" : "NodeSocketBool",
+    "string" : "NodeSocketString",
+    "integer" : "NodeSocketInteger",
+    "float" : "NodeSocketFloat"
+}
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class MyCustomTree(NodeTree):
@@ -122,6 +126,84 @@ class MyCustomNode(MyCustomTreeNode, Node):
     def draw_label(self):
         return "I am a custom node"
 
+class B2G_Float_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Float_NodeType'
+    # Label for nice name display
+    bl_label = "B2G Float Node"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    my_float : bpy.props.FloatProperty(name="MyFloat") # type: ignore
+
+    def init(self, context):
+        #self.inputs.new("NodeSocketString", "Value")
+        self.outputs.new("NodeSocketString", "Value")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "my_float", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Float"
+    
+    def update_inputs(self):
+        pass
+
+    def update_outputs(self):
+        pass
+
+class B2G_String_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_String_NodeType'
+    # Label for nice name display
+    bl_label = "B2G String Node"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    my_string : bpy.props.StringProperty(name="MyString") # type: ignore
+
+    def init(self, context):
+        #self.inputs.new("NodeSocketString", "Value")
+        self.outputs.new("NodeSocketString", "Value")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "my_string", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "String"
+    
+    def update_inputs(self):
+        pass
+
+    def update_outputs(self):
+        pass
+
 class B2G_Scene_Node(MyCustomTreeNode, Node):
     '''A custom node'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -145,10 +227,19 @@ class B2G_Scene_Node(MyCustomTreeNode, Node):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        layout.prop(self.scene, "scene_type", text="Type")
+        #layout.prop(self.scene, "scene_type", text="Scene type:")
+        box1 = layout.box()
+        #row1 = box1.row()
+        #row1.label(text=("Scene type: " + self.scene.scene_type.capitalize()))
         match self.scene.scene_type:
             case "stage":
-                layout.prop(self.scene, "player_spawn_empty", text="Spawn Empty")
+                row2 = box1.row()
+                row2.prop(self.scene, "player_spawn_empty", text="Spawn Empty")
+            case "player":
+                pass
+            case "hud":
+                row2 = box1.row()
+                row2.prop(self.scene.hud_settings, "visibility_type", text="Spawn Empty")
         layout.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
@@ -156,7 +247,7 @@ class B2G_Scene_Node(MyCustomTreeNode, Node):
 
     def draw_label(self):
         if self.scene:
-            return (self.scene.name + " Scene")
+            return (self.scene.name + "(" + self.scene.scene_type.capitalize() + ")")
         else:
             return "B2G Scene"
     
@@ -164,9 +255,24 @@ class B2G_Scene_Node(MyCustomTreeNode, Node):
         match self.scene.scene_type:
             case "player":
                 for _property in self.scene.player_entity_properties:
-                    if not self.outputs.get(_property.property_name):
-                        self.outputs.new('CustomSocketType', _property.property_name)
+                    if not self.inputs.get(_property.property_name):
+                        self.inputs.new(property_node_sockets[_property.property_type], _property.property_name)
+            case "hud":
+                for _object in self.scene.objects:
+                    if hasattr(_object, "hud_element_properties"):
+                        #_object.hud_element_properties.element_type
+                        match _object.hud_element_properties.element_type:
+                            case "text_content":
+                                _socket_name = _object.name
+                                if not self.inputs.get(_object.name):
+                                    self.inputs.new("NodeSocketString", _object.name)
 
+    def update_outputs(self):
+        match self.scene.scene_type:
+            case "player":
+                for _property in self.scene.player_entity_properties:
+                    if not self.outputs.get(_property.property_name):
+                        self.outputs.new(property_node_sockets[_property.property_type], _property.property_name)
 
 ### Node Categories ###
 # Node categories are a python system for automatically
@@ -189,11 +295,20 @@ class MyNodeCategory(NodeCategory):
 # all categories in a list
 node_categories = [
     # identifier, label, items list
-    MyNodeCategory('SOMENODES', "Some Nodes", items=[
+    MyNodeCategory('SCENES', "Scene", items=[
         # our basic node
         NodeItem("CustomNodeType"),
     ]),
-    MyNodeCategory('OTHERNODES', "Other Nodes", items=[
+    MyNodeCategory('MATH', "Math", items=[
+        # our basic node
+        #NodeItem("FunctionNodeBooleanMath"),
+    ]),
+    MyNodeCategory('CONSTANTS', "Constants", items=[
+        # our basic node
+        NodeItem("B2G_String_NodeType"),
+        NodeItem("B2G_Float_NodeType"),
+    ]),
+    MyNodeCategory('OTHERNODES', "Other", items=[
         # the node item can have additional settings,
         # which are applied to new nodes
         # NOTE: settings values are stored as string expressions,
@@ -214,6 +329,8 @@ classes = (
     MyCustomSocket,
     MyCustomNode,
     B2G_Scene_Node,
+    B2G_String_Node,
+    B2G_Float_Node,
 )
 
 

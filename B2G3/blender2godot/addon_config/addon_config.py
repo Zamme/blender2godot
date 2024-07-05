@@ -25,7 +25,7 @@ import subprocess
 from bpy_extras.io_utils import ImportHelper
 from bpy.utils import previews
 
-import bpy, mathutils
+import bpy
 
 
 handle = object()
@@ -73,11 +73,11 @@ def update_workspace():
             bpy.ops.node.new_node_tree(type='CustomTreeType', name='GameManager')
         _gm_node_tree = bpy.data.node_groups.get("GameManager")
         _gm_nodes = _gm_node_tree.nodes
-        for _c in bpy.context.screen.areas:
-            if _c.type == "NODE_EDITOR":
-                for _s in _c.spaces:
-                    if _s.type == "NODE_EDITOR":
-                        _s.node_tree = bpy.data.node_groups.get("GameManager")
+        for _area in bpy.context.screen.areas:
+            if _area.type == "NODE_EDITOR":
+                for _space in _area.spaces:
+                    if _space.type == "NODE_EDITOR":
+                        _space.node_tree = bpy.data.node_groups.get("GameManager")
                         bpy.data.node_groups.get("GameManager").use_fake_user = True
         
         # --- UPDATE GAMEMANAGER TREE ---
@@ -90,11 +90,13 @@ def update_workspace():
                     _new_node = _gm_nodes.new("B2G_Scene_NodeType")
                     _new_node.scene = _scene
                     _new_node.name = _scene_node_name
-                    _new_node.location = (0.0, _index * _new_node.height)
                     _new_node.update_inputs()
+                    _new_node.update_outputs()
+                    _new_node.location = (0.0, _index * (_new_node.height*1.25))
                     #print(_new_node.name)
                 else:
                     _current_node.update_inputs()
+                    _current_node.update_outputs()
     else:
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":
