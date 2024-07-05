@@ -25,7 +25,7 @@ import subprocess
 from bpy_extras.io_utils import ImportHelper
 from bpy.utils import previews
 
-import bpy
+import bpy, mathutils
 
 
 handle = object()
@@ -61,6 +61,46 @@ def check_godot(self, context):
                 else:
                     context.scene.godot_engine_ok = False
 
+def update_workspace():
+    # UPDATE WORKSPACE
+    print("Updating workspace")
+    if bpy.context.scene.name == "B2G_GameManager":
+        for _area in bpy.context.screen.areas:
+            if _area.type == "VIEW_3D":
+                _area.type = "NODE_EDITOR"
+                _area.ui_type = "CustomTreeType"
+        if not bpy.data.node_groups.get("GameManager"):
+            bpy.ops.node.new_node_tree(type='CustomTreeType', name='GameManager')
+        _gm_node_tree = bpy.data.node_groups.get("GameManager")
+        _gm_nodes = _gm_node_tree.nodes
+        for _c in bpy.context.screen.areas:
+            if _c.type == "NODE_EDITOR":
+                for _s in _c.spaces:
+                    if _s.type == "NODE_EDITOR":
+                        _s.node_tree = bpy.data.node_groups.get("GameManager")
+                        bpy.data.node_groups.get("GameManager").use_fake_user = True
+        
+        # --- UPDATE GAMEMANAGER TREE ---
+        # SCENES NODES
+        for _index,_scene in enumerate(bpy.data.scenes):
+            if _scene.name != "B2G_GameManager":
+                _scene_node_name = _scene.name + "_Scene"
+                _current_node = _gm_nodes.get(_scene_node_name)
+                if not _current_node:
+                    _new_node = _gm_nodes.new("B2G_Scene_NodeType")
+                    _new_node.scene = _scene
+                    _new_node.name = _scene_node_name
+                    _new_node.location = (0.0, _index * _new_node.height)
+                    _new_node.update_inputs()
+                    #print(_new_node.name)
+                else:
+                    _current_node.update_inputs()
+    else:
+        for _area in bpy.context.screen.areas:
+            if _area.type == "NODE_EDITOR":
+                _area.type = "VIEW_3D"
+                _area.ui_type = "VIEW_3D"
+
 def load_custom_icons():
     custom_icons = previews.new()
     custom_icons_dirpath = ""
@@ -85,8 +125,12 @@ def load_custom_icons():
     preview_collections.append(custom_icons)
 
 def msgbus_callback(*args):
-    bpy.context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
-    bpy.context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
+    if bpy.data.scenes.get("B2G_GameManager"):
+        bpy.context.scene.render.resolution_x = bpy.data.scenes["B2G_GameManager"].render.resolution_x
+        bpy.context.scene.render.resolution_y = bpy.data.scenes["B2G_GameManager"].render.resolution_y
+        update_workspace()
+        #if bpy.context.scene == bpy.data.scenes["B2G_GameManager"]:
+            #bpy.context.window.workspace = bpy.data.workspaces['Layout']
 
 def init_properties():
     bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine", update=check_godot)  
@@ -111,7 +155,6 @@ class CreateGameManagerOperator(bpy.types.Operator):
         context.window.scene = _new_scene
         return {'FINISHED'}
 
-
 class SaveBlendFileOperator(bpy.types.Operator, ImportHelper):
     bl_idname = "scene.saveblendfile_operator"
     bl_label = "Save Blend File"
@@ -129,7 +172,7 @@ class Blender2GodotPanel(bpy.types.Panel):
     bl_label = "B2G Configuration"
     bl_idname = "BLENDER2GODOT_PT_layout"
     bl_description = "Main Blender2Godot Panel"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 0
@@ -186,6 +229,34 @@ class Blender2GodotPanel(bpy.types.Panel):
                     row5 = box2.row()
                     box2.operator("wm.url_open", text="Download Godot").url = "https://godotengine.org/download/3.x/"
 
+class Blender2GodotPanelOnView3d(bpy.types.Panel):
+    """Blender2Godot Panel"""
+    bl_label = "B2G Configuration"
+    bl_idname = "BLENDER2GODOTONVIEW3D_PT_layout"
+    bl_description = "Main Blender2Godot Panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Blender2Godot"
+    bl_order = 0
+
+    _gamemanager_added = False
+    _in_gamemanager = False
+
+    @classmethod 
+    def poll(self, context):
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        self._in_gamemanager = (context.scene.name == context.scene.gamemanager_scene_name)
+        return (self._in_gamemanager or not self._gamemanager_added)
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(icon="PLUGIN")        
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Change to B2G Nodes Viewer")
+
 def register():
     bpy.msgbus.subscribe_rna(
         key=subscribe_to,
@@ -199,8 +270,10 @@ def register():
     bpy.utils.register_class(SaveBlendFileOperator)
     bpy.utils.register_class(CreateGameManagerOperator)
     bpy.utils.register_class(Blender2GodotPanel)
+    bpy.utils.register_class(Blender2GodotPanelOnView3d)
 
 def unregister():
+    bpy.utils.unregister_class(Blender2GodotPanelOnView3d)
     bpy.utils.unregister_class(SaveBlendFileOperator)
     bpy.utils.unregister_class(Blender2GodotPanel)
     bpy.utils.unregister_class(CreateGameManagerOperator)

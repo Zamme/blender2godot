@@ -29,7 +29,7 @@ class DisplayPropertiesPanel(bpy.types.Panel):
     """Display Properties Panel"""
     bl_label = "Display Properties"
     bl_idname = "DISPLAYPROPERTIES_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 1

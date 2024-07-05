@@ -256,7 +256,7 @@ class GameExportPanel(bpy.types.Panel):
     """Game Export Panel"""
     bl_label = "Game Export"
     bl_idname = "GAMEEXPORT_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}

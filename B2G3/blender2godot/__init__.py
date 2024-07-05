@@ -62,6 +62,8 @@ from blender2godot.loading_properties import loading_properties
 
 from blender2godot.npc_properties import npc_properties
 
+from blender2godot.b2g_nodes import b2g_nodes
+
 
 bl_info = {
     "name": "Blender2Godot",
@@ -93,6 +95,7 @@ def clear_handlers():
 
 def register():
     bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
+    b2g_nodes.register()
     addon_config.register()
     general_tools.register()
     godot_project_properties.register()
@@ -118,6 +121,7 @@ def unregister():
     #clear_handlers()
     addon_config.unregister()
     help_and_docs.unregister()
+    b2g_nodes.unregister()
     general_tools.unregister()
     godot_project_properties.unregister()
     display_properties.unregister()

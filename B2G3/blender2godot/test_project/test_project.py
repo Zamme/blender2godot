@@ -139,7 +139,7 @@ class TestGamePanel(bpy.types.Panel):
     """Test Game Panel"""
     bl_label = "Test Game"
     bl_idname = "TESTGAME_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}

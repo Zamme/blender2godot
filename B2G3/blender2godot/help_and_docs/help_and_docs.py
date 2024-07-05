@@ -74,7 +74,7 @@ class HelpAndDocsPanel(bpy.types.Panel):
     """Help and Docs Panel"""
     bl_label = "Help and Docs"
     bl_idname = "HELPANDDOCS_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}

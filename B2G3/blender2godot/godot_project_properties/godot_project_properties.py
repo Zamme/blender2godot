@@ -143,7 +143,7 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
     """Godot Project Properties Panel"""
     bl_label = "Godot Project Properties"
     bl_idname = "GODOTPROJECTPROPERTIES_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_order = 1

@@ -201,7 +201,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     """B2G Tools Panel"""
     bl_label = "B2G Tools"
     bl_idname = "B2GTOOLS_PT_layout"
-    bl_space_type = 'VIEW_3D'
+    bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
     bl_options = {"DEFAULT_CLOSED"}
