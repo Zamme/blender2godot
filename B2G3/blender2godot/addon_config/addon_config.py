@@ -26,7 +26,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.utils import previews
 
 import bpy
-
+from bpy.app.handlers import persistent
 
 handle = object()
 subscribe_to = bpy.types.Window, "scene"
@@ -61,6 +61,11 @@ def check_godot(self, context):
                 else:
                     context.scene.godot_engine_ok = False
 
+@persistent
+def load_handler(dummy):
+    regist_msg_bus()
+    update_workspace()
+
 def update_workspace():
     # UPDATE WORKSPACE
     print("Updating workspace")
@@ -75,13 +80,21 @@ def update_workspace():
         _gm_nodes = _gm_node_tree.nodes
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":
+                for _region in _area.regions:
+                    #print("Region:", _region.type)
+                    # --- ONLY IN 4.1+ ---
+                    #if _region.type == "UI":
+                        #_region.active_panel_category = "Blender2Godot"
+                    pass
                 for _space in _area.spaces:
+                    #print("Space:",_space.type)
                     if _space.type == "NODE_EDITOR":
                         _space.node_tree = bpy.data.node_groups.get("GameManager")
                         bpy.data.node_groups.get("GameManager").use_fake_user = True
         
         # --- UPDATE GAMEMANAGER TREE ---
         # SCENES NODES
+        '''
         for _index,_scene in enumerate(bpy.data.scenes):
             if _scene.name != "B2G_GameManager":
                 _scene_node_name = _scene.name + "_Scene"
@@ -97,6 +110,17 @@ def update_workspace():
                 else:
                     _current_node.update_inputs()
                     _current_node.update_outputs()
+        '''
+        # DEBUG FOR NODES ONLY
+        #'''
+        print(_gm_node_tree)
+        for _node in _gm_nodes:
+            if _node.bl_idname == "B2G_Scene_NodeType":
+                print(_node.scene.name)
+                match _node.scene.scene_type:
+                    case "hud":
+                        print("is a hud scene")
+        #'''
     else:
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":
@@ -259,7 +283,13 @@ class Blender2GodotPanelOnView3d(bpy.types.Panel):
         layout = self.layout
         layout.label(text="Change to B2G Nodes Viewer")
 
-def register():
+def init_handlers():
+    bpy.app.handlers.load_post.append(load_handler)
+
+def clear_handlers():
+    bpy.app.handlers.load_post.remove(load_handler)
+
+def regist_msg_bus():
     bpy.msgbus.subscribe_rna(
         key=subscribe_to,
         owner=handle,
@@ -267,6 +297,10 @@ def register():
         notify=msgbus_callback,
         options={"PERSISTENT"}
     )
+
+def register():
+    init_handlers()
+    regist_msg_bus()
     init_properties()
     load_custom_icons()
     bpy.utils.register_class(SaveBlendFileOperator)
@@ -281,3 +315,4 @@ def unregister():
     bpy.utils.unregister_class(CreateGameManagerOperator)
     clear_properties()
     bpy.msgbus.clear_by_owner(handle)
+    clear_handlers()

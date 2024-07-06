@@ -120,6 +120,7 @@ class NewHUDElementProperties(bpy.types.PropertyGroup):
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
     element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options) # type: ignore
 
+''' ON GAMEMANAGER NODES
 class HudSettings(bpy.types.PropertyGroup):
     visibility_type : bpy.props.EnumProperty(items=[
                                     ("always", "Always", "ALWAYS", "", 0),
@@ -139,6 +140,7 @@ class HudSettings(bpy.types.PropertyGroup):
                                                 ("png", "PNG", "PNG", "", 0),
                                                 ("svg", "SVG", "SVG", "", 1)
                                                 ], name="Format", description="HUD export format") # type: ignore
+'''
 
 class CreateHUDBaseElementOperator(bpy.types.Operator):
     bl_idname = "scene.create_hud_base_element_operator"
@@ -300,6 +302,7 @@ class HUDPropertiesPanel(bpy.types.Panel):
             row4.operator("scene.create_hud_base_element_operator")
 
         # HUD PROPERTIES
+        ''' --- ON GAMEMANAGER NODES ---
         row2 = layout.row()
         box1 = row2.box()
         box1.label(text="HUD settings")
@@ -314,7 +317,8 @@ class HUDPropertiesPanel(bpy.types.Panel):
         if context.scene.hud_settings.hide_transition_type == "fade_in":
             box1.prop(context.scene.hud_settings, "hide_transition_time")
         box1.prop(context.scene.hud_settings, "hud_export_format")
-       
+        '''
+
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
             row2 = layout.row()
@@ -350,17 +354,17 @@ class HUDPropertiesPanel(bpy.types.Panel):
 def init_properties():
     bpy.types.Object.hud_element_properties = bpy.props.PointerProperty(type=HUDElementProperties)
     #bpy.types.Object.is_containing_element = bpy.props.BoolProperty(name="Is Containing Element", default=False)
-    bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
+    #bpy.types.Scene.hud_settings = bpy.props.PointerProperty(type=HudSettings)
 
 def clear_properties():
     del bpy.types.Object.hud_element_properties
-    del bpy.types.Scene.hud_settings
+    #del bpy.types.Scene.hud_settings
     #del bpy.types.Object.is_containing_element
 
 def register():
     bpy.utils.register_class(NewHUDElementProperties)
     bpy.utils.register_class(HUDElementProperties)
-    bpy.utils.register_class(HudSettings)
+    #bpy.utils.register_class(HudSettings)
     init_properties()
     bpy.utils.register_class(CreateHUDBaseElementOperator)
     bpy.utils.register_class(CreateHUDViewOperator)
@@ -371,7 +375,7 @@ def unregister():
     bpy.utils.unregister_class(CreateHUDViewOperator)
     bpy.utils.unregister_class(CreateHUDBaseElementOperator)
     clear_properties()
-    bpy.utils.unregister_class(HudSettings)
+    #bpy.utils.unregister_class(HudSettings)
     bpy.utils.unregister_class(HUDElementProperties)
     bpy.utils.unregister_class(NewHUDElementProperties)
 

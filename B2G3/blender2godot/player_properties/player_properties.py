@@ -639,6 +639,7 @@ class PlayerControlsPanel(bpy.types.Panel):
         box1.prop(scene, "controls_template", text="Template")
         box1.template_list("CONTROLS_UL_player_input", "PlayerControlsList", context.scene, "controls_settings", scene, "controls_settings_sel")
 
+''' --- CONFIG AT GAMEMANAGER NODES ---
 class PlayerHUDPanel(bpy.types.Panel):
     """Player HUD Panel"""
     bl_label = "Player HUD"
@@ -683,7 +684,7 @@ class PlayerHUDPanel(bpy.types.Panel):
                 row4.label(text="Linked properties:")
                 row5 = box1.row()
                 row5.template_list("PROPERTIES_UL_player", "PlayerPropertiesList", context.scene, "player_entity_properties", scene, "player_entity_property_sel")
-
+'''
 
 class PlayerPausePanel(bpy.types.Panel):
     """Player Pause Panel"""
@@ -953,14 +954,14 @@ def register():
     bpy.utils.register_class(PlayerAnimationsPanel)
     bpy.utils.register_class(PlayerCameraPanel)
     bpy.utils.register_class(PlayerControlsPanel)
-    bpy.utils.register_class(PlayerHUDPanel)
+    #bpy.utils.register_class(PlayerHUDPanel)
     bpy.utils.register_class(PlayerPausePanel)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
     bpy.utils.unregister_class(PlayerPausePanel)
-    bpy.utils.unregister_class(PlayerHUDPanel)
+    #bpy.utils.unregister_class(PlayerHUDPanel)
     bpy.utils.unregister_class(PlayerControlsPanel)
     bpy.utils.unregister_class(PlayerCameraPanel)
     bpy.utils.unregister_class(PlayerAnimationsPanel)

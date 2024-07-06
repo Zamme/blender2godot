@@ -56,7 +56,7 @@ func _ready():
 	#player_mesh._test_anim()
 
 func add_hud():
-	if hud_scene_name != "none":
+	if hud_scene_name != "":
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
 		add_child(_hud)

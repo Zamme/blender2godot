@@ -545,13 +545,13 @@ func create_huds():
 #		_new_hud.add_child(_new_texture_rect)
 #		_new_texture_rect.set_owner(_new_hud)
 #		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
-		var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
-		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + _texture_format
+		#var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
+		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + ".png"
 #		_new_texture_rect.texture = load(_svg_path)
 #		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
-		_new_hud.hud_settings = _huds_json[_key]["Settings"]
+		#_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 #		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")

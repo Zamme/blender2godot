@@ -44,6 +44,7 @@ NPCS_INFO_FILENAME = "npcs_info.json"
 LOADING_INFO_FILENAME = "loadings_info.json"
 LIGHTS_INFO_FILENAME = "lights_info.json"
 GODOT_PROJECT_SETTINGS_INFO_FILENAME = "godot_project_settings.json"
+GAME_MANAGER_INFO_FILENAME = "game_manager_info.json"
 
 def Vector3ToString(_vector3):
     _string = str(_vector3[0]) + "," + str(_vector3[1]) + "," + str(_vector3[2])
@@ -374,6 +375,23 @@ class ExportGameOperator(bpy.types.Operator):
         print("Environment exported.")
         return _dict
 
+    def export_game_manager(self, context):
+        print("Exporting Game Manager...")
+        self.find_game_manager_file_path(context)
+        self.game_manager_dict = my_dictionary()
+        _gm_node_tree = bpy.data.node_groups.get("GameManager")
+        _gm_nodes = _gm_node_tree.nodes
+        print(_gm_node_tree)
+        for _node in _gm_nodes:
+            if _node.bl_idname == "B2G_Scene_NodeType":
+                print(_node.scene.name)
+                match _node.scene.scene_type:
+                    case "hud":
+                        print("is a hud scene")
+        self.game_manager_settings = json.dumps(self.game_manager_dict, indent=1, ensure_ascii=True)
+        with open(self.game_manager_filepath, 'w') as outfile:
+            outfile.write(self.game_manager_settings + '\n')
+
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
         self.infos_dirpath = os.path.join(context.scene.project_folder, INFOS_FOLDER_NAME)
@@ -420,6 +438,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.export_huds_info(context)
         self.export_icon(context)
         self.export_godot_project_settings(context)
+        self.export_game_manager(context)
     
     def export_godot_project_settings(self, context):
         print("Exporting project settings...")
@@ -524,6 +543,11 @@ class ExportGameOperator(bpy.types.Operator):
             os.mkdir(self.huds_folder_path)
         print("Exporting hud scene", _hud_scene.name)
         context.window.scene = _hud_scene
+        # ENSURE 3D VIEW FOR CONTEXT
+        for _area in bpy.context.screen.areas:
+            if _area.type == "NODE_EDITOR":
+                _area.type = "VIEW_3D"
+                _area.ui_type = "VIEW_3D"
         bpy.ops.view3d.view_camera()
         _last_use_border = _hud_scene.render.use_border
         _last_use_crop_to_border = _hud_scene.render.use_crop_to_border
@@ -632,6 +656,7 @@ class ExportGameOperator(bpy.types.Operator):
             '''
             _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
         _hud_dict.add("Objects", _hud_objects_dict)
+        ''' ON GAMEMANAGER NODES
         _hud_settings_dict = my_dictionary()
         _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)
         _hud_settings_dict.add("ShowTransitionType", _sc_added.hud_settings.show_transition_type)
@@ -640,6 +665,7 @@ class ExportGameOperator(bpy.types.Operator):
         _hud_settings_dict.add("HideTransitionTime", _sc_added.hud_settings.hide_transition_time)
         _hud_settings_dict.add("ExportFormat", _sc_added.hud_settings.hud_export_format)
         _hud_dict.add("Settings", _hud_settings_dict)
+        '''
         self.dict_huds_info.add(_sc_added.name, _hud_dict)
 
     def export_huds_info(self, context):
@@ -705,6 +731,11 @@ class ExportGameOperator(bpy.types.Operator):
                 #print("Is gpencil")
                 for _layer in _obj.data.layers:
                     _layer.use_lights = False
+        # ENSURE 3D VIEW FOR CONTEXT
+        for _area in bpy.context.screen.areas:
+            if _area.type == "NODE_EDITOR":
+                _area.type = "VIEW_3D"
+                _area.ui_type = "VIEW_3D"
         bpy.ops.view3d.view_camera()
         menu2d_path = os.path.join(self.menus2d_folder_path, _menu2d_scene.name)
         if len(_menu2d_scene.objects) > 0:
@@ -860,9 +891,9 @@ class ExportGameOperator(bpy.types.Operator):
             _actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
         self.dict_player_info.add("PlayerActions", _actions_dictionary)
         # HUD
-        _hud_dictionary = my_dictionary()
-        _hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
-        self.dict_player_info.add("PlayerHUD", _hud_dictionary)
+        #_hud_dictionary = my_dictionary()
+        #_hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
+        #self.dict_player_info.add("PlayerHUD", _hud_dictionary)
         # PAUSE MENU
         self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
         # ADD to global
@@ -914,6 +945,9 @@ class ExportGameOperator(bpy.types.Operator):
     def find_players_info_file_path(self, context):
         self.players_info_filepath = os.path.join(self.infos_dirpath, PLAYERS_INFO_FILENAME)
         #print("Player info json filepath:", self.player_info_filepath)
+
+    def find_game_manager_file_path(self, context):
+        self.game_manager_filepath = os.path.join(self.infos_dirpath, GAME_MANAGER_INFO_FILENAME)
 
     def find_godot_project_settings_file_path(self, context):
         self.godot_project_settings_filepath = os.path.join(self.infos_dirpath, GODOT_PROJECT_SETTINGS_INFO_FILENAME)
