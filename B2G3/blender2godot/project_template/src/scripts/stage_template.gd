@@ -53,6 +53,7 @@ const COLLIDERS_MATRIX_PATH = INFOS_DIRPATH + "colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = INFOS_DIRPATH + "stages_info.json"
 const MENUS2D_INFO_JSON_PATH = INFOS_DIRPATH + "menus2d_info.json"
+const GAMEMANAGER_INFO_JSON_PATH = INFOS_DIRPATH + "game_manager_info.json"
 
 const GAMEMANAGER_NAME = "B2G_GameManager"
 const GAMEMANAGER_SCRIPT_FILEPATH = B2G_TOOLS_PATH + GAMEMANAGER_NAME + ".gd"
@@ -84,6 +85,7 @@ var _lights_json
 var _huds_json
 var _menus2d_json
 var _godot_project_settings_json
+var _game_manager_json
 
 
 func _ready():
@@ -100,6 +102,7 @@ func _ready():
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
 			_godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
+			_game_manager_json = self.read_json_file(GAMEMANAGER_INFO_JSON_PATH)
 			self.mount_scenes()
 			yield(get_tree(),"idle_frame")
 			apply_new_config()
@@ -472,7 +475,6 @@ func apply_new_config():
 		ResourceSaver.save(_filepath, _env)
 	# Gamemanager
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()
-	_gm.startup_scene_filepath = _start_scene_path
 	_gm.debug_hud_enabled = _godot_project_settings_json["DebugHudEnabled"]
 	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
 	ProjectSettings.set_setting("application/run/main_scene", GAMEMANAGER_FILEPATH)
@@ -526,7 +528,9 @@ func create_gamemanager():
 	if _player_json:
 		if _player_json.has("PlayerSceneName"):
 			_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
-#		_new_gamemanager.startup_scene_filepath = _start_scene_path
+	if _game_manager_json.has("StartupSceneName"):
+		_new_gamemanager.startup_scene_filepath = _game_manager_json["StartupSceneName"]
+		_new_gamemanager.startup_scene_type = _game_manager_json["StartupSceneType"]
 	self.repack_scene(_new_gamemanager, GAMEMANAGER_FILEPATH)
 
 func create_huds():

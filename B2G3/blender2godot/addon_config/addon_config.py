@@ -113,13 +113,15 @@ def update_workspace():
         '''
         # DEBUG FOR NODES ONLY
         #'''
-        print(_gm_node_tree)
+        #print(_gm_node_tree)
         for _node in _gm_nodes:
-            if _node.bl_idname == "B2G_Scene_NodeType":
-                print(_node.scene.name)
-                match _node.scene.scene_type:
-                    case "hud":
-                        print("is a hud scene")
+            if _node.bl_idname == "B2G_Start_NodeType":
+                print(_node.name)
+                _go = _node.outputs[0]
+                for _link in _go.links:
+                    print(_link.is_valid)
+                    _link.is_valid = False
+                
         #'''
     else:
         for _area in bpy.context.screen.areas:

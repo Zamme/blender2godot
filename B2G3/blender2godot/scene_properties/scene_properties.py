@@ -99,7 +99,7 @@ class ScenePropertiesPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
-    bl_options = {"DEFAULT_CLOSED"}
+    #bl_options = {"DEFAULT_CLOSED"}
     bl_order = 2
 
     _gamemanager_added = False

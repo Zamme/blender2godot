@@ -268,7 +268,7 @@ class HUDPropertiesPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
-    bl_options = {"DEFAULT_CLOSED"}
+    #bl_options = {"DEFAULT_CLOSED"}
     bl_order = 3
 
     @classmethod 

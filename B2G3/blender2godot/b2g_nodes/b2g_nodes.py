@@ -150,7 +150,7 @@ class B2G_Pipeline_Socket(NodeSocket):
     bl_idname = 'B2G_Pipeline_SocketType'
     # Label for nice name display
     bl_label = "Pipeline Socket"
-
+    
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
@@ -160,7 +160,7 @@ class B2G_Pipeline_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (1.0, 0.4, 0.216, 0.5)
+        return (0.0, 1.0, 0.0, 1.0)
 
 # --- END SOCKETS ---
 
@@ -174,7 +174,10 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
     bl_icon = 'SOUND'
 
     def init(self, context):
-        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_socket = self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_socket.display_shape="SQUARE"
+        _new_socket.description = "Pipeline socket"
+        _new_socket.link_limit = 1
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -191,6 +194,42 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
 
     def draw_label(self):
         return "Start"
+
+    def update(self):
+        _valid_scene_types = ["stage", "2dmenu", "3dmenu"]
+        for _output in self.outputs:
+            for _link in _output.links:
+                if hasattr(_link.to_node, "scene"):
+                    _scene = _link.to_node.scene
+                    _link.is_valid = _scene.scene_type in _valid_scene_types
+                    print("Link valid", _link.is_valid)
+
+class B2G_Finish_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Finish_NodeType'
+    # Label for nice name display
+    bl_label = "Finish"
+    # Icon identifier
+    bl_icon = 'SOUND'
+
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        #layout.label(text="Finish")
+        pass
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Finish"
 
 # --- END PIPELINE NODES ---
 
@@ -285,17 +324,14 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    def update_all(self, context):
-        self.update_inputs()
-        self.update_outputs()
-
     def poll_scenes(self, object):
         return object.scene_type == "stage"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", update=update_all, poll=poll_scenes) # type: ignore
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        pass
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -321,15 +357,6 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         else:
             return "Stage"
     
-    def update_inputs(self):
-        self.inputs.clear()
-        if self.scene:
-            pass
-    def update_outputs(self):
-        self.outputs.clear()
-        if self.scene:
-            pass
-
 class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_Player_Scene_NodeType'
@@ -340,17 +367,14 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    def update_all(self, context):
-        self.update_inputs()
-        self.update_outputs()
-
     def poll_scenes(self, object):
         return object.scene_type == "player"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", update=update_all, poll=poll_scenes) # type: ignore
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        pass
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -374,20 +398,6 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         else:
             return "Player"
     
-    def update_inputs(self):
-        self.inputs.clear()
-        if self.scene:
-            for _property in self.scene.player_entity_properties:
-                if not self.inputs.get(_property.property_name):
-                    self.inputs.new(property_node_sockets[_property.property_type], _property.property_name)
-    
-    def update_outputs(self):
-        self.outputs.clear()
-        if self.scene:
-            for _property in self.scene.player_entity_properties:
-                if not self.outputs.get(_property.property_name):
-                    self.outputs.new(property_node_sockets[_property.property_type], _property.property_name)
-
 class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_HUD_Scene_NodeType'
@@ -398,18 +408,15 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    def update_all(self, context):
-        self.update_inputs()
-        self.update_outputs()
-
     def poll_scenes(self, object):
         return object.scene_type == "hud"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", update=update_all, poll=poll_scenes) # type: ignore
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
     settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
     
     def init(self, context):
-        pass
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -443,22 +450,131 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
         else:
             return "HUD"
     
-    def update_inputs(self):
-        self.inputs.clear()
-        if self.scene:
-            for _object in self.scene.objects:
-                if hasattr(_object, "hud_element_properties"):
-                    #_object.hud_element_properties.element_type
-                    match _object.hud_element_properties.element_type:
-                        case "text_content":
-                            _socket_name = _object.name
-                            if not self.inputs.get(_object.name):
-                                self.inputs.new("NodeSocketString", _object.name)
+class B2G_NPC_Scene_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_NPC_Scene_NodeType'
+    # Label for nice name display
+    bl_label = "NPC Scene"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    def poll_scenes(self, object):
+        return object.scene_type == "npc"
     
-    def update_outputs(self):
-        self.outputs.clear()
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "scene", text="Scene")
         if self.scene:
-            pass
+            row2 = box1.row()
+            layout.prop(self.scene, "scene_exportable", text="Export")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        if self.scene:
+            return (self.scene.name + "(NPC)")
+        else:
+            return "NPC"
+
+class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_2dMenu_Scene_NodeType'
+    # Label for nice name display
+    bl_label = "Menu 2D Scene"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    def poll_scenes(self, object):
+        return object.scene_type == "2dmenu"
+    
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "scene", text="Scene")
+        if self.scene:
+            row2 = box1.row()
+            layout.prop(self.scene, "scene_exportable", text="Export")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        if self.scene:
+            return (self.scene.name + "(Menu 2D)")
+        else:
+            return "Menu 2D"
+
+class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_3dMenu_Scene_NodeType'
+    # Label for nice name display
+    bl_label = "Menu 3D Scene"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    def poll_scenes(self, object):
+        return object.scene_type == "3dmenu"
+    
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "scene", text="Scene")
+        if self.scene:
+            row2 = box1.row()
+            layout.prop(self.scene, "scene_exportable", text="Export")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        if self.scene:
+            return (self.scene.name + "(Menu 3D)")
+        else:
+            return "Menu 3D"
 
 ''' SCENE NODE MASTER CLASS 
 class B2G_Scene_Node(MyCustomTreeNode, Node):
@@ -566,6 +682,9 @@ node_categories = [
         NodeItem("B2G_Stage_Scene_NodeType"),
         NodeItem("B2G_Player_Scene_NodeType"),
         NodeItem("B2G_HUD_Scene_NodeType"),
+        NodeItem("B2G_2dMenu_Scene_NodeType"),
+        NodeItem("B2G_3dMenu_Scene_NodeType"),
+        NodeItem("B2G_NPC_Scene_NodeType"),
     ]),
     MyNodeCategory('MATH', "Math", items=[
         #NodeItem("FunctionNodeBooleanMath"),
@@ -576,6 +695,7 @@ node_categories = [
     ]),
     MyNodeCategory('PIPELINE', "Pipeline", items=[
         NodeItem("B2G_Start_NodeType"),
+        NodeItem("B2G_Finish_NodeType"),
     ]),
     #'''
     MyNodeCategory('OTHERNODES', "Other", items=[
@@ -602,11 +722,15 @@ classes = (
     MyCustomNode,
     B2G_Pipeline_Socket,
     B2G_Start_Node,
+    B2G_Finish_Node,
     B2G_String_Node,
     B2G_Float_Node,
     B2G_Stage_Scene_Node,
     B2G_Player_Scene_Node,
     B2G_HUD_Scene_Node,
+    B2G_2dMenu_Scene_Node,
+    B2G_3dMenu_Scene_Node,
+    B2G_NPC_Scene_Node,
 )
 
 

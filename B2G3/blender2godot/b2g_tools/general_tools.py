@@ -63,11 +63,13 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         self.check_naming_conventions(context)
         if context.scene.game_name == "":
             self.add_error(context, 8, "Project has no name")
+        ''' TODO: CHANGE THIS FOR GAMEMANAGER NODES START
         if (context.scene.startup_scene == None):
             self.add_warning(context, 2, "Startup scene not set")
             if hasattr(context.scene.startup_scene, "scene_type"):
                 if (context.scene.startup_scene.scene_type == "player"):
                     self.add_warning(context, 3, "Startup scene can't be a player")
+        '''
         if (context.scene.godot_engine_ok == False):
             self.add_error(context, 4, "Godot Engine not set")
         for _scene in bpy.data.scenes:

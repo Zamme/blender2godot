@@ -205,7 +205,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "Blender2Godot"
-    bl_options = {"DEFAULT_CLOSED"}
+    #bl_options = {"DEFAULT_CLOSED"}
     bl_order = 4
     
     advanced_tools = False
@@ -236,7 +236,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
         box1.label(text="Check scenes to export")
         if len(bpy.data.scenes) > 0:
             box1.template_list("SCENES_UL_scenes_added", "ScenesAddedList", bpy.data, "scenes", scene, "scenes_added_index")
-            box1.prop(scene, "startup_scene")
+            #box1.prop(scene, "startup_scene")
         else:
             box1.label(text="No scenes to add")
 
@@ -381,13 +381,15 @@ class ExportGameOperator(bpy.types.Operator):
         self.game_manager_dict = my_dictionary()
         _gm_node_tree = bpy.data.node_groups.get("GameManager")
         _gm_nodes = _gm_node_tree.nodes
-        print(_gm_node_tree)
+        #print(_gm_node_tree)
         for _node in _gm_nodes:
-            if _node.bl_idname == "B2G_Scene_NodeType":
-                print(_node.scene.name)
-                match _node.scene.scene_type:
-                    case "hud":
-                        print("is a hud scene")
+            if _node.bl_idname == "B2G_Start_NodeType":
+                print(_node.name)
+                _go = _node.outputs[0]
+                for _link in _go.links:
+                    self.game_manager_dict.add("StartupSceneName", _link.to_node.scene.name)
+                    self.game_manager_dict.add("StartupSceneType", _link.to_node.scene.scene_type)
+
         self.game_manager_settings = json.dumps(self.game_manager_dict, indent=1, ensure_ascii=True)
         with open(self.game_manager_filepath, 'w') as outfile:
             outfile.write(self.game_manager_settings + '\n')
@@ -453,9 +455,9 @@ class ExportGameOperator(bpy.types.Operator):
         # Config name
         self.app_settings_dict.add("application/config/name", context.scene.game_name)
         # Startup scene
-        if context.scene.startup_scene:
-            self.other_settings_dict.add("startup_scene_type", context.scene.startup_scene.scene_type)
-            self.app_settings_dict.add("application/run/main_scene", context.scene.startup_scene.name)
+        #if context.scene.startup_scene:
+            #self.other_settings_dict.add("startup_scene_type", context.scene.startup_scene.scene_type)
+            #self.app_settings_dict.add("application/run/main_scene", context.scene.startup_scene.name)
         # Display settings
         self.display_settings_dict.add("display/window/size/width", bpy.data.scenes["B2G_GameManager"].render.resolution_x)
         self.display_settings_dict.add("display/window/size/height", bpy.data.scenes["B2G_GameManager"].render.resolution_y)
@@ -1024,12 +1026,12 @@ def init_properties():
     bpy.types.Scene.godot_export_ok = bpy.props.BoolProperty(name="Godot Expot OK", default=False)
     bpy.types.Scene.godot_exporting = bpy.props.BoolProperty(name="Godot Exporting", default=False)
     bpy.types.Scene.scenes_added_index = bpy.props.IntProperty(name = "Index for my_list", default = 0)
-    bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene", poll=poll_startupable_scenes)
+    #bpy.types.Scene.startup_scene = bpy.props.PointerProperty(type=bpy.types.Scene, name="Startup Scene", poll=poll_startupable_scenes)
     # Panels checkboxes
     bpy.types.Scene.advanced_tools = bpy.props.BoolProperty(name="Advanced Tools", default=False)
 
 def clear_properties():
-    del bpy.types.Scene.startup_scene
+    #del bpy.types.Scene.startup_scene
     del bpy.types.Scene.scenes_added_index
     del bpy.types.Scene.advanced_tools
     del bpy.types.Scene.godot_export_ok

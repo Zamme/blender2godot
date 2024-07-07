@@ -1,6 +1,7 @@
 class_name GameManager extends Node
 
 
+const STAGES_DIRPATH = "res://src/scenes/stages/"
 const PLAYERS_DIRPATH = "res://src/scenes/players/"
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
@@ -9,6 +10,7 @@ const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 enum GameState {None, Starting, Loading, Menu, Playing, Pause, Finished}
 
 export var startup_scene_filepath : String = ""
+export var startup_scene_type : String = ""
 export var current_player_name : String = ""
 export var debug_hud_enabled : bool
 
@@ -30,9 +32,15 @@ func _ready():
 		print("No startup scene.")
 		show_message("No startup scene")
 	else:
+		self.fix_startup_scene_filepath()
 		load_scene(startup_scene_filepath)
 		set_state(GameState.Starting)
 
+func fix_startup_scene_filepath():
+	match startup_scene_type:
+		"stage":
+			startup_scene_filepath = STAGES_DIRPATH + "Stage_" + startup_scene_filepath + ".tscn"
+		# TODO: PENDING TO ADD MENU2D, MENU3D
 
 static func get_all_children(in_node,arr:=[]):
 	arr.push_back(in_node)
