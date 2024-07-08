@@ -112,17 +112,15 @@ def update_workspace():
                     _current_node.update_outputs()
         '''
         # DEBUG FOR NODES ONLY
-        #'''
+        '''
         #print(_gm_node_tree)
         for _node in _gm_nodes:
             if _node.bl_idname == "B2G_Start_NodeType":
                 print(_node.name)
                 _go = _node.outputs[0]
                 for _link in _go.links:
-                    print(_link.is_valid)
-                    _link.is_valid = False
-                
-        #'''
+                    print(_link.is_valid)                
+        '''
     else:
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":

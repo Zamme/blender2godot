@@ -162,13 +162,13 @@ class B2G_Pipeline_Socket(NodeSocket):
     def draw_color(self, context, node):
         return (0.0, 1.0, 0.0, 1.0)
 
-class B2G_InputPlayer_Socket(NodeSocket):
+class B2G_Player_Socket(NodeSocket):
     # Description string
-    """Input player socket type"""
+    """player socket type"""
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'B2G_InputPlayer_SocketType'
+    bl_idname = 'B2G_Player_SocketType'
     # Label for nice name display
-    bl_label = "Input Player Socket"
+    bl_label = "Player Socket"
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -181,13 +181,13 @@ class B2G_InputPlayer_Socket(NodeSocket):
     def draw_color(self, context, node):
         return (0.0, 0.0, 1.0, 1.0)
 
-class B2G_InputHUD_Socket(NodeSocket):
+class B2G_HUD_Socket(NodeSocket):
     # Description string
-    """Input player socket type"""
+    """ hud socket type"""
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'B2G_InputHUD_SocketType'
+    bl_idname = 'B2G_HUD_SocketType'
     # Label for nice name display
-    bl_label = "Input HUD Socket"
+    bl_label = "HUD Socket"
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -213,8 +213,8 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
 
     def init(self, context):
         _new_socket = self.outputs.new("B2G_Pipeline_SocketType", "Go")
-        _new_socket.display_shape="SQUARE"
-        _new_socket.description = "Pipeline socket"
+        #_new_socket.display_shape="SQUARE"
+        #_new_socket.description = "Pipeline socket"
         _new_socket.link_limit = 1
 
     def copy(self, node):
@@ -238,20 +238,19 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
+        pass
         '''Mark invalid links, must be called from a timer'''
-        #print("Updating", self.name, "node")
-        _valid_scene_types = ["stage", "2dmenu", "3dmenu"]
-        for _output in self.outputs:
-            for _link in _output.links:
+        ''' WATCH FOR INPUTS ONLY
+        _valid_node_types = ["B2G_Stage_Scene_Node", "B2G_2dMenu_Scene_Node", "B2G_3dMenu_Scene_Node"]
+        for _link in self.outputs[0].links:
+            _valid_link = False
+            if type(_link.to_node).__name__ in _valid_node_types:
+                _valid_link = True
+            else:
                 _valid_link = False
-                if hasattr(_link.to_node, "scene"):
-                    _scene = _link.to_node.scene
-                    _valid_link = _scene.scene_type in _valid_scene_types
-                else:
-                    _valid_link = False
-                #print("Link valid", _valid_link)
-                _link.is_valid = _valid_link
-
+            #print("Link valid", _valid_link)
+            _link.is_valid = _valid_link
+        '''
 
 class B2G_Finish_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -379,8 +378,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        self.player_socket = self.inputs.new("B2G_InputPlayer_SocketType", "Player")
-        self.pipeline_socket = self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.inputs.new("B2G_Player_SocketType", "Player")
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
         self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
@@ -423,6 +422,29 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         else:
             return "Stage"
     
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        '''Mark invalid links, must be called from a timer'''
+        _input_player = self.inputs[0]
+        for _link in _input_player.links:
+            _valid_link = False
+            if type(_link.from_node).__name__ == "B2G_Player_Scene_Node":
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+        _input_go = self.inputs[1]
+        for _link in _input_go.links:
+            _valid_link = False
+            if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+
 class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_Player_Scene_NodeType'
@@ -439,8 +461,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        self.inputs.new("B2G_InputHUD_SocketType", "HUD")
-        self.outputs.new("B2G_InputPlayer_SocketType", "Player")
+        self.inputs.new("B2G_HUD_SocketType", "HUD")
+        self.outputs.new("B2G_Player_SocketType", "Player")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -464,6 +486,21 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         else:
             return "Player"
     
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        '''Mark invalid links, must be called from a timer'''
+        _input_player = self.inputs[0]
+        for _link in _input_player.links:
+            _valid_link = False
+            if type(_link.from_socket).__name__ == "B2G_HUD_Socket":
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+
 class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_HUD_Scene_NodeType'
@@ -481,8 +518,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
     
     def init(self, context):
-        self.inputs.new("B2G_Pipeline_SocketType", "Go")
-        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        self.outputs.new("B2G_HUD_SocketType", "HUD")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -787,8 +823,8 @@ classes = (
     MyCustomSocket,
     MyCustomNode,
     B2G_Pipeline_Socket,
-    B2G_InputPlayer_Socket,
-    B2G_InputHUD_Socket,
+    B2G_Player_Socket,
+    B2G_HUD_Socket,
     B2G_Start_Node,
     B2G_Finish_Node,
     B2G_String_Node,

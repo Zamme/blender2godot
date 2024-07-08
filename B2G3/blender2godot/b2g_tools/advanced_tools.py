@@ -380,20 +380,33 @@ class ExportGameOperator(bpy.types.Operator):
         print("Exporting Game Manager...")
         self.find_game_manager_file_path(context)
         self.game_manager_dict = my_dictionary()
+        self.game_manager_settings = my_dictionary()
         _gm_node_tree = bpy.data.node_groups.get("GameManager")
         _gm_nodes = _gm_node_tree.nodes
         #print(_gm_node_tree)
+        _nodes_dict = my_dictionary()
         for _node in _gm_nodes:
-            if _node.bl_idname == "B2G_Start_NodeType":
-                print(_node.name)
-                _go = _node.outputs[0]
-                for _link in _go.links:
-                    self.game_manager_dict.add("StartupSceneName", _link.to_node.scene.name)
-                    self.game_manager_dict.add("StartupSceneType", _link.to_node.scene.scene_type)
+            print("Exporting node:", _node.name)
+            _current_node_dict = my_dictionary()
+            match type(_node).__name__:
+                case "B2G_Start_Node":
+                    _start_output = _node.outputs[0]
+                    if _start_output.is_linked:
+                        _link = _start_output.links[0]
+                        _current_node_dict.add("SceneName", _link.to_node.scene.name)
+                        _current_node_dict.add("SceneType", _link.to_node.scene.scene_type)
+                case "B2G_Stage_Scene_Node":
+                    _current_node_dict.add("Type", "B2G_Stage_Scene_Node")
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
+            _nodes_dict.add(_node.name, _current_node_dict)
+        
+        self.game_manager_dict.add("Nodes", _nodes_dict)
+        self.game_manager_dict.add("Settings", self.game_manager_settings)
 
-        self.game_manager_settings = json.dumps(self.game_manager_dict, indent=1, ensure_ascii=True)
+        self.game_manager_info = json.dumps(self.game_manager_dict, indent=1, ensure_ascii=True)
         with open(self.game_manager_filepath, 'w') as outfile:
-            outfile.write(self.game_manager_settings + '\n')
+            outfile.write(self.game_manager_info + '\n')
 
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)

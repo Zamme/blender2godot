@@ -72,6 +72,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
 
     def check_gamemanager(self, context):
         _gm = bpy.data.node_groups.get("GameManager")
+        _gm_nodes = _gm.nodes
         if not _gm: # Check if gamemanager is present
             self.add_error(context, 40, "GameManager not present")
         else:
@@ -80,6 +81,20 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             for _node_name in _min_nodes_names:
                 if not self.check_node_present(context, _gm, _node_name):
                     self.add_error(context, 41, "Node " + _node_name + " not present")
+            # Check maximum nodes
+            # Max Start nodes = 1
+            _start_nodes = 0
+            for _node in _gm_nodes:
+                if type(_node).__name__ == "B2G_Start_Node":
+                    _start_nodes += 1
+            if _start_nodes > 1:
+                self.add_error(context, 43, "There are more than 1 Start nodes")
+            _finish_nodes = 0
+            for _node in _gm_nodes:
+                if type(_node).__name__ == "B2G_Finish_Node":
+                    _finish_nodes += 1
+            if _finish_nodes > 1:
+                self.add_error(context, 44, "There are more than 1 Finish nodes")
             # Check invalid links
             for _link in _gm.links:
                 if not _link.is_valid:
