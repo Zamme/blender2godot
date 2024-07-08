@@ -63,19 +63,38 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         self.check_naming_conventions(context)
         if context.scene.game_name == "":
             self.add_error(context, 8, "Project has no name")
-        ''' TODO: CHANGE THIS FOR GAMEMANAGER NODES START
-        if (context.scene.startup_scene == None):
-            self.add_warning(context, 2, "Startup scene not set")
-            if hasattr(context.scene.startup_scene, "scene_type"):
-                if (context.scene.startup_scene.scene_type == "player"):
-                    self.add_warning(context, 3, "Startup scene can't be a player")
-        '''
+        self.check_gamemanager(context)
         if (context.scene.godot_engine_ok == False):
             self.add_error(context, 4, "Godot Engine not set")
         for _scene in bpy.data.scenes:
             if _scene.scene_exportable:
                 self.check_scene_requirements(context, _scene)
 
+    def check_gamemanager(self, context):
+        _gm = bpy.data.node_groups.get("GameManager")
+        if not _gm: # Check if gamemanager is present
+            self.add_error(context, 40, "GameManager not present")
+        else:
+            # Check minimum nodes
+            _min_nodes_names = ["Start", "Finish"]
+            for _node_name in _min_nodes_names:
+                if not self.check_node_present(context, _gm, _node_name):
+                    self.add_error(context, 41, "Node " + _node_name + " not present")
+            # Check invalid links
+            for _link in _gm.links:
+                if not _link.is_valid:
+                    self.add_error(context, 42, "Link " + _link.from_node.name + " to " + _link.to_node.name + " not valid")
+            # Check Start links
+            _start_node = self.get_node_in_tree(context, _gm, "Start")
+            if _start_node:
+                if not _start_node.outputs[0].is_linked:
+                    self.add_warning(context, 50, "Node Start not linked")
+            # Check Finish links
+            _finish_node = self.get_node_in_tree(context, _gm, "Finish")
+            if _finish_node:
+                if not _finish_node.inputs[0].is_linked:
+                    self.add_warning(context, 51, "Node Finish not linked")
+                
     def check_naming_conventions(self, context):
         _invalid_characters = [".", ":", "@", '"', "/", "%"]
         _objects_with_bad_name = []
@@ -89,6 +108,13 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
             self.add_error(context, 20, 'Bad naming objects: (".", ":", "@", "/", "%")')
             for _bno in _objects_with_bad_name:
                 self.add_error(context, 21, _bno[0] + " from scene " + _bno[1])
+
+    def check_node_present(self, context, _node_tree, _node_name):
+        _found = False
+        for _node in _node_tree.nodes:
+            if _node.name == _node_name:
+                _found = True
+        return _found
 
     def check_scene_requirements(self, context, _scene):
         match _scene.scene_type:
@@ -214,6 +240,12 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         context.window.cursor_modal_restore()
         return {'FINISHED'}
 
+    def get_node_in_tree(self, context, _node_tree, _node_name):
+        _node_found = None
+        for _node in _node_tree.nodes:
+            if _node.name == _node_name:
+                _node_found = _node
+        return _node_found
 
 def register():
     bpy.utils.register_class(ExportIssue)

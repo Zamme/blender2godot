@@ -252,6 +252,7 @@ class B2G_ToolsPanel(bpy.types.Panel):
         else:
             for _issue in context.scene.current_export_errors:
                 _new_row = box0.row()
+                _new_row.alert = True
                 _new_row.label(text=_issue.description, icon="CANCEL")
         # WARNINGS
         if (len(context.scene.current_export_warnings) > 0):

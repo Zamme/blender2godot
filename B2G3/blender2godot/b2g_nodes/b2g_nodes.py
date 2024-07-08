@@ -156,11 +156,49 @@ class B2G_Pipeline_Socket(NodeSocket):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.label(text="")
+            layout.label(text=text)
 
     # Socket color
     def draw_color(self, context, node):
         return (0.0, 1.0, 0.0, 1.0)
+
+class B2G_InputPlayer_Socket(NodeSocket):
+    # Description string
+    """Input player socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_InputPlayer_SocketType'
+    # Label for nice name display
+    bl_label = "Input Player Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 0.0, 1.0, 1.0)
+
+class B2G_InputHUD_Socket(NodeSocket):
+    # Description string
+    """Input player socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_InputHUD_SocketType'
+    # Label for nice name display
+    bl_label = "Input HUD Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 0.0, 0.5, 1.0)
 
 # --- END SOCKETS ---
 
@@ -196,13 +234,24 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
         return "Start"
 
     def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        '''Mark invalid links, must be called from a timer'''
+        #print("Updating", self.name, "node")
         _valid_scene_types = ["stage", "2dmenu", "3dmenu"]
         for _output in self.outputs:
             for _link in _output.links:
+                _valid_link = False
                 if hasattr(_link.to_node, "scene"):
                     _scene = _link.to_node.scene
-                    _link.is_valid = _scene.scene_type in _valid_scene_types
-                    print("Link valid", _link.is_valid)
+                    _valid_link = _scene.scene_type in _valid_scene_types
+                else:
+                    _valid_link = False
+                #print("Link valid", _valid_link)
+                _link.is_valid = _valid_link
+
 
 class B2G_Finish_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -330,7 +379,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.player_socket = self.inputs.new("B2G_InputPlayer_SocketType", "Player")
+        self.pipeline_socket = self.inputs.new("B2G_Pipeline_SocketType", "Go")
         self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
@@ -343,8 +393,24 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         box1 = layout.box()
         row1 = box1.row()
         row1.prop(self, "scene", text="Scene")
-        #row2 = box1.row()
-        #row2.prop(self.scene, "player_spawn_empty", text="Spawn Empty")
+        # Check scene properties
+        if self.scene:
+            if not self.scene.player_spawn_empty:
+                row2 = box1.row()
+                row2.label(text="Player spawn not set", icon="INFO")
+        else:
+            row2 = box1.row()
+            row2.label(text="Stage scene not set", icon="INFO")
+        # Check scene links
+        if self.scene:
+            if not self.inputs[0].is_linked:
+                row2 = box1.row()
+                row2.label(text="Player not set", icon="INFO")
+            if not self.inputs[1].is_linked:
+                row2 = box1.row()
+                row2.label(text="Stage not in pipeline", icon="INFO")
+
+        # EXPORT PROPERTY
         if self.scene:
             layout.prop(self.scene, "scene_exportable", text="Export")
 
@@ -373,8 +439,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
 
     def init(self, context):
-        self.inputs.new("B2G_Pipeline_SocketType", "Go")
-        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        self.inputs.new("B2G_InputHUD_SocketType", "HUD")
+        self.outputs.new("B2G_InputPlayer_SocketType", "Player")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -721,6 +787,8 @@ classes = (
     MyCustomSocket,
     MyCustomNode,
     B2G_Pipeline_Socket,
+    B2G_InputPlayer_Socket,
+    B2G_InputHUD_Socket,
     B2G_Start_Node,
     B2G_Finish_Node,
     B2G_String_Node,
