@@ -525,12 +525,13 @@ func create_gamemanager():
 	var _new_gamemanager : Spatial = Spatial.new()
 	_new_gamemanager.name = GAMEMANAGER_NAME
 	_new_gamemanager.script = load(GAMEMANAGER_SCRIPT_FILEPATH)
-	if _player_json:
-		if _player_json.has("PlayerSceneName"):
-			_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
-	if _game_manager_json.has("StartupSceneName"):
-		_new_gamemanager.startup_scene_filepath = _game_manager_json["StartupSceneName"]
-		_new_gamemanager.startup_scene_type = _game_manager_json["StartupSceneType"]
+	_new_gamemanager.gm_dict = _game_manager_json
+#	if _player_json:
+#		if _player_json.has("PlayerSceneName"):
+#			_new_gamemanager.current_player_name = _player_json["PlayerSceneName"]
+#	if _game_manager_json.has("StartupSceneName"):
+#		_new_gamemanager.startup_scene_filepath = _game_manager_json["StartupSceneName"]
+#		_new_gamemanager.startup_scene_type = _game_manager_json["StartupSceneType"]
 	self.repack_scene(_new_gamemanager, GAMEMANAGER_FILEPATH)
 
 func create_huds():
@@ -555,7 +556,7 @@ func create_huds():
 #		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
-		#_new_hud.hud_settings = _huds_json[_key]["Settings"]
+#		_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 #		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")

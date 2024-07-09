@@ -24,10 +24,10 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 
 property_node_sockets = {
-    "boolean" : "NodeSocketBool",
-    "string" : "NodeSocketString",
-    "integer" : "NodeSocketInteger",
-    "float" : "NodeSocketFloat"
+    "boolean" : "B2G_Boolean_SocketType",
+    "string" : "B2G_String_SocketType",
+    "integer" : "B2G_Integer_SocketType",
+    "float" : "B2G_Float_SocketType"
 }
 
 class HudSettings(bpy.types.PropertyGroup):
@@ -143,6 +143,82 @@ class MyCustomNode(MyCustomTreeNode, Node):
         return "I am a custom node"
 
 # --- SOCKETS ---
+class B2G_Float_Socket(NodeSocket):
+    # Description string
+    """float socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Float_SocketType'
+    # Label for nice name display
+    bl_label = "Float Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.5, 0.5, 0.0, 1.0)
+
+class B2G_String_Socket(NodeSocket):
+    # Description string
+    """string socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_String_SocketType'
+    # Label for nice name display
+    bl_label = "String Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 0.5, 0.5, 1.0)
+
+class B2G_Boolean_Socket(NodeSocket):
+    # Description string
+    """boolean socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Boolean_SocketType'
+    # Label for nice name display
+    bl_label = "Boolean Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 0.25, 0.0, 1.0)
+
+class B2G_Integer_Socket(NodeSocket):
+    # Description string
+    """integer socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Integer_SocketType'
+    # Label for nice name display
+    bl_label = "Integer Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.5, 0.5, 0.5, 1.0)
+
 class B2G_Pipeline_Socket(NodeSocket):
     # Description string
     """Pipeline socket type"""
@@ -455,13 +531,32 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    new_outputs = []
+
     def poll_scenes(self, object):
         return object.scene_type == "player"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    def on_update_scene(self, context):
+        # Clean new outputs on change scene
+        for _new_output in self.new_outputs:
+            self.outputs.remove(_new_output)
+        self.new_outputs.clear()
+        # Load entity properties as new outputs
+        if self.scene:
+            for _entity_property in self.scene.player_entity_properties:
+                #print(_entity_property.property_name)
+                self.new_outputs.append(self.outputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name))
+        else:
+            for _new_output in self.new_outputs:
+                self.outputs.remove(_new_output)
+            self.new_outputs.clear()
+
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
 
     def init(self, context):
+        # INPUTS
         self.inputs.new("B2G_HUD_SocketType", "HUD")
+        # OUTPUTS
         self.outputs.new("B2G_Player_SocketType", "Player")
 
     def copy(self, node):
@@ -511,10 +606,35 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    new_inputs = []
+    valid_sockets = ["B2G_Float_Socket", "B2G_Integer_Socket", "B2G_Boolean_Socket", "B2G_String_Socket"]
+
     def poll_scenes(self, object):
         return object.scene_type == "hud"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    def on_update_scene(self, context):
+        # Clean new outputs on change scene
+        for _new_input in self.new_inputs:
+            self.inputs.remove(_new_input)
+        self.new_inputs.clear()
+        # Load entity properties as new outputs
+        if self.scene:
+            for _object in self.scene.objects:
+                #print(_entity_property.property_name)
+                if hasattr(_object, "hud_element_properties"):
+                    match _object.hud_element_properties.element_type:
+                        case "text_content":
+                            self.new_inputs.append(self.inputs.new("B2G_String_SocketType", _object.name))
+                        case "horizontal_content":
+                            self.new_inputs.append(self.inputs.new("B2G_Float_SocketType", _object.name))
+                        case "vertical_content":
+                            self.new_inputs.append(self.inputs.new("B2G_Float_SocketType", _object.name))
+        else:
+            for _new_input in self.new_inputs:
+                self.inputs.remove(_new_input)
+            self.new_inputs.clear()
+
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
     settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
     
     def init(self, context):
@@ -551,7 +671,22 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
             return (self.scene.name + "(HUD)")
         else:
             return "HUD"
-    
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        for _input in self.inputs:
+            for _link in _input.links:
+                _valid_link = False
+                print(type(_link.from_socket).__name__)
+                if type(_link.from_socket).__name__ in self.valid_sockets:
+                    _valid_link = True
+                else:
+                    _valid_link = False
+                _link.is_valid = _valid_link
+
 class B2G_NPC_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_NPC_Scene_NodeType'
@@ -822,6 +957,10 @@ classes = (
     MyCustomTree,
     MyCustomSocket,
     MyCustomNode,
+    B2G_String_Socket,
+    B2G_Float_Socket,
+    B2G_Integer_Socket,
+    B2G_Boolean_Socket,
     B2G_Pipeline_Socket,
     B2G_Player_Socket,
     B2G_HUD_Socket,

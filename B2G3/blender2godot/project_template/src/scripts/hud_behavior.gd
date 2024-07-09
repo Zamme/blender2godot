@@ -48,6 +48,7 @@ func find_child_by_name(root_node, _object_name):
 func link_objects():
 	for _key in hud_objects_info.keys():
 		hud_objects_info[_key]["LinkedControl"] = find_child_by_name(self, _key)
+		# TODO: HERE IS WHERE YOU HAVE TO CHANGE THE INFO BY THE JSON
 		if hud_objects_info[_key].has("SourceInfoScene"):
 			hud_objects_info[_key]["LinkedEntity"] = find_child_by_name(get_tree().current_scene, hud_objects_info[_key]["SourceInfoScene"])
 

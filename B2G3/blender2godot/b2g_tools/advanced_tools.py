@@ -388,17 +388,43 @@ class ExportGameOperator(bpy.types.Operator):
         for _node in _gm_nodes:
             print("Exporting node:", _node.name)
             _current_node_dict = my_dictionary()
+            _current_node_dict.add("Type", type(_node).__name__)
             match type(_node).__name__:
                 case "B2G_Start_Node":
                     _start_output = _node.outputs[0]
                     if _start_output.is_linked:
                         _link = _start_output.links[0]
-                        _current_node_dict.add("SceneName", _link.to_node.scene.name)
-                        _current_node_dict.add("SceneType", _link.to_node.scene.scene_type)
+                        _current_node_dict.add("NextNode", _link.to_node.name)
                 case "B2G_Stage_Scene_Node":
-                    _current_node_dict.add("Type", "B2G_Stage_Scene_Node")
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
+                    _player_socket = _node.inputs[0]
+                    if _player_socket.is_linked:
+                        _current_node_dict.add("Player", _player_socket.links[0].from_node.name)
+                case "B2G_Player_Scene_Node":
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
+                    _hud_socket = _node.inputs[0]
+                    if _hud_socket.is_linked:
+                        _current_node_dict.add("HUD", _hud_socket.links[0].from_node.name)
+                        if len(_node.outputs) > 1:
+                            _props = my_dictionary()
+                            for _output in _node.outputs:
+                                for _entity_property in _node.scene.player_entity_properties:
+                                    if _output.name == _entity_property.property_name:
+                                        if len(_output.links) > 0:
+                                            _props.add(_entity_property.property_name, _output.links[0].to_socket.name)
+                            _current_node_dict.add("PropertiesLinked", _props)
+                case "B2G_HUD_Scene_Node":
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
+                        _hud_settings = my_dictionary()
+                        _hud_settings.add("VisibilityType", _node.settings.visibility_type)
+                        _hud_settings.add("ShowTransitionType", _node.settings.show_transition_type)
+                        _hud_settings.add("ShowTransitionTime", _node.settings.show_transition_time)
+                        _hud_settings.add("HideTransitionType", _node.settings.hide_transition_type)
+                        _hud_settings.add("HideTransitionTime", _node.settings.hide_transition_time)
+                        _current_node_dict.add("Settings", _hud_settings)
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)

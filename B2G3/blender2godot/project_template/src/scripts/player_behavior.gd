@@ -1,6 +1,7 @@
 class_name PlayerBehavior extends KinematicBody
 
 
+export var hud_dict : Dictionary
 export var PAUSE_MENU_PATH : String = ""
 export var gravity_enabled : bool
 export var camera_name : String = ""
@@ -40,25 +41,32 @@ var current_delta = 0.0
 var pause_control
 
 var stage_scene
+var optional_dict : Dictionary = {}
+var gm_ref
 
 
 func _ready():
-#	player_json = read_json_file(StageTemplate.PLAYER_INFO_JSON_PATH)
-#	set_json_actions()
+	self.gm_ref = get_tree().current_scene
 	player_mesh = find_player_mesh()
 	camera = find_camera(camera_name)
 	mouse_rotation_axises = get_mouse_rotation_axises()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_actions()
-	add_hud()
+	if self.optional_dict.has("HUD"):
+		self.hud_dict = self.gm_ref.get_tree_node(self.gm_ref.gm_dict, optional_dict["HUD"])
+		add_hud()
 	
 	# TESTING
 	#player_mesh._test_anim()
 
 func add_hud():
+	if hud_dict.has("SceneName"):
+		hud_scene_name = hud_dict["SceneName"]
 	if hud_scene_name != "":
+		print("Adding HUD:", hud_scene_name)
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
+		_hud.hud_settings = hud_dict["Settings"]
 		add_child(_hud)
 
 func animate():
@@ -154,6 +162,9 @@ func set_entity_property_value(_property_name, _value):
 
 func toogle_pause():
 	pause_game_enable(!get_tree().paused)
+
+func set_optional_dict(_dict : Dictionary):
+	self.optional_dict = _dict
 
 func set_stage_scene(_scene):
 	stage_scene = _scene

@@ -105,9 +105,9 @@ class HUDElementProperties(bpy.types.PropertyGroup):
     width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
     element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options, update=update_hud_element_type) # type: ignore
-    source_info_scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Source Scene", poll=poll_source_scenes) # type: ignore
-    source_info_object : bpy.props.PointerProperty(type=bpy.types.Object, name="Source Object") # type: ignore
-    source_info_property : bpy.props.EnumProperty(items=get_source_info_property_items, name="Source Property") # type: ignore
+    #source_info_scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Source Scene", poll=poll_source_scenes) # type: ignore
+    #source_info_object : bpy.props.PointerProperty(type=bpy.types.Object, name="Source Object") # type: ignore
+    #source_info_property : bpy.props.EnumProperty(items=get_source_info_property_items, name="Source Property") # type: ignore
 
 class NewHUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
@@ -119,28 +119,6 @@ class NewHUDElementProperties(bpy.types.PropertyGroup):
     width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
     element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options) # type: ignore
-
-''' ON GAMEMANAGER NODES
-class HudSettings(bpy.types.PropertyGroup):
-    visibility_type : bpy.props.EnumProperty(items=[
-                                    ("always", "Always", "ALWAYS", "", 0),
-                                    ("conditional", "Conditional", "CONDITIONAL", "", 1)
-                                        ], name="Visibility", description="HUD visibility behavior") # type: ignore
-    show_transition_type : bpy.props.EnumProperty(items=[
-                                    ("none", "None", "NONE", "", 0),
-                                    ("fade_in", "Fade In", "FADE IN", "", 1)
-                                        ], name="Showing HUD effect") # type: ignore
-    show_transition_time : bpy.props.FloatProperty(name="Show Transition Time") # type: ignore
-    hide_transition_type : bpy.props.EnumProperty(items=[
-                                    ("none", "None", "NONE", "", 0),
-                                    ("fade_in", "Fade In", "FADE IN", "", 1)
-                                        ], name="Hiding HUD effect") # type: ignore
-    hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
-    hud_export_format : bpy.props.EnumProperty(items=[
-                                                ("png", "PNG", "PNG", "", 0),
-                                                ("svg", "SVG", "SVG", "", 1)
-                                                ], name="Format", description="HUD export format") # type: ignore
-'''
 
 class CreateHUDBaseElementOperator(bpy.types.Operator):
     bl_idname = "scene.create_hud_base_element_operator"
@@ -300,24 +278,6 @@ class HUDPropertiesPanel(bpy.types.Panel):
             return
         else:
             row4.operator("scene.create_hud_base_element_operator")
-
-        # HUD PROPERTIES
-        ''' --- ON GAMEMANAGER NODES ---
-        row2 = layout.row()
-        box1 = row2.box()
-        box1.label(text="HUD settings")
-        box1.prop(context.scene.hud_settings, "visibility_type")
-        # TODO : Conditional
-        if context.scene.hud_settings.visibility_type == "conditional":
-            box1.label(text="TODO, not available", icon="CANCEL")
-        box1.prop(context.scene.hud_settings, "show_transition_type")
-        if context.scene.hud_settings.show_transition_type == "fade_in":
-            box1.prop(context.scene.hud_settings, "show_transition_time")
-        box1.prop(context.scene.hud_settings, "hide_transition_type")
-        if context.scene.hud_settings.hide_transition_type == "fade_in":
-            box1.prop(context.scene.hud_settings, "hide_transition_time")
-        box1.prop(context.scene.hud_settings, "hud_export_format")
-        '''
 
         # ACTIVE OBJECT PROPERTIES
         if context.active_object is not None:
