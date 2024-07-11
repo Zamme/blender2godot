@@ -2,6 +2,8 @@ class_name GameManager extends Node
 
 
 const STAGES_DIRPATH = "res://src/scenes/stages/"
+const MENUS3D_DIRPATH = "res://src/scenes/menus3d/"
+const MENUS2D_DIRPATH = "res://src/scenes/menus2d/"
 const PLAYERS_DIRPATH = "res://src/scenes/players/"
 const HUDS_SCENES_DIRPATH = "res://src/scenes/huds/"
 const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
@@ -47,11 +49,11 @@ func get_tree_node(_tree, _node_name):
 	return _node
 
 func fix_startup_scene_filepath(_filepath, _type):
-	var _prefix_dict : Dictionary = {"B2G_Stage_Scene_Node" : "Stage_",
-									"B2G_Menu2d_Scene_Node" : "Menu2d_",
-									"B2G_Menu3d_Scene_Node" : "Menu3d_"}
+	var _prefix_dict : Dictionary = {"B2G_Stage_Scene_Node" : ["Stage_", STAGES_DIRPATH],
+									"B2G_2dMenu_Scene_Node" : ["Menu2d_", MENUS2D_DIRPATH],
+									"B2G_3dMenu_Scene_Node" : ["Menu3d_", MENUS3D_DIRPATH]}
 	var _filepath_fixed : String = _filepath
-	_filepath_fixed = STAGES_DIRPATH + _prefix_dict[_type] + _filepath + ".tscn"
+	_filepath_fixed =  _prefix_dict[_type][1] + _prefix_dict[_type][0] + _filepath + ".tscn"
 	return _filepath_fixed
 
 static func get_all_children(in_node,arr:=[]):
@@ -63,12 +65,13 @@ static func get_all_children(in_node,arr:=[]):
 func load_menu2d():
 	pass
 
-func load_menu3d():
-	pass
+func load_menu3d(_menu_filepath):
+	load_scene(_menu_filepath)
 
 func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _optional_dict : Dictionary = {}):
 	if _unload_current:
 		b2g_current_scene.queue_free()
+	print("Loading menu", _new_scene_path)
 	var _file : File = File.new()
 	if _file.file_exists(_new_scene_path):
 		b2g_current_scene = load(_new_scene_path).instance()
@@ -103,6 +106,8 @@ func start_gm():
 		match startup_scene_type:
 			"B2G_Stage_Scene_Node":
 				load_stage(startup_scene_filepath, start_node_next_node)
+			"B2G_3dMenu_Scene_Node":
+				load_menu3d(startup_scene_filepath)
 		set_state(GameState.Starting)
 
 func update_state():

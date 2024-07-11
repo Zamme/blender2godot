@@ -425,6 +425,9 @@ class ExportGameOperator(bpy.types.Operator):
                         _hud_settings.add("HideTransitionType", _node.settings.hide_transition_type)
                         _hud_settings.add("HideTransitionTime", _node.settings.hide_transition_time)
                         _current_node_dict.add("Settings", _hud_settings)
+                case "B2G_3dMenu_Scene_Node":
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)
