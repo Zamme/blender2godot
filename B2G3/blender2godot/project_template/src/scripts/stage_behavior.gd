@@ -27,7 +27,9 @@ func _ready():
 			var player_node
 			if optional_dict.has("Player"):
 				player_node = self.gm_ref.get_tree_node(self.gm_ref.gm_dict, optional_dict["Player"])
-			var _player_name : String = player_node["SceneName"]
+			var _player_name : String = ""
+			if player_node:
+				_player_name = player_node["SceneName"]
 			if  _player_name == "":
 				print("No player found. Loading free camera...")
 				get_tree().current_scene.show_message("No player detected")

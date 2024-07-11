@@ -20,6 +20,7 @@ func _ready():
 	link_objects()
 	update_hud_objects_info()
 	start_hud()
+	update_hud_objects_info()
 
 func add_fade_timer():
 	fade_timer = Timer.new()
@@ -67,19 +68,22 @@ func start_hud():
 		"always":
 			fade_timer.start(hud_settings["ShowTransitionTime"])
 
-func update_hud_object_info(_key):
-	# TODO: If is not TEXT?
-	if hud_objects_info[_key].has("SourceInfoProperty"):
-		var _linked_entity = hud_objects_info[_key]["LinkedEntity"]
-#		print("Linked entity: " + _linked_entity.name)
-		var _source_info_property_name = hud_objects_info[_key]["SourceInfoProperty"]
-#		print("Property name: " + _source_info_property_name)
-		var _value_to_assign = _linked_entity._entity_properties[_source_info_property_name]["Value"]
-		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
+#func update_hud_object_info(_key):
+#	# TODO: If is not TEXT?
+#	if hud_objects_info[_key].has("SourceInfoProperty"):
+#		var _linked_entity = hud_objects_info[_key]["LinkedEntity"]
+##		print("Linked entity: " + _linked_entity.name)
+#		var _source_info_property_name = hud_objects_info[_key]["SourceInfoProperty"]
+##		print("Property name: " + _source_info_property_name)
+#		var _value_to_assign = _linked_entity._entity_properties[_source_info_property_name]["Value"]
+#		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
 
 func update_hud_objects_info():
-	for _key in hud_objects_info.keys():
-		update_hud_object_info(_key)
+	var _parent_props : Dictionary = get_parent().properties_linked
+	for _parent_prop_key in _parent_props.keys():
+		for _child in get_children():
+			if _parent_props[_parent_prop_key] == _child.name:
+				_child.text = str(get_parent()._entity_properties[_parent_prop_key]["Value"])
 
 func _on_fade_timer_timeout():
 	start_fade()

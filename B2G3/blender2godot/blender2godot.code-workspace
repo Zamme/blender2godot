@@ -6,6 +6,7 @@
 		}
 	],
 	"settings": {
-		"godotTools.editorPath.godot3": "/home/zamme/Progs/Godot_v3.5.3-stable_x11.64"
+		"godotTools.editorPath.godot3": "/home/zamme/Progs/Godot_v3.5.3-stable_x11.64",
+		"blender.addon.reloadOnSave": true
 	}
 }

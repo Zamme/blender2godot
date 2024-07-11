@@ -42,6 +42,7 @@ var pause_control
 
 var stage_scene
 var optional_dict : Dictionary = {}
+var properties_linked : Dictionary = {}
 var gm_ref
 
 
@@ -54,6 +55,7 @@ func _ready():
 	set_actions()
 	if self.optional_dict.has("HUD"):
 		self.hud_dict = self.gm_ref.get_tree_node(self.gm_ref.gm_dict, optional_dict["HUD"])
+		self.properties_linked = self.optional_dict["PropertiesLinked"]
 		add_hud()
 	
 	# TESTING
