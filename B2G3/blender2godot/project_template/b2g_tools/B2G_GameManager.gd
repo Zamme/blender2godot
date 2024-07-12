@@ -62,8 +62,8 @@ static func get_all_children(in_node,arr:=[]):
 		arr = get_all_children(child,arr)
 	return arr
 
-func load_menu2d():
-	pass
+func load_menu2d(_menu_filepath):
+	load_scene(_menu_filepath)
 
 func load_menu3d(_menu_filepath):
 	load_scene(_menu_filepath)
@@ -108,6 +108,8 @@ func start_gm():
 				load_stage(startup_scene_filepath, start_node_next_node)
 			"B2G_3dMenu_Scene_Node":
 				load_menu3d(startup_scene_filepath)
+			"B2G_2dMenu_Scene_Node":
+				load_menu2d(startup_scene_filepath)
 		set_state(GameState.Starting)
 
 func update_state():

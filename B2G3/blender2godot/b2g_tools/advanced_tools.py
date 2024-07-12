@@ -428,6 +428,9 @@ class ExportGameOperator(bpy.types.Operator):
                 case "B2G_3dMenu_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
+                case "B2G_2dMenu_Scene_Node":
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)

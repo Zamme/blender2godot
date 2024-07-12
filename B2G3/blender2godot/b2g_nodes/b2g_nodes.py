@@ -23,12 +23,39 @@ For B2G Nodes
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 
+action_type_options = [("none", "None", "", 0), 
+                        ("load_stage", "Load Stage", "", 1),
+                        ("load_2dmenu", "Load Menu 2D", "", 2),
+                        ("load_3dmenu", "Load Menu 3D", "", 3),
+                        ("quit_game", "Quit Game", "", 4)
+                        ]
+
 property_node_sockets = {
     "boolean" : "B2G_Boolean_SocketType",
     "string" : "B2G_String_SocketType",
     "integer" : "B2G_Integer_SocketType",
     "float" : "B2G_Float_SocketType"
 }
+
+def get_action_scenes(self, context):
+    _sc_names_purged = [("none", "None", "", "", 0)]
+    _sc_ind = 1
+    for _sc in bpy.data.scenes:
+        if hasattr(context.active_object, "special_object_info"):
+            if _sc.scene_type == context.active_object.special_object_info.button_action_on_click.removeprefix("load_"):
+                if _sc.scene_exportable:
+                    _sc_names_purged.append((_sc.name, _sc.name, "", "", _sc_ind))
+                    _sc_ind += 1
+    return _sc_names_purged
+
+def update_action_parameter(self, context):
+    context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
+
+class ButtonAction(bpy.types.PropertyGroup):
+    button_name : bpy.props.StringProperty(name="Button Name") # type: ignore
+    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click") # type: ignore
+    action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
+    scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
 class HudSettings(bpy.types.PropertyGroup):
     visibility_type : bpy.props.EnumProperty(items=[
@@ -781,10 +808,44 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    #special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
+    new_outputs = []
+
     def poll_scenes(self, object):
         return object.scene_type == "3dmenu"
-    
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+
+    def on_update_scene(self, context):
+        # Clean new outputs on change scene
+        for _new_output in self.new_outputs:
+            self.outputs.remove(_new_output)
+        self.new_outputs.clear()
+        # Load entity properties as new outputs
+        if self.scene:
+            self.special_objects.clear()
+            for _object in self.scene.objects:
+                if _object.special_object_info.menu_object_type == "button":
+                    _new_special_object = self.special_objects.add()
+                    _new_special_object.button_name = _object.name
+
+            '''
+            for _object in self.scene.objects:
+                if _object.special_object_info.menu_object_type == "button":
+                    match _object.special_object_info.button_action_on_click:
+                        case "load_stage":
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
+                        case "load_2dmenu":
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
+                        case "load_3dmenju":
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
+                        case "quit_game":
+                            pass
+            '''
+        else:
+            for _new_output in self.new_outputs:
+                self.outputs.remove(_new_output)
+            self.new_outputs.clear()
+
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
     
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Go")
@@ -802,6 +863,16 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
         row1.prop(self, "scene", text="Scene")
         if self.scene:
             row2 = box1.row()
+            box2 = row2.box()
+            #row3 = box2.row()
+            #row3.label(text=_object.name)
+            for _special_object in self.special_objects:
+                box3 = box2.box()
+                row4 = box3.row()
+                row4.label(text=_special_object.button_name)
+                row5 = box3.row()
+                row5.prop(_special_object, "button_action_on_click")
+            #row4.prop(_object.special_object_info, "button_action_on_click", text="Action")
             layout.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
@@ -812,6 +883,33 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
             return (self.scene.name + "(Menu 3D)")
         else:
             return "Menu 3D"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        '''Mark invalid links, must be called from a timer'''
+        print("Update 3d menu node")
+        '''
+        _input_player = self.inputs[0]
+        for _link in _input_player.links:
+            _valid_link = False
+            if type(_link.from_node).__name__ == "B2G_Player_Scene_Node":
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+        _input_go = self.inputs[1]
+        for _link in _input_go.links:
+            _valid_link = False
+            if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+        '''
+
 
 ''' SCENE NODE MASTER CLASS 
 class B2G_Scene_Node(MyCustomTreeNode, Node):
@@ -953,6 +1051,7 @@ node_categories = [
 ]
 
 classes = (
+    ButtonAction,
     HudSettings,
     MyCustomTree,
     MyCustomSocket,
@@ -984,8 +1083,11 @@ def register():
 
     nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
+    bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
+
 
 def unregister():
+    del bpy.types.Node.special_objects
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
 
     from bpy.utils import unregister_class
