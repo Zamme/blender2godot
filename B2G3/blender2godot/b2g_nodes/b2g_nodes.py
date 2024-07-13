@@ -51,9 +51,14 @@ def get_action_scenes(self, context):
 def update_action_parameter(self, context):
     context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
 
+def update_3dmenu_node(self, context):
+    print("Update button action click", self.button_node_name)
+    bpy.data.node_groups["GameManager"].nodes[self.button_node_name].update()
+
 class ButtonAction(bpy.types.PropertyGroup):
+    button_node_name : bpy.props.StringProperty(name="Button Node") # type: ignore
     button_name : bpy.props.StringProperty(name="Button Name") # type: ignore
-    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click") # type: ignore
+    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click", update=update_3dmenu_node) # type: ignore
     action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
@@ -816,8 +821,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def on_update_scene(self, context):
         # Clean new outputs on change scene
-        for _new_output in self.new_outputs:
-            self.outputs.remove(_new_output)
+        self.outputs.clear()
         self.new_outputs.clear()
         # Load entity properties as new outputs
         if self.scene:
@@ -825,21 +829,8 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
             for _object in self.scene.objects:
                 if _object.special_object_info.menu_object_type == "button":
                     _new_special_object = self.special_objects.add()
+                    _new_special_object.button_node_name = self.name
                     _new_special_object.button_name = _object.name
-
-            '''
-            for _object in self.scene.objects:
-                if _object.special_object_info.menu_object_type == "button":
-                    match _object.special_object_info.button_action_on_click:
-                        case "load_stage":
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
-                        case "load_2dmenu":
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
-                        case "load_3dmenju":
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _object.name))
-                        case "quit_game":
-                            pass
-            '''
         else:
             for _new_output in self.new_outputs:
                 self.outputs.remove(_new_output)
@@ -849,7 +840,6 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Go")
-        self.outputs.new("B2G_Pipeline_SocketType", "Go")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -886,6 +876,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
+        bpy.app.timers.register(self.update_links)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
@@ -910,6 +901,30 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link
         '''
 
+    def update_links(self):
+        print("Update links")
+        for _special_object in self.special_objects:
+            match _special_object.button_action_on_click:
+                    case "none":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index > -1:
+                            self.outputs.remove(self.outputs[_special_object.button_name])
+                    case "load_stage":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                    case "load_2dmenu":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                    case "load_3dmenu":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                    case "quit_game":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index > -1:
+                            self.outputs.remove(self.outputs[_special_object.button_name])
 
 ''' SCENE NODE MASTER CLASS 
 class B2G_Scene_Node(MyCustomTreeNode, Node):
