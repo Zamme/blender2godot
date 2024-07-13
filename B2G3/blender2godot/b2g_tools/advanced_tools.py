@@ -428,6 +428,21 @@ class ExportGameOperator(bpy.types.Operator):
                 case "B2G_3dMenu_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
+                        _special_objects_dict = my_dictionary()
+                        for _special_object in _node.special_objects:
+                            _special_object_dict = my_dictionary()
+                            _special_object_dict.add("ActionOnClick", _special_object.button_action_on_click)
+                            match _special_object.button_action_on_click:
+                                case "none":
+                                    pass
+                                case "load_stage":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                    #_special_object_dict.add()
+                            _special_objects_dict.add(_special_object.button_name, _special_object_dict)
+                        _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
                 case "B2G_2dMenu_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
@@ -851,19 +866,19 @@ class ExportGameOperator(bpy.types.Operator):
                 if _obj.special_object_info.menu_object_type != "none":
                     _special_objects.add(_obj.name, {
                         "ObjectType" : _obj.special_object_info.menu_object_type,
-                        "ActionOnClick" : _obj.special_object_info.button_action_on_click
+                        #"ActionOnClick" : _obj.special_object_info.button_action_on_click
                     })
                     #print("Special object", _obj.name, "Info", _obj.special_object_info.button_action_on_click, "Param", _obj.special_object_info.scene_parameter)
-                    _pref_param = ""
-                    match _obj.special_object_info.button_action_on_click:
-                        case "load_stage":
-                            _pref_param = "Stage_"
-                        case "load_3dmenu":
-                            _pref_param = "Menu3d_"
-                        case "load_2dmenu":
-                            _pref_param = "Menu2d_"
-                    _action_parameter_rename = _pref_param + _obj.special_object_info.action_parameter
-                    _special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
+                    #_pref_param = ""
+                    #match _obj.special_object_info.button_action_on_click:
+                        #case "load_stage":
+                            #_pref_param = "Stage_"
+                        #case "load_3dmenu":
+                            #_pref_param = "Menu3d_"
+                        #case "load_2dmenu":
+                            #_pref_param = "Menu2d_"
+                    #_action_parameter_rename = _pref_param + _obj.special_object_info.action_parameter
+                    #_special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
         _temp_dict.add("SpecialObjects", _special_objects)
         # ENVIRONMENT
         _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))

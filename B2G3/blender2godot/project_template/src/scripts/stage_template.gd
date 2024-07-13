@@ -360,8 +360,8 @@ func apply_import_changes(scene):
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
 							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
 							ob.add_to_group("menus3d_buttons", true)
-							ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
-							ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
+							#ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
+							#ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
 		elif _lights_json.has(ob.name):
 			if lights_instance == null:
 				lights_instance = Spatial.new()

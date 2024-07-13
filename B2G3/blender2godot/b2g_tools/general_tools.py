@@ -174,6 +174,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                         break
                 if not _has_meshes:
                     self.add_error(context, 13, _scene.name + " menu has no meshes")
+                '''
                 else:
                     for _object in _scene.objects:
                         if _object.type == "MESH":
@@ -189,6 +190,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                                         case "load_3dmenu":
                                             if _object.special_object_info.scene_parameter == "none":
                                                 self.add_warning(context, 16, _scene.name + " has load 3d menu with no linked scene")
+                '''
             case "loading":
                 # TODO : Pending to add
                 self.add_error(context, 99, "Loading scene type is not available")

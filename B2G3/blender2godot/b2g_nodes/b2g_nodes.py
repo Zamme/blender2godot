@@ -840,6 +840,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -881,17 +882,8 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
-        print("Update 3d menu node")
-        '''
-        _input_player = self.inputs[0]
-        for _link in _input_player.links:
-            _valid_link = False
-            if type(_link.from_node).__name__ == "B2G_Player_Scene_Node":
-                _valid_link = True
-            else:
-                _valid_link = False
-            _link.is_valid = _valid_link
-        _input_go = self.inputs[1]
+        #print("Update 3d menu node")
+        _input_go = self.inputs[0]
         for _link in _input_go.links:
             _valid_link = False
             if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
@@ -899,7 +891,6 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
             else:
                 _valid_link = False
             _link.is_valid = _valid_link
-        '''
 
     def update_links(self):
         print("Update links")
