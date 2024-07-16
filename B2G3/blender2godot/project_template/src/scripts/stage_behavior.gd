@@ -26,7 +26,7 @@ func _ready():
 		if player_spawn:
 			var player_node
 			if optional_dict.has("Player"):
-				player_node = self.gm_ref.get_tree_node(self.gm_ref.gm_dict, optional_dict["Player"])
+				player_node = self.gm_ref.get_tree_node(optional_dict["Player"], self.gm_ref.gm_dict)
 			var _player_name : String = ""
 			if player_node:
 				_player_name = player_node["SceneName"]

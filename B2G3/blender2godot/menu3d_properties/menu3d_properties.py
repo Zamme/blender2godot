@@ -37,7 +37,7 @@ def get_scene_parameter_name(self, context):
 def scene_camera_object_poll(self, object):
     return ((object.users_scene[0] == bpy.context.scene) and (object.type == 'CAMERA'))
 
-class MenuSpecialObject(bpy.types.PropertyGroup):
+class Menu3DSpecialObject(bpy.types.PropertyGroup):
     """ Menu 3D Object Type """
     object_type_options = [
                             ("none", "None", "", 0), 
@@ -108,20 +108,20 @@ class Menu3DPropertiesPanel(bpy.types.Panel):
 
 def init_properties():
     bpy.types.Scene.menu_camera_object = bpy.props.PointerProperty(type=bpy.types.Object, name="Menu Camera", poll=scene_camera_object_poll)
-    bpy.types.Object.special_object_info = bpy.props.PointerProperty(type=MenuSpecialObject)
+    bpy.types.Object.special_object_info = bpy.props.PointerProperty(type=Menu3DSpecialObject)
 
 def clear_properties():
     del bpy.types.Scene.menu_camera_object
     del bpy.types.Object.special_object_info
 
 def register():
-    bpy.utils.register_class(MenuSpecialObject)
+    bpy.utils.register_class(Menu3DSpecialObject)
     init_properties()
     bpy.utils.register_class(Menu3DPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(Menu3DPropertiesPanel)
     clear_properties()
-    bpy.utils.unregister_class(MenuSpecialObject)
+    bpy.utils.unregister_class(Menu3DSpecialObject)
 
 

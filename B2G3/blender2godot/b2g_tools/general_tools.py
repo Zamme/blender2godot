@@ -150,6 +150,8 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                             case "CAMERA":
                                 _cameras += 1
                             case "GPENCIL":
+                                pass
+                                '''
                                 match _child.menu2d_object_properties.menu2d_object_type:
                                     case "button":
                                         match _child.menu2d_object_properties.button_action:
@@ -162,6 +164,7 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
                                             case "load_3dmenu":
                                                 if _child.menu2d_object_properties.scene_parameter == "none":
                                                     self.add_warning(context, 18, "Load 3D Menu button no linked on " + _scene.name)
+                            '''
                     if _cameras != 1:
                         self.add_error(context, 10, _scene.name + " must have 1 camera")
             case "3dmenu":

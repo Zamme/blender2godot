@@ -6,12 +6,14 @@ onready var _menu = get_node(name.replace("Menu3d_", ""))
 
 var selectable_objects = []
 var current_selected_object_index = -1
+var optional_dict : Dictionary
 
 
 func _ready():
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
 		select_object(0)
+	setup_menu()
 
 static func get_all_children(in_node,arr:=[]):
 	arr.push_back(in_node)
@@ -51,6 +53,17 @@ func do_action():
 func select_object(_index : int):
 	current_selected_object_index = _index
 	update_objects()
+
+func set_optional_dict(_dict : Dictionary):
+	self.optional_dict = _dict
+
+func setup_menu():
+	print(optional_dict)
+	for _special_object_key in optional_dict["SpecialObjects"].keys():
+		for _selectable_object in selectable_objects:
+			print("Selectable Object:", _selectable_object.name)
+			if _special_object_key == _selectable_object.name:
+				_selectable_object.button_dict = optional_dict["SpecialObjects"][_special_object_key]
 
 func update_objects():
 	var _index : int = 0

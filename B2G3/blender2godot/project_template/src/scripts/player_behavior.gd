@@ -54,7 +54,7 @@ func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_actions()
 	if self.optional_dict.has("HUD"):
-		self.hud_dict = self.gm_ref.get_tree_node(self.gm_ref.gm_dict, optional_dict["HUD"])
+		self.hud_dict = self.gm_ref.get_tree_node(optional_dict["HUD"], self.gm_ref.gm_dict)
 		self.properties_linked = self.optional_dict["PropertiesLinked"]
 		add_hud()
 	

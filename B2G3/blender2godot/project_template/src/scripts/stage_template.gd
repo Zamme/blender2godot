@@ -360,8 +360,6 @@ func apply_import_changes(scene):
 							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
 							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
 							ob.add_to_group("menus3d_buttons", true)
-							#ob.action_to_do = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionOnClick"]
-							#ob.action_parameter = _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ActionParameter"]
 		elif _lights_json.has(ob.name):
 			if lights_instance == null:
 				lights_instance = Spatial.new()
@@ -627,6 +625,8 @@ func create_menus3d(_files_to_import):
 							_new_camera.keep_aspect = Camera.KEEP_HEIGHT
 						"HORIZONTAL":
 							_new_camera.keep_aspect = Camera.KEEP_WIDTH
+					yield(get_tree(), "idle_frame")
+					self.prepare_menu3d_scene(_new_menu)
 					yield(get_tree(), "idle_frame")
 					self.repack_scene(_new_menu, _new_menu_path)
 
@@ -974,8 +974,10 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 				pass
 	print("Finished.")
 
-func prepare_menu3d_scene(_menu_scene, _menu_objects):
-	pass
+func prepare_menu3d_scene(_menu_scene):
+	print("Menu 3d scene name:", _menu_scene.name)
+#	ob.button_dict = _game_manager_json["Nodes"][scene.name]["SpecialObjects"][ob.name]
+
 
 func output_matrix():
 	var output_matrix_text = []

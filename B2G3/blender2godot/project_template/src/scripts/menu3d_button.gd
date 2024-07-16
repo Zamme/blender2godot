@@ -1,25 +1,18 @@
 class_name Menu3d_Button extends MeshInstance
 
-# TODO: HERE???
-const SRC_PATH = "res://src/"
-const SCENES_PATH = SRC_PATH + "scenes/"
-const STAGES_PATH = SCENES_PATH + "stages/"
-const STAGE_SCENES_PREFIX = "Stage_"
-const MENUS3D_PATH = SCENES_PATH + "menus3d/"
-const MENU3D_SCENES_PREFIX = "Menu3d_"
-const MENUS2D_PATH = SCENES_PATH + "menus2d/"
-const MENUS2D_SCENES_PREFIX = "Menu2d_"
-# END HERE
-const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
-export var action_to_do : String = "None"
-export var action_parameter = "None"
+#export var action_to_do : String = "None"
+#export var action_parameter = "None"
 
+var button_dict : Dictionary
 var _button_collider : StaticBody
 var _selected_effect_mesh : MeshInstance
 
+var gm_ref
+
 
 func _ready():
+	self.gm_ref = get_tree().current_scene
 	_button_collider = get_collider()
 	_selected_effect_mesh = create_selected_effect_mesh()
 	_selected_effect_mesh.hide()
@@ -36,27 +29,22 @@ func create_selected_effect_mesh():
 	_mesh.set_owner(get_parent())
 	var _new_mat : SpatialMaterial = SpatialMaterial.new()
 	_new_mat.flags_transparent = true
-	_new_mat.albedo_color = SELECTED_OBJECT_OVERLAY_COLOR
+	_new_mat.albedo_color = self.gm_ref.SELECTED_OBJECT_OVERLAY_COLOR
 	_mesh.material_overlay = _new_mat
 	return _mesh
 
 func do_click_action():
-	var _msg : String = action_to_do + " " + action_parameter
-	print(_msg)
-#	get_parent().get_parent().show_message(_msg)
-	var _param : String
-	match action_to_do:
-		"load_stage":
-			_param = STAGES_PATH + action_parameter + ".tscn"
-			get_tree().current_scene.load_scene(_param, true)
-		"load_3dmenu":
-			_param = MENUS3D_PATH + action_parameter + ".tscn"
-			get_tree().current_scene.load_scene(_param, true)
-		"load_2dmenu":
-			_param = MENUS2D_PATH + action_parameter + ".tscn"
-			get_tree().current_scene.load_scene(_param, true)
-		"quit_game":
-			get_tree().quit()
+	var _msg : String
+	var _action_to_do : String
+	var _action_parameter : String
+	if self.button_dict.has("ActionOnClick"):
+		_action_to_do = self.button_dict["ActionOnClick"]
+		_msg = self.button_dict["ActionOnClick"]
+		if self.button_dict.has("ActionParameter"):
+			_action_parameter = self.button_dict["ActionParameter"]
+			_msg += " " + self.button_dict["ActionParameter"]
+	self.gm_ref.execute_command(_action_to_do, _action_parameter)
+#	print(_msg)
 
 func get_collider():
 	for _child in get_children():
@@ -72,9 +60,10 @@ func select_object(_selected : bool):
 func _on_click_event(_cam, _event, _pos, _norm, _s_idx):
 	if _event is InputEventMouseButton:
 		if _event.pressed:
-			print("clicked")
+#			print("clicked")
 			do_click_action()
 		else:
-			print("unclicked")
+			pass
+#			print("unclicked")
 	#elif _event is InputEventMouseMotion:
 		#print("hovering")

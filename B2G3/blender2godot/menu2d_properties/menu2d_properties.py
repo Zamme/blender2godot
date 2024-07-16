@@ -60,32 +60,21 @@ def has_text_child(self, context):
             break
     return _has_text
 
+def on_depth_update(self, context):
+    context.active_object.location.z = float(self.object_depth)
+
 def update_action_parameter(self, context):
     context.active_object.menu2d_object_properties.action_parameter = context.active_object.menu2d_object_properties.scene_parameter
 
-class Menu2DObjectProperties(bpy.types.PropertyGroup):
+class Menu2DSpecialObject(bpy.types.PropertyGroup):
     """ Menu 2D Object Type """
     object_type_options = [
-        ("none", "None", "", 0),
-        ("button", "Button", "", 1),
-        ("checkbutton", "Checkbutton", "", 2)]
-    button_actions = [
-        ("none", "None", "", 0),
-        ("close_menu", "Close Menu", "", 1),
-        ("quit_game", "Quit Game", "", 2),
-        ("load_stage", "Load Stage", "", 3),
-        ("load_2dmenu", "Load Menu 2D", "", 4),
-        ("load_3dmenu", "Load Menu 3D", "", 5)
-        ]
-    check_actions = [
-        ("none", "None", "", 0),
-        ("option1", "Option1", "", 1),
-        ("option2", "Option2", "", 2)]
-    menu2d_object_type : bpy.props.EnumProperty(items=object_type_options, name="Object Type", default=0) # type: ignore
-    button_action : bpy.props.EnumProperty(items=button_actions, name="Button Action", default=0) # type: ignore
-    action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
-    check_action : bpy.props.EnumProperty(items=check_actions, name="Check Action", default=0) # type: ignore
-    scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
+                            ("none", "None", "", 0), 
+                            ("button", "Button", "", 1),
+                            #("checkbox", "Checkbox", "", 2)
+                            ]
+    menu2d_object_type : bpy.props.EnumProperty(items=object_type_options, name="Type") # type: ignore
+    object_depth : bpy.props.IntProperty(name="Object Depth", default=0, update=on_depth_update) # type: ignore
 
 class Button2dProperties(bpy.types.PropertyGroup):
     button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
@@ -277,8 +266,10 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             _nl = "Active Object: " + context.active_object.name
             box3.label(text=_nl)
             if context.active_object.type == "GPENCIL":
-                gpl = bpy.data.grease_pencils[context.active_object.name].layers[0]
+                gpl = context.active_object.data.layers[0]
                 box5 = box3.box()
+                row11 = box5.row()
+                row11.prop(context.active_object.menu2d_object_properties, "object_depth")
                 row3 = box5.row()
                 row3.prop(gpl, "line_change", text="Border thickness")
                 row4 = box5.row()
@@ -293,6 +284,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                     row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
                 box4 = box3.box()
                 box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
+                '''
                 match context.active_object.menu2d_object_properties.menu2d_object_type:
                     case "button":
                         box4.prop(context.active_object.menu2d_object_properties, "button_action")
@@ -302,6 +294,7 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                             box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
                     case "check":
                         box4.prop(context.active_object.menu2d_object_properties, "check_action")
+                '''
             ''' DEBUG
             if context.active_object.type == "GPENCIL":
                 for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
@@ -314,15 +307,18 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
                  
 
 def init_properties():
-    bpy.types.Object.menu2d_object_properties = bpy.props.PointerProperty(type=Menu2DObjectProperties)
+    bpy.types.Object.menu2d_object_properties = bpy.props.PointerProperty(type=Menu2DSpecialObject)
+    #bpy.types.Object.menu2d_object_properties = bpy.props.PointerProperty(type=Menu2DObjectProperties)
 
 def clear_properties():
     del bpy.types.Object.menu2d_object_properties
+    #del bpy.types.Object.menu2d_object_properties
 
 def register():
     bpy.utils.register_class(Button2dProperties)
     bpy.utils.register_class(CreateMenu2dButtonTextOperator)
-    bpy.utils.register_class(Menu2DObjectProperties)
+    bpy.utils.register_class(Menu2DSpecialObject)
+    #bpy.utils.register_class(Menu2DObjectProperties)
     init_properties()
     bpy.utils.register_class(CreateMenu2dViewOperator)
     bpy.utils.register_class(CreateMenu2dBaseButtonOperator)
@@ -333,7 +329,8 @@ def unregister():
     bpy.utils.unregister_class(CreateMenu2dBaseButtonOperator)
     bpy.utils.unregister_class(CreateMenu2dViewOperator)
     clear_properties()
-    bpy.utils.unregister_class(Menu2DObjectProperties)
+    bpy.utils.unregister_class(Menu2DSpecialObject)
+    #bpy.utils.unregister_class(Menu2DObjectProperties)
     bpy.utils.unregister_class(CreateMenu2dButtonTextOperator)
     bpy.utils.unregister_class(Button2dProperties)
 

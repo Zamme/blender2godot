@@ -9,6 +9,7 @@ var _player_scene
 
 var selectable_objects = []
 var current_selected_object_index = -1
+var optional_dict : Dictionary
 
 
 func _ready():
@@ -50,6 +51,9 @@ func do_action():
 func select_object(_index : int):
 	current_selected_object_index = _index
 	update_objects()
+
+func set_optional_dict(_dict : Dictionary):
+	self.optional_dict = _dict
 
 func update_objects():
 	var _index : int = 0

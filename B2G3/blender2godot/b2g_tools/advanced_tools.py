@@ -786,35 +786,87 @@ class ExportGameOperator(bpy.types.Operator):
             os.mkdir(self.menus2d_folder_path)
         print("Exporting menu 2d scene", _menu2d_scene.name)
         context.window.scene = _menu2d_scene
-        for _obj in _menu2d_scene.objects:
-            bpy.ops.object.mode_set(mode = 'OBJECT')
-            _obj.select_set(_obj.godot_exportable)
-            # Disable gpencil layers lights
-            if _obj.type == "GPENCIL":
-                #print("Is gpencil")
-                for _layer in _obj.data.layers:
-                    _layer.use_lights = False
         # ENSURE 3D VIEW FOR CONTEXT
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":
                 _area.type = "VIEW_3D"
                 _area.ui_type = "VIEW_3D"
         bpy.ops.view3d.view_camera()
-        menu2d_path = os.path.join(self.menus2d_folder_path, _menu2d_scene.name)
-        if len(_menu2d_scene.objects) > 0:
-            menu2d_path = menu2d_path + ".png"
-            _menu2d_scene.render.engine = "BLENDER_EEVEE"
-            bpy.context.scene.render.filepath = menu2d_path
-            bpy.context.scene.render.film_transparent = True
-            bpy.context.scene.view_layers["ViewLayer"].use_pass_z = True
-            bpy.ops.render.render(write_still = True)
-            print("Scene", _menu2d_scene.name, "exported.")
+        _last_use_border = _menu2d_scene.render.use_border
+        _last_use_crop_to_border = _menu2d_scene.render.use_crop_to_border
+        _menu2d_scene.render.use_border = True
+        _menu2d_scene.render.use_crop_to_border = True
+        cam = _menu2d_scene.camera 
+        camType = cam.data.type
+        matrix = cam.matrix_world.normalized()
+        frame = [matrix @ v for v in cam.data.view_frame(scene=_menu2d_scene)]
+        origin = matrix.to_translation()
+        frame.append(origin)
+        p1, p2, p3, p4 = frame[0:4]
+        l = cam.location
+        v1 = p2 - p3
+        v2 = p4 - p3
+        normal = cross(v1, v2)
+        hud_path = os.path.join(self.menus2d_folder_path, _menu2d_scene.name)
+        _menu2d_scene.render.engine = "BLENDER_EEVEE"
+        objs = []
+        s1s = []
+        s2s = []
+        for _obj in _menu2d_scene.objects:
+            if _obj.type == "GPENCIL":
+                if _obj.godot_exportable:
+                    objs.append(_obj)
+                    for _obj2 in _menu2d_scene.objects:
+                        _obj2.hide_render = (_obj2 != _obj)
+                    for _layer in _obj.data.layers:
+                        _layer.use_lights = False
+                    bpy.ops.object.mode_set(mode = 'OBJECT')
+                    s1s.clear()
+                    s2s.clear()
+                    verts = [_obj.matrix_world @ v.co for v in _obj.data.layers[0].active_frame.strokes[0].points]
+                    for v in verts:
+                        # direction of line to be parameterized, if orthogonal, direction should be normal
+                        if camType == 'ORTHO':
+                            direction = normal
+                        else:
+                            direction = l - v
+                        # parametric value for projection to camera
+                        t = -(dot(normal, v) - dot(p1, normal))/dot(normal, direction)
+                        # vert projected to camera frustum
+                        vP = v + Vector(t * direction)
+                        # matrix with v1 and v2 as basis vectors (has to be square in order to invert)      
+                        mtxB = Matrix((v1, v2)).to_3x3()
+                        # find scalars to stretch basis vectors to projected point on frustum
+                        scalars = (vP - p3) @ mtxB.inverted() 
+                        # horizontal scalar append to all horizontal scalars:
+                        s1s.append(scalars[0])
+                        # vertical scalar append to all vertical scalars:
+                        s2s.append(scalars[1])
+                    x_min, y_min, x_max, y_max = min(s1s), min(s2s), max(s1s), max(s2s)
+
+                    _menu2d_scene.render.border_min_x = x_min
+                    _menu2d_scene.render.border_min_y = y_min
+                    _menu2d_scene.render.border_max_x = x_max
+                    _menu2d_scene.render.border_max_y = y_max
+
+                    _file_path = hud_path + "_" + _obj.name + ".png"
+                    _menu2d_scene.render.filepath = _file_path
+                    _menu2d_scene.render.film_transparent = True
+                    _menu2d_scene.view_layers["ViewLayer"].use_pass_z = True
+                    bpy.ops.render.render(write_still = True, use_viewport=True)
+        if len(objs) > 0:
+            print("Scene", _menu2d_scene.name, "exported with", str(len(objs)), "objects.")
         else:
             print("Scene ", _menu2d_scene.name, " empty!")
+        _menu2d_scene.render.use_border = _last_use_border
+        _menu2d_scene.render.use_crop_to_border = _last_use_border
+        for _obj in _menu2d_scene.objects:
+            _obj.hide_render = False
         context.window.scene = _last_scene
 
     def export_menu2d_dict(self, context, _sc_added):
         _menu2d_dict = my_dictionary()
+        '''
         for _menu2d_obj in _sc_added.objects:
             if _menu2d_obj.type == "GPENCIL":
                 if _menu2d_obj.godot_exportable:
@@ -834,6 +886,7 @@ class ExportGameOperator(bpy.types.Operator):
                             _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
                         _menu2d_obj_dict.add("Points", _co_array)
                         _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
+        '''
         self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)
 
     def export_menus2d_info(self, context):
