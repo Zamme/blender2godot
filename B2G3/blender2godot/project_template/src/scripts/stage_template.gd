@@ -543,20 +543,10 @@ func create_huds():
 		var _new_hud : Control = Control.new()
 		_new_hud.name = _new_hud_name
 		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
-#		var _new_texture_rect : TextureRect = TextureRect.new()
-#		_new_texture_rect.name = "TextureRect_" + _new_hud_name
-#		_new_hud.add_child(_new_texture_rect)
-#		_new_texture_rect.set_owner(_new_hud)
-#		_new_texture_rect.set_anchors_preset(Control.PRESET_WIDE)
-		#var _texture_format = _huds_json[_key]["Settings"]["ExportFormat"]
 		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + ".png"
-#		_new_texture_rect.texture = load(_svg_path)
-#		_new_texture_rect.expand = true
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
 		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
-#		_new_hud.hud_settings = _huds_json[_key]["Settings"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-#		_new_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_hud_scene(_new_hud, _huds_json[_key]["Objects"])
 		yield(get_tree(),"idle_frame")
@@ -570,21 +560,15 @@ func create_menus2d():
 	for _key in _menus2d_json.keys():
 		var _new_menu2d_name : String = MENUS2D_SCENES_PREFIX + _key
 		var _new_menu2d_path : String = MENUS2D_PATH + _new_menu2d_name + ".tscn"
-		var _new_menu2d : Sprite = Sprite.new()
+		var _new_menu2d : Control = Control.new()
 		_new_menu2d.name = _new_menu2d_name
-		var _texture_path : String = MENUS2D_TEXTURES_PATH + _key + ".png"
-		if ResourceLoader.has_cached(_texture_path):
-			print(_texture_path + " already cached")
-		else:
-			print(_texture_path + " not cached")
-		_new_menu2d.texture = load(_texture_path)
-		var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
-		_new_menu2d.offset = Vector2(_display_size.x/2, _display_size.y/2)
-		#_new_texture_rect.expand = true
+		_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
+		var _svg_path : String = MENUS2D_TEXTURES_PATH + _key + "." + ".png"
 		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
-		_new_menu2d.add_to_group("menus2d", true)
+		_new_menu2d.menu2d_objects_info = _menus2d_json[_key]["Objects"]
+		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
-		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
+		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
 		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
@@ -938,40 +922,74 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
+	var FONT_FACTOR = 32
+	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
-	var SCALE_FACTOR = 28.5
-	for _menu_object_key in _menu_objects.keys():
-#		print(_menu_object_key)
-		var _new_area2d : Area2D = Area2D.new()
-		_new_area2d.name = _menu_object_key + "_Area2D"
-		_menu_scene.add_child(_new_area2d)
-		_new_area2d.set_owner(_menu_scene)
-		_new_area2d.position = Vector2(_display_size.x/2, _display_size.y/2)
-		_new_area2d.position -= Vector2(float(_menu_objects[_menu_object_key]["Location"][0]) * -SCALE_FACTOR, float(_menu_objects[_menu_object_key]["Location"][1]) * SCALE_FACTOR)
-		var _new_collision_polygon2d : CollisionPolygon2D = CollisionPolygon2D.new()
-		_new_collision_polygon2d.name = _menu_object_key + "_CollisionPolygon2D"
-		_new_area2d.add_child(_new_collision_polygon2d)
-		_new_collision_polygon2d.set_owner(_menu_scene)
-		var _new_polygon2d : Polygon2D = Polygon2D.new()
-		_new_polygon2d.name = _menu_object_key + "_Polygon2D"
-		_new_area2d.add_child(_new_polygon2d)
-		_new_polygon2d.set_owner(_menu_scene)
-		var _new_pool_vector : PoolVector2Array = PoolVector2Array()
-		for _point in _menu_objects[_menu_object_key]["Points"]:
-			var _new_vector : Vector2 = Vector2(_point[0] * SCALE_FACTOR, _point[1] * -SCALE_FACTOR)
-			_new_pool_vector.append(_new_vector)
-		_new_collision_polygon2d.polygon = _new_pool_vector
-		_new_polygon2d.polygon = _new_pool_vector
-		_new_polygon2d.color = SELECTED_OBJECT_OVERLAY_COLOR
-		# Actions
-		match _menu_objects[_menu_object_key]["Type"]:
-			"button":
-				_new_area2d.script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
-				_new_area2d.add_to_group("menus2d_buttons", true)
-				_new_area2d.action_to_do = _menu_objects[_menu_object_key]["Action"]
-				_new_area2d.action_parameter = _menu_objects[_menu_object_key]["ActionParameter"]
-			"check":
-				pass
+	var SCALE_FACTOR = 35.5
+	for _menu_object_info in _menu_objects.keys():
+		match _menu_objects[_menu_object_info]["Type"]:
+			"FONT":
+				print(_menu_objects[_menu_object_info]["Location"])
+				var _new_label : Label = Label.new()
+				_new_label.name = _menu_object_info
+				_menu_scene.add_child(_new_label)
+				_new_label.set_owner(_menu_scene)
+				var _new_font : DynamicFont = DynamicFont.new()
+				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
+				_new_label.set("custom_fonts/font", _new_font)
+				_new_label.text = _menu_objects[_menu_object_info]["Body"]
+				_new_label.align = Label.ALIGN_CENTER
+				_new_label.valign = Label.VALIGN_CENTER
+				_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
+				_new_label.set_pivot_offset(_new_label.rect_size/2)
+				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+				var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+			"GPENCIL":
+				match _menu_objects[_menu_object_info]["ElementType"]:
+					"button":
+						var _new_button : Button = Button.new()
+						_new_button.name = _menu_object_info
+						_menu_scene.add_child(_new_button)
+						_new_button.set_owner(_menu_scene)
+						var _filepath : String = MENUS2D_TEXTURES_PATH + _menu_scene.name.trim_prefix(MENUS2D_SCENES_PREFIX) + "_" + _menu_object_info + ".png"
+						_new_button.icon = load(_filepath)
+						_new_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+						_new_button.grow_vertical = Control.GROW_DIRECTION_BOTH
+						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
+						_new_button.set_pivot_offset(_new_button.rect_size/2)
+						_new_button.flat = true
+						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+					"none":
+						var _new_button : TextureRect = TextureRect.new()
+						_new_button.name = _menu_object_info
+						_menu_scene.add_child(_new_button)
+						_new_button.set_owner(_menu_scene)
+						var _filepath : String = MENUS2D_TEXTURES_PATH + _menu_scene.name.trim_prefix(MENUS2D_SCENES_PREFIX) + "_" + _menu_object_info + ".png"
+						_new_button.texture = load(_filepath)
+						_new_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+						_new_button.grow_vertical = Control.GROW_DIRECTION_BOTH
+						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
+						_new_button.set_pivot_offset(_new_button.rect_size/2)
+						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+	# REORDERING DEPTH
+	var _objects = []
+	for _object in _menu_scene.get_children():
+		_objects.append(_object)
+	for _menu_object_info in _menu_objects.keys():
+		if _menu_objects[_menu_object_info]["Type"] != "CAMERA":
+			for _object in _objects:
+				if _object.name == _menu_object_info:
+					if _object:
+						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
+						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
+					else:
+						print("Object ", _menu_object_info, " not found")
 	print("Finished.")
 
 func prepare_menu3d_scene(_menu_scene):

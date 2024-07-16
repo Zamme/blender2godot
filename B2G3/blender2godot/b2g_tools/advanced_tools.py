@@ -866,27 +866,26 @@ class ExportGameOperator(bpy.types.Operator):
 
     def export_menu2d_dict(self, context, _sc_added):
         _menu2d_dict = my_dictionary()
-        '''
+        _menu2d_objects_dict = my_dictionary()
         for _menu2d_obj in _sc_added.objects:
-            if _menu2d_obj.type == "GPENCIL":
-                if _menu2d_obj.godot_exportable:
-                    if _menu2d_obj.menu2d_object_properties.menu2d_object_type != "none":
-                        _menu2d_obj_dict = my_dictionary()
-                        _menu2d_obj_dict.add("Type", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
-                        _menu2d_obj_location = [_menu2d_obj.location[0], _menu2d_obj.location[1], _menu2d_obj.location[2]]
-                        match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
-                            case "button":
-                                _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.button_action)
-                                _menu2d_obj_dict.add("ActionParameter", _menu2d_obj.menu2d_object_properties.action_parameter)
-                            case "check":
-                                _menu2d_obj_dict.add("Action", _menu2d_obj.menu2d_object_properties.check_action)
-                        _menu2d_obj_dict.add("Location", _menu2d_obj_location)
-                        _co_array = []
-                        for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
-                            _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
-                        _menu2d_obj_dict.add("Points", _co_array)
-                        _menu2d_dict.add(_menu2d_obj.name, _menu2d_obj_dict)
-        '''
+            _menu2d_object_dict = my_dictionary()
+            _menu2d_object_dict.add("Type", _menu2d_obj.type)
+            _menu2d_object_dict.add("ElementType", _menu2d_obj.menu2d_object_properties.menu2d_object_type)
+            loc, rot, sca = _menu2d_obj.matrix_world.decompose()
+            _menu2d_object_dict.add("Location", Vector3ToString(loc))
+            _menu2d_object_dict.add("Depth", _menu2d_obj.menu2d_object_properties.object_depth)
+            match _menu2d_obj.type:
+                case "FONT":
+                    _menu2d_object_dict.add("FontFilepath", _menu2d_obj.data.font.filepath)
+                    _menu2d_object_dict.add("Body", _menu2d_obj.data.body)
+                    _menu2d_object_dict.add("Size", _menu2d_obj.data.size)
+                case "GPENCIL":
+                    _co_array = []
+                    for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
+                        _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                    _menu2d_object_dict.add("Points", _co_array)
+            _menu2d_objects_dict.add(_menu2d_obj.name, _menu2d_object_dict)
+        _menu2d_dict.add("Objects", _menu2d_objects_dict)
         self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)
 
     def export_menus2d_info(self, context):

@@ -10,6 +10,7 @@ var _player_scene
 var selectable_objects = []
 var current_selected_object_index = -1
 var optional_dict : Dictionary
+export var menu2d_objects_info : Dictionary
 
 
 func _ready():

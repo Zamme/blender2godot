@@ -87,6 +87,7 @@ def poll_source_scenes(self, object):
     return (object.scene_type == "player")
 
 
+'''
 def get_source_info_property_items(self, context):
     source_info_property_items = [("none", "None", "None", 0)]
     if self.source_info_scene:
@@ -94,6 +95,7 @@ def get_source_info_property_items(self, context):
             for _ind,_prop in enumerate(self.source_info_scene.player_entity_properties):
                 source_info_property_items.append((_prop.property_name, _prop.property_name, _prop.property_name, _ind+1))
     return source_info_property_items
+'''
 
 class HUDElementProperties(bpy.types.PropertyGroup):
     #element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore
@@ -105,9 +107,6 @@ class HUDElementProperties(bpy.types.PropertyGroup):
     width_parameter : bpy.props.FloatProperty(name="Element Width", min=2.0, max=10.0, default=3.0) # type: ignore
     height_parameter : bpy.props.FloatProperty(name="Element Height", min=2.0, max=10.0, default=3.0) # type: ignore
     element_type : bpy.props.EnumProperty(name="Element Properties Type", items=element_type_options, update=update_hud_element_type) # type: ignore
-    #source_info_scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Source Scene", poll=poll_source_scenes) # type: ignore
-    #source_info_object : bpy.props.PointerProperty(type=bpy.types.Object, name="Source Object") # type: ignore
-    #source_info_property : bpy.props.EnumProperty(items=get_source_info_property_items, name="Source Property") # type: ignore
 
 class NewHUDElementProperties(bpy.types.PropertyGroup):
     element_name : bpy.props.StringProperty(name="New element name", default="NewElement") # type: ignore

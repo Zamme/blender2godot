@@ -71,6 +71,7 @@ class Menu2DSpecialObject(bpy.types.PropertyGroup):
     object_type_options = [
                             ("none", "None", "", 0), 
                             ("button", "Button", "", 1),
+                            ("button_content", "Button Content", "", 2),
                             #("checkbox", "Checkbox", "", 2)
                             ]
     menu2d_object_type : bpy.props.EnumProperty(items=object_type_options, name="Type") # type: ignore
@@ -265,36 +266,32 @@ class Menu2DPropertiesPanel(bpy.types.Panel):
             box3 = row2.box()
             _nl = "Active Object: " + context.active_object.name
             box3.label(text=_nl)
-            if context.active_object.type == "GPENCIL":
-                gpl = context.active_object.data.layers[0]
-                box5 = box3.box()
-                row11 = box5.row()
-                row11.prop(context.active_object.menu2d_object_properties, "object_depth")
-                row3 = box5.row()
-                row3.prop(gpl, "line_change", text="Border thickness")
-                row4 = box5.row()
-                row4.prop(context.active_object.active_material.grease_pencil, "color", text="Border color")
-                row6 = box5.row()
-                row6.prop(context.active_object.active_material.grease_pencil, "show_fill", text="Fill")
-                if context.active_object.active_material.grease_pencil.show_fill:
-                    row5 = box5.row()
-                    row5.prop(context.active_object.active_material.grease_pencil, "fill_color", text="Fill color")
-                if not has_text_child(self, context):
-                    row7 = box5.row()
-                    row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
-                box4 = box3.box()
-                box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
-                '''
-                match context.active_object.menu2d_object_properties.menu2d_object_type:
-                    case "button":
-                        box4.prop(context.active_object.menu2d_object_properties, "button_action")
-                        _act = context.active_object.menu2d_object_properties.button_action
-                        if ((_act != "none") and (_act != "close_menu") and (_act != "quit_game")):
-                            _param_name = get_scene_parameter_name(self, context)
-                            box4.prop(context.active_object.menu2d_object_properties, "scene_parameter", text=_param_name)
-                    case "check":
-                        box4.prop(context.active_object.menu2d_object_properties, "check_action")
-                '''
+            match context.active_object.type:
+                case "GPENCIL":
+                    gpl = context.active_object.data.layers[0]
+                    box5 = box3.box()
+                    row11 = box5.row()
+                    row11.prop(context.active_object.menu2d_object_properties, "object_depth")
+                    row3 = box5.row()
+                    row3.prop(gpl, "line_change", text="Border thickness")
+                    row4 = box5.row()
+                    row4.prop(context.active_object.active_material.grease_pencil, "color", text="Border color")
+                    row6 = box5.row()
+                    row6.prop(context.active_object.active_material.grease_pencil, "show_fill", text="Fill")
+                    if context.active_object.active_material.grease_pencil.show_fill:
+                        row5 = box5.row()
+                        row5.prop(context.active_object.active_material.grease_pencil, "fill_color", text="Fill color")
+                    if not has_text_child(self, context):
+                        row7 = box5.row()
+                        row7.operator("scene.create_menu2d_button_text_operator", text="Add text")
+                case "FONT":
+                    row7 = box3.row()
+                    row7.prop(context.active_object.data, "font", text="Font", slider=True)
+                    row8 = box3.row()
+                    row8.prop(context.active_object.data, "size", text="Font Size")
+            box4 = box3.box()
+            box4.prop(context.active_object.menu2d_object_properties, "menu2d_object_type")
+
             ''' DEBUG
             if context.active_object.type == "GPENCIL":
                 for _point_index,_point in enumerate(context.active_object.data.layers[0].active_frame.strokes[0].points):
