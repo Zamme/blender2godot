@@ -31,7 +31,7 @@ from numpy import cross, dot
 
 import bpy
 from blender2godot.addon_config import addon_config # type: ignore
-
+from blender2godot.scene_properties import scene_properties # type: ignore
 
 INFOS_FOLDER_NAME = "infos"
 HUDS_INFO_FILENAME = "huds_info.json"
@@ -101,7 +101,12 @@ class SCENES_UL_scenes_added(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon = custom_icon)
             if hasattr(context.scene, "scene_type"):
-                layout.prop(item, "scene_type", text="")
+                #layout.prop(item, "scene_type", text="")
+                _type_translated = ""
+                for _s_type in scene_properties.scene_types:
+                    if _s_type[0] == item.scene_type:
+                        _type_translated = _s_type[1]
+                layout.label(text=_type_translated)
                 if item.scene_type != "none":
                     layout.prop(item, "scene_exportable")
         elif self.layout_type in {'GRID'}:

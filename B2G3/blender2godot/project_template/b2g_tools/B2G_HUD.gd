@@ -10,6 +10,7 @@ var _pending_messages = []
 
 
 func _ready():
+	show_behind_parent = true
 	show_message("Debug hud enabled")
 
 func show_message(_text):

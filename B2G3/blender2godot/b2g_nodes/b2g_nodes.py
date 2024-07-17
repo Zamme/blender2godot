@@ -37,6 +37,12 @@ property_node_sockets = {
     "float" : "B2G_Float_SocketType"
 }
 
+scene_node_sockets = {
+    "load_stage" : "B2G_Stage_SocketType",
+    "load_2dmenu" : "B2G_2dmenu_SocketType",
+    "load_3dmenu" : "B2G_3dmenu_SocketType",
+}
+
 def get_action_scenes(self, context):
     _sc_names_purged = [("none", "None", "", "", 0)]
     _sc_ind = 1
@@ -533,7 +539,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     def init(self, context):
         self.inputs.new("B2G_Player_SocketType", "Player")
         self.inputs.new("B2G_Pipeline_SocketType", "Go")
-        self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_output = self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_output.link_limit = 1
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -593,7 +600,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         _input_go = self.inputs[1]
         for _link in _input_go.links:
             _valid_link = False
-            if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_Stage_Socket")):
                 _valid_link = True
             else:
                 _valid_link = False
@@ -609,31 +616,27 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    new_outputs = []
+    #new_outputs = []
 
     def poll_scenes(self, object):
         return object.scene_type == "player"
     
     def on_update_scene(self, context):
         # Clean new outputs on change scene
-        for _new_output in self.new_outputs:
-            self.outputs.remove(_new_output)
-        self.new_outputs.clear()
+        print("Update plaeyr")
+        self.outputs.clear()
+        self.outputs.new("B2G_Player_SocketType", "Player")
         # Load entity properties as new outputs
         if self.scene:
             for _entity_property in self.scene.player_entity_properties:
-                #print(_entity_property.property_name)
-                self.new_outputs.append(self.outputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name))
-        else:
-            for _new_output in self.new_outputs:
-                self.outputs.remove(_new_output)
-            self.new_outputs.clear()
+                self.outputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
 
     def init(self, context):
         # INPUTS
         self.inputs.new("B2G_HUD_SocketType", "HUD")
+        self.inputs.new("B2G_2dmenu_SocketType", "Pause Menu") # TODO: Change by pausemenu_socket
         # OUTPUTS
         self.outputs.new("B2G_Player_SocketType", "Player")
 
@@ -819,7 +822,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    new_outputs = []
+    #new_outputs = []
 
     def poll_scenes(self, object):
         return object.scene_type == "2dmenu"
@@ -827,7 +830,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
     def on_update_scene(self, context):
         # Clean new outputs on change scene
         self.outputs.clear()
-        self.new_outputs.clear()
+        #self.new_outputs.clear()
         # Load entity properties as new outputs
         if self.scene:
             self.special_objects.clear()
@@ -837,9 +840,10 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
                     _new_special_object.button_node_name = self.name
                     _new_special_object.button_name = _object.name
         else:
-            for _new_output in self.new_outputs:
-                self.outputs.remove(_new_output)
-            self.new_outputs.clear()
+            self.outputs.clear()
+            #for _new_output in self.new_outputs:
+                #self.outputs.remove(_new_output)
+            #self.new_outputs.clear()
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
     
@@ -868,7 +872,6 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
                 row4.label(text=_special_object.button_name)
                 row5 = box3.row()
                 row5.prop(_special_object, "button_action_on_click")
-            #row4.prop(_object.special_object_info, "button_action_on_click", text="Action")
             layout.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
@@ -883,7 +886,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
     def update(self):
         '''Called when node graph is changed'''
         print("Update", self.name)
-        bpy.app.timers.register(self.update_links)
+        bpy.app.timers.register(self.update_sockets)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
@@ -891,13 +894,13 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
         _input_go = self.inputs[0]
         for _link in _input_go.links:
             _valid_link = False
-            if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_2dmenu_Socket")):
                 _valid_link = True
             else:
                 _valid_link = False
             _link.is_valid = _valid_link
 
-    def update_links(self):
+    def update_sockets(self):
         print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
@@ -908,15 +911,31 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
                     case "load_stage":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Stage_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                            #self.new_outputs.append(self.outputs.new("B2G_Stage_SocketType", _special_object.button_name))
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_Stage_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
                     case "load_2dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_2dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
                     case "load_3dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_3dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
                     case "quit_game":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:
@@ -995,7 +1014,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
-        bpy.app.timers.register(self.update_links)
+        bpy.app.timers.register(self.update_sockets)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
@@ -1010,7 +1029,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
                 _valid_link = False
             _link.is_valid = _valid_link
 
-    def update_links(self):
+    def update_sockets(self):
         print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
@@ -1021,15 +1040,30 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
                     case "load_stage":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_Stage_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
                     case "load_2dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_2dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
                     case "load_3dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            _new_socket = self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_3dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
                     case "quit_game":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:

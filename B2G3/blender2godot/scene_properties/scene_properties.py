@@ -23,7 +23,18 @@ Scene properties panel
 import bpy
 from bpy.app.handlers import persistent
 
-
+global scene_types
+scene_types = [
+    ("none", "None", "", 0),
+    ("stage", "Stage", "", 1),
+    ("player", "Player", "", 2),
+    ("3dmenu", "3D Menu", "", 3),
+    ("2dmenu", "2D Menu", "", 4),
+    ("hud", "HUD", "", 5),
+    ("loading", "Loading", "", 6),
+    ("npc", "NPC", "", 7),
+    ("pausemenu", "Pause Menu", "", 8),
+    ]
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
@@ -82,15 +93,7 @@ def update_scene_exportable(self, context):
 
 class SceneType(bpy.types.PropertyGroup):
     """ Scene type """
-    scene_type_options = [
-        ("none", "None", "", 0),
-        ("stage", "Stage", "", 1),
-        ("player", "Player", "", 2),
-        ("3dmenu", "3D Menu", "", 3),
-        ("2dmenu", "2D Menu", "", 4),
-        ("hud", "HUD", "", 5),
-        ("loading", "Loading", "", 6),
-        ("npc", "NPC", "", 7)]
+    scene_type_options = scene_types
 
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""

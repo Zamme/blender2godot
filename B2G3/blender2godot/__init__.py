@@ -27,42 +27,42 @@ import bpy
 
 #from blender2godot import prefs
 
-from blender2godot.addon_config import addon_config
+from blender2godot.addon_config import addon_config # type: ignore
 
-from blender2godot.godot_project_properties import godot_project_properties
+from blender2godot.scene_properties import scene_properties # type: ignore
 
-from blender2godot.display_properties import display_properties
+from blender2godot.godot_project_properties import godot_project_properties # type: ignore
 
-from blender2godot.splash_properties import splash_properties
+from blender2godot.display_properties import display_properties # type: ignore
+
+from blender2godot.splash_properties import splash_properties # type: ignore
 
 from blender2godot.b2g_tools import (
 	advanced_tools,
 	general_tools,
 	)
 
-from blender2godot.scene_properties import scene_properties
+from blender2godot.stage_properties import stage_properties # type: ignore
 
-from blender2godot.stage_properties import stage_properties
+from blender2godot.player_properties import player_properties # type: ignore
 
-from blender2godot.player_properties import player_properties
+from blender2godot.menu3d_properties import menu3d_properties # type: ignore
 
-from blender2godot.menu3d_properties import menu3d_properties
+from blender2godot.menu2d_properties import menu2d_properties # type: ignore
 
-from blender2godot.menu2d_properties import menu2d_properties
+from blender2godot.hud_properties import hud_properties # type: ignore
 
-from blender2godot.hud_properties import hud_properties
+from blender2godot.test_project import test_project # type: ignore
 
-from blender2godot.test_project import test_project
+from blender2godot.game_export import game_export # type: ignore
 
-from blender2godot.game_export import game_export
+from blender2godot.help_and_docs import help_and_docs # type: ignore
 
-from blender2godot.help_and_docs import help_and_docs
+from blender2godot.loading_properties import loading_properties # type: ignore
 
-from blender2godot.loading_properties import loading_properties
+from blender2godot.npc_properties import npc_properties # type: ignore
 
-from blender2godot.npc_properties import npc_properties
-
-from blender2godot.b2g_nodes import b2g_nodes
+from blender2godot.b2g_nodes import b2g_nodes # type: ignore
 
 
 bl_info = {
@@ -97,12 +97,12 @@ def register():
     bpy.types.Scene.gamemanager_scene_name = bpy.props.StringProperty(name="Gamemanager scene default name", default="B2G_GameManager")
     b2g_nodes.register()
     addon_config.register()
+    scene_properties.register()
     general_tools.register()
     godot_project_properties.register()
     display_properties.register()
     splash_properties.register()
     advanced_tools.register()
-    scene_properties.register()
     stage_properties.register()
     player_properties.register()
     menu3d_properties.register()
@@ -120,6 +120,7 @@ def register():
 def unregister():
     #clear_handlers()
     addon_config.unregister()
+    scene_properties.unregister()
     help_and_docs.unregister()
     b2g_nodes.unregister()
     general_tools.unregister()
@@ -128,7 +129,6 @@ def unregister():
     splash_properties.unregister()
     advanced_tools.unregister()
     stage_properties.unregister()
-    scene_properties.unregister()
     hud_properties.unregister()
     menu3d_properties.unregister()
     menu2d_properties.unregister()

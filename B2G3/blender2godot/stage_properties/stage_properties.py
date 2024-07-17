@@ -23,6 +23,10 @@ Stage properties panel
 import bpy
 
 
+stage_object_types = [
+    ("none", "None", "", 0),
+]
+
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
         for _error in message:
@@ -96,8 +100,9 @@ class StagePropertiesPanel(bpy.types.Panel):
             box.label(text="Active Object")
             box3 = box.box()
             box3.label(text=context.active_object.name)
-            if context.active_object.godot_exportable:
-                box3.prop(context.active_object, "collider")
+            #if context.active_object.godot_exportable:
+            box3.prop(context.active_object, "stage_object_type", text="Object Type")
+            box3.prop(context.active_object, "collider")
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():
@@ -110,6 +115,7 @@ def init_properties():
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
+    bpy.types.Object.stage_object_type = bpy.props.EnumProperty(items=stage_object_types, name="Stage Object Type")
 
 def clear_properties():
     del bpy.types.Scene.player_spawn_empty

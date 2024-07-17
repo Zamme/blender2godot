@@ -685,7 +685,7 @@ class PlayerHUDPanel(bpy.types.Panel):
                 row5 = box1.row()
                 row5.template_list("PROPERTIES_UL_player", "PlayerPropertiesList", context.scene, "player_entity_properties", scene, "player_entity_property_sel")
 '''
-
+'''
 class PlayerPausePanel(bpy.types.Panel):
     """Player Pause Panel"""
     bl_label = "Player Pause"
@@ -723,6 +723,7 @@ class PlayerPausePanel(bpy.types.Panel):
         box1 = box1.box()
         box1.label(text="Pause")
         box1.prop(scene, "pause_menu2d", text="Pause menu 2D")
+'''
 
 def check_player_property_name(self, value):
     _new_value = value
@@ -900,7 +901,7 @@ def clear_properties():
     del bpy.types.Scene.controls_settings_sel
     del bpy.types.Scene.actions_settings
     del bpy.types.Scene.actions_settings_sel
-    del bpy.types.Scene.pause_menu2d
+    #del bpy.types.Scene.pause_menu2d
     
 def init_properties():
     # Player properties
@@ -927,7 +928,7 @@ def init_properties():
     bpy.types.Scene.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
     bpy.types.Scene.actions_settings_sel = bpy.props.IntProperty(name="Action Selected", default=0)
 
-    bpy.types.Scene.pause_menu2d = bpy.props.EnumProperty(items=get_menu2d_scenes_array, default=0)
+    #bpy.types.Scene.pause_menu2d = bpy.props.EnumProperty(items=get_menu2d_scenes_array, default=0)
 
 def register():
     #bpy.utils.register_class(ControlSettingsType)
@@ -955,12 +956,12 @@ def register():
     bpy.utils.register_class(PlayerCameraPanel)
     bpy.utils.register_class(PlayerControlsPanel)
     #bpy.utils.register_class(PlayerHUDPanel)
-    bpy.utils.register_class(PlayerPausePanel)
+    #bpy.utils.register_class(PlayerPausePanel)
     bpy.utils.register_class(PlayerPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(PlayerPropertiesPanel)
-    bpy.utils.unregister_class(PlayerPausePanel)
+    #bpy.utils.unregister_class(PlayerPausePanel)
     #bpy.utils.unregister_class(PlayerHUDPanel)
     bpy.utils.unregister_class(PlayerControlsPanel)
     bpy.utils.unregister_class(PlayerCameraPanel)
