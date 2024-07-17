@@ -74,6 +74,9 @@ var lights_to_remove_from_scene = []
 var quit_timer : Timer
 var _start_scene_path : String
 
+var fonts_datas = [] # DEFAULT FONT IS THE FIRST [0]
+var button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
+var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
 
 # JSONS
 var _stages_json
@@ -564,8 +567,7 @@ func create_menus2d():
 		_new_menu2d.name = _new_menu2d_name
 		_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
 		var _svg_path : String = MENUS2D_TEXTURES_PATH + _key + "." + ".png"
-		_new_menu2d.script = load(MENUS2D_BEHAVIOR_FILEPATH)
-		_new_menu2d.menu2d_objects_info = _menus2d_json[_key]["Objects"]
+		_new_menu2d.script = menus2d_behavior_script
 		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
@@ -874,8 +876,8 @@ func mount_scenes():
 	create_players(files_to_import)
 	create_menus3d(files_to_import)
 	create_huds()
-	yield(get_tree(),"idle_frame")
 	create_menus2d()
+	yield(get_tree(),"idle_frame")
 
 func prepare_hud_scene(_hud_scene, _hud_objects):
 	var FONT_FACTOR = 32
@@ -891,7 +893,9 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 				_hud_scene.add_child(_new_label)
 				_new_label.set_owner(_hud_scene)
 				var _new_font : DynamicFont = DynamicFont.new()
-				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				if self.fonts_datas.size() == 0:
+					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+				_new_font.font_data = self.fonts_datas[0]
 				_new_font.size = int(float(_hud_objects[_hud_object_info]["Size"])*FONT_FACTOR)
 				_new_label.set("custom_fonts/font", _new_font)
 				_new_label.text = _hud_objects[_hud_object_info]["Body"]
@@ -926,16 +930,24 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 35.5
+	var _pending_contents = []
+#	_menu_scene.set_optional_dict(_menu_objects)
+
 	for _menu_object_info in _menu_objects.keys():
 		match _menu_objects[_menu_object_info]["Type"]:
 			"FONT":
+				if _menu_objects[_menu_object_info]["ElementType"] == "button_content":
+					_pending_contents.append(_menu_object_info)
+					continue
 				print(_menu_objects[_menu_object_info]["Location"])
 				var _new_label : Label = Label.new()
 				_new_label.name = _menu_object_info
 				_menu_scene.add_child(_new_label)
 				_new_label.set_owner(_menu_scene)
 				var _new_font : DynamicFont = DynamicFont.new()
-				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				if self.fonts_datas.size() == 0:
+					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+				_new_font.font_data = self.fonts_datas[0]
 				_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
 				_new_label.set("custom_fonts/font", _new_font)
 				_new_label.text = _menu_objects[_menu_object_info]["Body"]
@@ -962,8 +974,12 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
 						_new_button.set_pivot_offset(_new_button.rect_size/2)
 						_new_button.flat = true
+						_new_button.icon_align = Button.ALIGN_CENTER
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+						_new_button.script = button_behavior_script
+						yield(get_tree(),"idle_frame")
+						_new_button.add_to_group("menus2d_buttons", true)
 					"none":
 						var _new_button : TextureRect = TextureRect.new()
 						_new_button.name = _menu_object_info
@@ -990,6 +1006,17 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
 					else:
 						print("Object ", _menu_object_info, " not found")
+	# PENDING CONTENTS
+	for _pending_content in _pending_contents:
+		if _menu_objects[_pending_content]["Type"] == "FONT":
+			var _button_name : String = _menu_objects[_pending_content]["Container"]
+			for _object in _menu_scene.get_children():
+				if _object.name == _button_name:
+					_object.text = _menu_objects[_pending_content]["Body"]
+				var _new_font : DynamicFont = DynamicFont.new()
+				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				_new_font.size = int(float(_menu_objects[_pending_content]["Size"])*FONT_FACTOR)
+				_object.set("custom_fonts/font", _new_font)
 	print("Finished.")
 
 func prepare_menu3d_scene(_menu_scene):

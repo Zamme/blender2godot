@@ -1,4 +1,4 @@
-class_name Menu2DBehavior extends Sprite
+class_name Menu2DBehavior extends Control
 
 
 const PAUSE_TIME = 0.15
@@ -9,17 +9,15 @@ var _player_scene
 
 var selectable_objects = []
 var current_selected_object_index = -1
-var optional_dict : Dictionary
-export var menu2d_objects_info : Dictionary
+export var optional_dict : Dictionary
 
 
 func _ready():
 	pause_mode = Node.PAUSE_MODE_PROCESS
-	_areas = get_areas()
-	connect_areas_signals(_areas)
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
 		select_object(0)
+	setup_menu()
 
 func get_selectable_objects():
 	var _sel_objects = []
@@ -55,6 +53,14 @@ func select_object(_index : int):
 
 func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
+
+func setup_menu():
+	print(optional_dict)
+	for _special_object_key in optional_dict["SpecialObjects"].keys():
+		for _selectable_object in selectable_objects:
+			print("Selectable Object:", _selectable_object.name)
+			if _special_object_key == _selectable_object.name:
+				_selectable_object.button_dict = optional_dict["SpecialObjects"][_special_object_key]
 
 func update_objects():
 	var _index : int = 0

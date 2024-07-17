@@ -1,4 +1,4 @@
-class_name Menu2dButton_Behavior extends Area2D
+class_name Menu2dButton_Behavior extends Button
 
 
 # TODO: HERE???
@@ -12,61 +12,56 @@ const MENUS2D_PATH = SCENES_PATH + "menus2d/"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
 # END HERE
 
-export var action_to_do : String = "None"
-export var action_parameter = "None"
 
-var menu_scene
 var marker_object : Polygon2D
-
+var gm_ref
+export var button_dict : Dictionary
 
 func _ready():
+	self.gm_ref = get_tree().current_scene
 	pause_mode = Node.PAUSE_MODE_PROCESS
-	set_menu_scene(get_parent())
-	marker_object = get_marker_object()
+	connect("button_up", self, "_on_click_button")
 
 func do_click_action():
-	var _msg : String = action_to_do + " " + action_parameter
-	print(_msg)
-#	get_parent().get_parent().show_message(_msg)
-	var _param : String
-	var _dir : Directory = Directory.new()
-	match action_to_do:
-		"close_menu":
-			menu_scene.create_exit_timer()
-		"load_stage":
-			_param = STAGES_PATH + STAGE_SCENES_PREFIX + action_parameter + ".tscn"
-			if _dir.file_exists(_param):
-				get_tree().current_scene.load_scene(_param, true)
-		"load_3dmenu":
-			_param = MENUS3D_PATH + MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
-			if _dir.file_exists(_param):
-				get_tree().current_scene.load_scene(_param, true)
-		"load_2dmenu":
-			_param = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
-			if _dir.file_exists(_param):
-				get_tree().current_scene.load_scene(_param, true)
-		"quit_game":
-			get_tree().quit()
+	var _msg : String
+	var _action_to_do : String
+	var _action_parameter : String
+	if self.button_dict.has("ActionOnClick"):
+		_action_to_do = self.button_dict["ActionOnClick"]
+		_msg = self.button_dict["ActionOnClick"]
+		if self.button_dict.has("ActionParameter"):
+			_action_parameter = self.button_dict["ActionParameter"]
+			_msg += " " + self.button_dict["ActionParameter"]
+#	print("Message: ", _msg)
+	self.gm_ref.execute_command(_action_to_do, _action_parameter)
 
-func get_marker_object():
-	var _marker
-	for _child in get_children():
-		if _child is Polygon2D:
-			_marker = _child
-			break
-	return _marker
+
+
+#var _param : String
+#	var _dir : Directory = Directory.new()
+#	match action_to_do:
+#		"close_menu":
+#			menu_scene.create_exit_timer()
+#		"load_stage":
+#			_param = STAGES_PATH + STAGE_SCENES_PREFIX + action_parameter + ".tscn"
+#			if _dir.file_exists(_param):
+#				get_tree().current_scene.load_scene(_param, true)
+#		"load_3dmenu":
+#			_param = MENUS3D_PATH + MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
+#			if _dir.file_exists(_param):
+#				get_tree().current_scene.load_scene(_param, true)
+#		"load_2dmenu":
+#			_param = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
+#			if _dir.file_exists(_param):
+#				get_tree().current_scene.load_scene(_param, true)
+#		"quit_game":
+#			get_tree().quit()
+
 
 func select_object(_selected : bool):
 	if _selected:
-		marker_object.show()
-	else:
-		marker_object.hide()
+		self.grab_focus()
 
-func set_menu_scene(_scene):
-	menu_scene = _scene
+func _on_click_button():
+	do_click_action()
 
-func _on_Button_Area2D_input_event(viewport, event, shape_idx):
-	if (event is InputEventMouseButton && event.pressed):
-		get_tree().set_input_as_handled()
-		yield(get_tree(),"idle_frame")
-		do_click_action()

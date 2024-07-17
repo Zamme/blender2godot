@@ -440,12 +440,45 @@ class ExportGameOperator(bpy.types.Operator):
                                     if _output_index > -1:
                                         if _node.outputs[_output_index].is_linked:
                                             _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
-                                    #_special_object_dict.add()
+                                case "load_2dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                case "load_3dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
                             _special_objects_dict.add(_special_object.button_name, _special_object_dict)
                         _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
                 case "B2G_2dMenu_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
+                        _special_objects_dict = my_dictionary()
+                        for _special_object in _node.special_objects:
+                            _special_object_dict = my_dictionary()
+                            _special_object_dict.add("ActionOnClick", _special_object.button_action_on_click)
+                            match _special_object.button_action_on_click:
+                                case "none":
+                                    pass
+                                case "load_stage":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                case "load_2dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                case "load_3dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                            _special_objects_dict.add(_special_object.button_name, _special_object_dict)
+                        _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)
@@ -884,6 +917,8 @@ class ExportGameOperator(bpy.types.Operator):
                     for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
                         _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
                     _menu2d_object_dict.add("Points", _co_array)
+            if _menu2d_obj.menu2d_object_properties.menu2d_object_type == "button_content":
+                _menu2d_object_dict.add("Container", _menu2d_obj.parent.name)
             _menu2d_objects_dict.add(_menu2d_obj.name, _menu2d_object_dict)
         _menu2d_dict.add("Objects", _menu2d_objects_dict)
         self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)

@@ -56,12 +56,18 @@ func execute_command(_command : String, _parameter : String):
 					self.load_stage(_param)
 		"load_3dmenu":
 			if _parameter != "":
-				_param = self.MENUS3D_DIRPATH + _parameter + self.SCENE_EXTENSION
-				self.load_menu3d(_param)
+				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
+				if self.current_node:
+					var _scene_name = self.current_node["SceneName"]
+					_param = self.MENUS3D_DIRPATH + self.MENU3D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+					self.load_menu3d(_param)
 		"load_2dmenu":
 			if _parameter != "":
-				_param = self.MENUS2D_DIRPATH + _parameter + self.SCENE_EXTENSION
-				self.load_menu2d(_param)
+				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
+				if self.current_node:
+					var _scene_name = self.current_node["SceneName"]
+					_param = self.MENUS2D_DIRPATH + self.MENUS2D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+					self.load_menu2d(_param)
 		"quit_game":
 			self.quit_game()
 

@@ -51,14 +51,14 @@ def get_action_scenes(self, context):
 def update_action_parameter(self, context):
     context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
 
-def update_3dmenu_node(self, context):
+def on_button_action_update(self, context):
     print("Update button action click", self.button_node_name)
     bpy.data.node_groups["GameManager"].nodes[self.button_node_name].update()
 
 class ButtonAction(bpy.types.PropertyGroup):
     button_node_name : bpy.props.StringProperty(name="Button Node") # type: ignore
     button_name : bpy.props.StringProperty(name="Button Name") # type: ignore
-    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click", update=update_3dmenu_node) # type: ignore
+    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click", update=on_button_action_update) # type: ignore
     action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
@@ -270,6 +270,63 @@ class B2G_Pipeline_Socket(NodeSocket):
     def draw_color(self, context, node):
         return (0.0, 1.0, 0.0, 1.0)
 
+class B2G_Stage_Socket(NodeSocket):
+    # Description string
+    """Stage socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Stage_SocketType'
+    # Label for nice name display
+    bl_label = "Stage Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 1.0, 0.0, 1.0)
+
+class B2G_2dmenu_Socket(NodeSocket):
+    # Description string
+    """2d menu socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_2dmenu_SocketType'
+    # Label for nice name display
+    bl_label = "2D Menu Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 1.0, 0.0, 1.0)
+
+class B2G_3dmenu_Socket(NodeSocket):
+    # Description string
+    """3d menu socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_3dmenu_SocketType'
+    # Label for nice name display
+    bl_label = "3D Menu Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 1.0, 0.0, 1.0)
+
 class B2G_Player_Socket(NodeSocket):
     # Description string
     """player socket type"""
@@ -347,18 +404,6 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
 
     def mark_invalid_links(self):
         pass
-        '''Mark invalid links, must be called from a timer'''
-        ''' WATCH FOR INPUTS ONLY
-        _valid_node_types = ["B2G_Stage_Scene_Node", "B2G_2dMenu_Scene_Node", "B2G_3dMenu_Scene_Node"]
-        for _link in self.outputs[0].links:
-            _valid_link = False
-            if type(_link.to_node).__name__ in _valid_node_types:
-                _valid_link = True
-            else:
-                _valid_link = False
-            #print("Link valid", _valid_link)
-            _link.is_valid = _valid_link
-        '''
 
 class B2G_Finish_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -532,6 +577,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     
     def update(self):
         '''Called when node graph is changed'''
+        #print("Update", self.name, "links")
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
@@ -615,10 +661,12 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     
     def update(self):
         '''Called when node graph is changed'''
+        print("Update", self.name)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
+        print("Update", self.name, "links")
         _input_player = self.inputs[0]
         for _link in _input_player.links:
             _valid_link = False
@@ -645,9 +693,8 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
         return object.scene_type == "hud"
     
     def on_update_scene(self, context):
-        # Clean new outputs on change scene
-        for _new_input in self.new_inputs:
-            self.inputs.remove(_new_input)
+        # Clean inputs on change scene
+        self.inputs.clear()
         self.new_inputs.clear()
         # Load entity properties as new outputs
         if self.scene:
@@ -706,13 +753,14 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
+        print("Update", self.name, "links")
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
         for _input in self.inputs:
             for _link in _input.links:
                 _valid_link = False
-                print(type(_link.from_socket).__name__)
+                #print(type(_link.from_socket).__name__)
                 if type(_link.from_socket).__name__ in self.valid_sockets:
                     _valid_link = True
                 else:
@@ -834,12 +882,12 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
+        print("Update", self.name)
         bpy.app.timers.register(self.update_links)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
-        #print("Update 2d menu node")
         _input_go = self.inputs[0]
         for _link in _input_go.links:
             _valid_link = False
@@ -850,7 +898,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link
 
     def update_links(self):
-        print("Update links")
+        print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
                     case "none":
@@ -860,15 +908,15 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
                     case "load_stage":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            self.new_outputs.append(self.outputs.new("B2G_Stage_SocketType", _special_object.button_name))
                     case "load_2dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            self.new_outputs.append(self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name))
                     case "load_3dmenu":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index == -1:
-                            self.new_outputs.append(self.outputs.new("B2G_Pipeline_SocketType", _special_object.button_name))
+                            self.new_outputs.append(self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name))
                     case "quit_game":
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:
@@ -897,7 +945,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
         if self.scene:
             self.special_objects.clear()
             for _object in self.scene.objects:
-                if _object.special_object_info.menu2d_object_type == "button":
+                if _object.special_object_info.menu_object_type == "button":
                     _new_special_object = self.special_objects.add()
                     _new_special_object.button_node_name = self.name
                     _new_special_object.button_name = _object.name
@@ -952,18 +1000,18 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
-        #print("Update 3d menu node")
         _input_go = self.inputs[0]
         for _link in _input_go.links:
+            print(type(_link.from_socket).__name__)
             _valid_link = False
-            if type(_link.from_socket).__name__ == "B2G_Pipeline_Socket":
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_3dmenu_Socket")):
                 _valid_link = True
             else:
                 _valid_link = False
             _link.is_valid = _valid_link
 
     def update_links(self):
-        print("Update links")
+        print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
                     case "none":
@@ -1137,6 +1185,9 @@ classes = (
     B2G_Integer_Socket,
     B2G_Boolean_Socket,
     B2G_Pipeline_Socket,
+    B2G_Stage_Socket,
+    B2G_2dmenu_Socket,
+    B2G_3dmenu_Socket,
     B2G_Player_Socket,
     B2G_HUD_Socket,
     B2G_Start_Node,
