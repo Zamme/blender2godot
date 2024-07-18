@@ -1042,15 +1042,16 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
         # ACTIONS
         _actions_dictionary = my_dictionary()
-        for _action_setting in _player_scene.actions_settings:
-            _actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
+        #for _action_setting in _player_scene.actions_settings:
+            #_actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
         self.dict_player_info.add("PlayerActions", _actions_dictionary)
         # HUD
         #_hud_dictionary = my_dictionary()
         #_hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
         #self.dict_player_info.add("PlayerHUD", _hud_dictionary)
         # PAUSE MENU
-        self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
+        #if _player_scene.pause_menu2d:
+            #self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
         # ADD to global
         self.dict_players_info.add(_player_scene.name, self.dict_player_info)
 

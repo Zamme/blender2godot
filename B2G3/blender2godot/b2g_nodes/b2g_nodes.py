@@ -20,8 +20,11 @@
 For B2G Nodes
 """
 
+import os, json
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
+#from blender2godot.player_properties import player_properties # type: ignore
+
 
 action_type_options = [("none", "None", "", 0), 
                         ("load_stage", "Load Stage", "", 1),
@@ -43,6 +46,24 @@ scene_node_sockets = {
     "load_3dmenu" : "B2G_3dmenu_SocketType",
 }
 
+'''
+def get_action_template(self, context, _player_scene):
+    # Template name must be "<name>_template_actions.json"
+    _return = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "action_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "action_templates")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, _player_scene.controls_template.replace("_template_controls.json", "_template_actions.json"))
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _return = json.load(outfile)
+                    break
+        else:
+            pass
+    return _return
+'''
+
 def get_action_scenes(self, context):
     _sc_names_purged = [("none", "None", "", "", 0)]
     _sc_ind = 1
@@ -54,12 +75,48 @@ def get_action_scenes(self, context):
                     _sc_ind += 1
     return _sc_names_purged
 
+def get_actions_list_array(self, context):
+    _actions_list = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, "b2g_actions_list.json")
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    _actions_list = json.load(outfile)
+                    break
+            else:
+                pass
+    _actions_list_array = []
+    for _index,_action_key in enumerate(_actions_list.keys()):
+        _tuple = (_action_key, _actions_list[_action_key]["ActionName"], _actions_list[_action_key]["ActionDescription"], _index)
+        _actions_list_array.append(_tuple)
+    #print(_actions_list_array)
+    return _actions_list_array
+
+def get_controls_template(self, context, _player_scene):
+    current_template_controls = None
+    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "input_templates"),
+    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "input_templates")]
+    for p_path in possible_paths:
+        if os.path.isdir(p_path):
+            _filepath = os.path.join(p_path, _player_scene.controls_template)
+            if os.path.isfile(_filepath):
+                with open(_filepath, 'r') as outfile:
+                    current_template_controls = json.load(outfile)
+    return current_template_controls
+
 def update_action_parameter(self, context):
     context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
 
 def on_button_action_update(self, context):
     print("Update button action click", self.button_node_name)
     bpy.data.node_groups["GameManager"].nodes[self.button_node_name].update()
+
+class ActionsProperties(bpy.types.PropertyGroup):
+    action_id : bpy.props.StringProperty(name="Action ID", default="None") # type: ignore
+    action_process : bpy.props.EnumProperty(items=get_actions_list_array, name="Action Process") # type: ignore
 
 class ButtonAction(bpy.types.PropertyGroup):
     button_node_name : bpy.props.StringProperty(name="Button Node") # type: ignore
@@ -616,14 +673,33 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    #new_outputs = []
+    #player_actions = []
 
     def poll_scenes(self, object):
         return object.scene_type == "player"
     
     def on_update_scene(self, context):
+        # Update actions
+        self.actions_settings.clear()
+        if self.scene:
+            _actions_template = get_controls_template(self, context, self.scene)
+            #_actions_template = get_action_template(self,context, self.scene)
+            if _actions_template is not None:
+                for _control_property in self.scene.controls_settings:
+                    _new_action_setting = self.actions_settings.add()
+                    _new_action_setting.action_id = _control_property.motion_name
+                    for _key in _actions_template.keys():
+                        #print(_key, " versus ", _new_action_setting.action_id)
+                        if _key == _new_action_setting.action_id:
+                            _new_action_setting.action_process = _actions_template[_key]["ActionID"]
+                            break
+            else:
+                print("No template")
+                for _control_property in self.scene.controls_settings:
+                    _new_action_setting = self.actions_settings.add()
+                    _new_action_setting.action_id = _control_property.motion_name
         # Clean new outputs on change scene
-        print("Update plaeyr")
+        print("Update player")
         self.outputs.clear()
         self.outputs.new("B2G_Player_SocketType", "Player")
         # Load entity properties as new outputs
@@ -651,7 +727,18 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         row1 = box1.row()
         row1.prop(self, "scene", text="Scene")
         if self.scene:
-            layout.prop(self.scene, "scene_exportable", text="Export")
+            box2 = box1.box()
+            row2 = box2.row()
+            row2.label(text="Player Actions")
+            for _player_action in self.actions_settings:
+                row3 = box2.row()
+                _action_rename = _player_action.action_id.replace("b2g_", "")
+                _name_parts = _action_rename.split("_")
+                for _p_index,_name_part in enumerate(_name_parts):
+                    _name_parts[_p_index] = _name_part.capitalize()
+                _action_rename = " ".join(_name_parts)
+                row3.prop(_player_action, "action_process", text=_action_rename)
+            box1.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -1210,6 +1297,7 @@ node_categories = [
 
 classes = (
     ButtonAction,
+    ActionsProperties,
     HudSettings,
     MyCustomTree,
     MyCustomSocket,
@@ -1245,9 +1333,11 @@ def register():
     nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
     bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
+    bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
 
 
 def unregister():
+    del bpy.types.Node.actions_settings
     del bpy.types.Node.special_objects
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
 

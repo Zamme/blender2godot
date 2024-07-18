@@ -12,7 +12,7 @@
       "on_press",
       "positive"
     ],
-    "ActionID": null
+    "ActionID": "GoForward"
   },
   "b2g_go_backward": {
     "DefaultInputsTypes": [
@@ -27,7 +27,7 @@
       "on_press",
       "negative"
     ],
-    "ActionID": null
+    "ActionID": "GoBackward"
   },
   "b2g_strafe_left": {
     "DefaultInputsTypes": [
@@ -42,7 +42,7 @@
       "on_press",
       "positive"
     ],
-    "ActionID": null
+    "ActionID": "StrafeLeft"
   },
   "b2g_strafe_right": {
     "DefaultInputsTypes": [
@@ -57,7 +57,7 @@
       "on_press",
       "negative"
     ],
-    "ActionID": null
+    "ActionID": "StrafeRight"
   },
   "b2g_rotate_left": {
     "DefaultInputsTypes": [
@@ -72,7 +72,7 @@
       "on_move",
       "positive"
     ],
-    "ActionID": null
+    "ActionID": "RotateLeft"
   },
   "b2g_rotate_right": {
     "DefaultInputsTypes": [
@@ -87,7 +87,7 @@
       "on_move",
       "negative"
     ],
-    "ActionID": null
+    "ActionID": "RotateRight"
   },
   "b2g_rotate_up": {
     "DefaultInputsTypes": [
@@ -102,7 +102,7 @@
       "on_move",
       "positive"
     ],
-    "ActionID": null
+    "ActionID": "RotateUp"
   },
   "b2g_rotate_down": {
     "DefaultInputsTypes": [
@@ -117,7 +117,7 @@
       "on_move",
       "negative"
     ],
-    "ActionID": null
+    "ActionID": "RotateDown"
   },
   "b2g_action_0": {
     "DefaultInputsTypes": [
@@ -132,7 +132,7 @@
       "on_press",
       "on_press"
     ],
-    "ActionID": "action_0"
+    "ActionID": "AInteract"
   },
   "b2g_action_1": {
     "DefaultInputsTypes": [
@@ -147,7 +147,7 @@
       "on_press",
       "on_press"
     ],
-    "ActionID": "action_1"
+    "ActionID": "AFire"
   },
   "b2g_action_2": {
     "DefaultInputsTypes": [
@@ -162,7 +162,7 @@
       "on_press",
       "on_press"
     ],
-    "ActionID": "action_2"
+    "ActionID": "AJump"
   },
   "b2g_action_3": {
     "DefaultInputsTypes": [
@@ -177,7 +177,7 @@
       "on_press",
       "on_press"
     ],
-    "ActionID": "action_3"
+    "ActionID": "AHelp"
   },
   "b2g_pause_game": {
     "DefaultInputsTypes": [
@@ -192,6 +192,6 @@
       "on_press",
       "on_press"
     ],
-    "ActionID": "pause_game"
+    "ActionID": "APause"
   }
 }

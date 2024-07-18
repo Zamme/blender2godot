@@ -1,4 +1,40 @@
 {
+  "None": {
+    "ActionName": "None",
+    "ActionDescription": "None"
+  },
+  "GoForward": {
+    "ActionName": "Go Forward",
+    "ActionDescription": "Walk Forward"
+  },
+  "GoBackward": {
+    "ActionName": "Go Backward",
+    "ActionDescription": "Walk Backward"
+  },
+  "StrafeLeft": {
+    "ActionName": "Strafe Left",
+    "ActionDescription": "Strafe Left"
+  },
+  "StrafeRight": {
+    "ActionName": "Strafe Right",
+    "ActionDescription": "Strafe Right"
+  },
+  "RotateLeft": {
+    "ActionName": "Rotate Left",
+    "ActionDescription": "Rotate Left"
+  },
+  "RotateRight": {
+    "ActionName": "Rotate Right",
+    "ActionDescription": "Rotate Right"
+  },
+  "RotateUp": {
+    "ActionName": "Rotate Up",
+    "ActionDescription": "Rotate Up"
+  },
+  "RotateDown": {
+    "ActionName": "Rotate Down",
+    "ActionDescription": "Rotate Down"
+  },
   "APause": {
     "ActionName": "Action Pause",
     "ActionDescription": "Pause game"
