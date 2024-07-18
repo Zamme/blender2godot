@@ -618,7 +618,7 @@ func create_menus3d(_files_to_import):
 
 func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 						 _pause_menu, _gravity_enabled,
-						 _animations, _actions, _controls,
+						 _animations, _controls,
 						 _hud, _entity_props):
 	print("Creating player...")
 	# CREATE ENTITY AND PHYSICS BODY
@@ -651,8 +651,8 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 		player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
 	if _animations:
 		player_entity_instance._animations = _animations
-	if _actions:
-		player_entity_instance._actions_dict = _actions
+	#if _actions:
+		#player_entity_instance._actions_dict = _actions
 	if _camera_props:
 		player_entity_instance.camera_name = get_dict_property(_camera_props, "CameraName")
 	if _controls:
@@ -753,13 +753,13 @@ func create_players(_files_to_import):
 						var _pause_menu_name = get_dict_property(_player_json, "PauseMenu")
 						var _gravity_enabled = get_dict_property(_player_json, "GravityOn")
 						var _animations = get_dict_property(_player_json, "PlayerAnimations")
-						var _actions = get_dict_property(_player_json, "PlayerActions")
+						#var _actions = get_dict_property(_player_json, "PlayerActions")
 						var _controls = get_dict_property(_player_json, "PlayerControls")
 						var _hud = get_dict_property(_player_json, "PlayerHUD")
 						var _entity_props = get_dict_property(_player_json, "PlayerEntityProperties")
 						create_player_props(_fn_without_ext, _cam_props, _shape_props,
 											 _pause_menu_name, _gravity_enabled,
-											 _animations, _actions, _controls, _hud, _entity_props)
+											 _animations, _controls, _hud, _entity_props)
 		else:
 			print("No player added")
 

@@ -89,10 +89,14 @@ func create_pause():
 		stage_scene.is_paused = true
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		yield(get_tree(),"idle_frame")
-		pause_control = load(PAUSE_MENU_PATH).instance()
-		pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
-		pause_control.set_player_scene(self)
-		add_child(pause_control)
+		var _pause_control_file = File.new()
+		if _pause_control_file.file_exists(PAUSE_MENU_PATH): 
+			pause_control = load(PAUSE_MENU_PATH).instance()
+			pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
+			pause_control.set_player_scene(self)
+			add_child(pause_control)
+		else:
+			get_tree().quit()
 
 func find_camera(_camera_object_name):
 #	print("Searching ", _camera_object_name, " on ", self.name)
@@ -146,7 +150,7 @@ func pause_game_enable(_enable):
 
 func set_actions():
 	for _action_key in _actions_dict.keys():
-		_actions["b2g_" + _action_key] = _actions_dict[_action_key]
+		_actions[_action_key] = _actions_dict[_action_key]
 
 func set_entity_property_value(_property_name, _value):
 	var _translated_value

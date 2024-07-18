@@ -409,6 +409,12 @@ class ExportGameOperator(bpy.types.Operator):
                 case "B2G_Player_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
+                    # Player ACTIONS
+                    _player_actions_settings_dict = my_dictionary()
+                    for _action_setting in _node.actions_settings:
+                        _player_actions_settings_dict.add(_action_setting.action_id, _action_setting.action_process)
+                    _current_node_dict.add("ActionsSettings", _player_actions_settings_dict)
+                    # Player HUD assigned
                     _hud_socket = _node.inputs[0]
                     if _hud_socket.is_linked:
                         _current_node_dict.add("HUD", _hud_socket.links[0].from_node.name)
@@ -1040,11 +1046,11 @@ class ExportGameOperator(bpy.types.Operator):
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
-        # ACTIONS
-        _actions_dictionary = my_dictionary()
+        # ACTIONS ON GAMEMANAGER!!!
+        #_actions_dictionary = my_dictionary()
         #for _action_setting in _player_scene.actions_settings:
             #_actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
-        self.dict_player_info.add("PlayerActions", _actions_dictionary)
+        #self.dict_player_info.add("PlayerActions", _actions_dictionary)
         # HUD
         #_hud_dictionary = my_dictionary()
         #_hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
@@ -1052,6 +1058,7 @@ class ExportGameOperator(bpy.types.Operator):
         # PAUSE MENU
         #if _player_scene.pause_menu2d:
             #self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
+        
         # ADD to global
         self.dict_players_info.add(_player_scene.name, self.dict_player_info)
 

@@ -179,7 +179,7 @@
     ],
     "ActionID": "AHelp"
   },
-  "b2g_pause_game": {
+  "b2g_action_4": {
     "DefaultInputsTypes": [
       "keyboard",
       "gamepad"

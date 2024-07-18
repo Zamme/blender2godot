@@ -683,7 +683,6 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         self.actions_settings.clear()
         if self.scene:
             _actions_template = get_controls_template(self, context, self.scene)
-            #_actions_template = get_action_template(self,context, self.scene)
             if _actions_template is not None:
                 for _control_property in self.scene.controls_settings:
                     _new_action_setting = self.actions_settings.add()
@@ -731,6 +730,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
             row2 = box2.row()
             row2.label(text="Player Actions")
             for _player_action in self.actions_settings:
+                if _player_action.action_id.find("action") < 0:
+                    continue
                 row3 = box2.row()
                 _action_rename = _player_action.action_id.replace("b2g_", "")
                 _name_parts = _action_rename.split("_")
