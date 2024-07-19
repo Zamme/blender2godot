@@ -58,6 +58,7 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 		if not _player_node.empty():
 			player.set_optional_dict(_player_node)
 			player._actions_dict = _player_node["ActionsSettings"]
+			player._entity_properties = _player_node["EntityProperties"]
 		add_child(player)
 		player.set_stage_scene(self)
 	else:

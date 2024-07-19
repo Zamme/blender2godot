@@ -414,6 +414,22 @@ class ExportGameOperator(bpy.types.Operator):
                     for _action_setting in _node.actions_settings:
                         _player_actions_settings_dict.add(_action_setting.action_id, _action_setting.action_process)
                     _current_node_dict.add("ActionsSettings", _player_actions_settings_dict)
+                    # Player Entity Properties
+                    _player_entity_properties_dict = my_dictionary()
+                    for _player_entity_property in _node.player_entity_properties:
+                        _player_entity_property_dict = my_dictionary()
+                        _player_entity_property_dict.add("Type", _player_entity_property.property_type)
+                        match _player_entity_property.property_type:
+                            case "boolean":
+                                _player_entity_property_dict.add("Value", _player_entity_property.property_boolean)
+                            case "string":
+                                _player_entity_property_dict.add("Value", _player_entity_property.property_string)
+                            case "integer":
+                                _player_entity_property_dict.add("Value", _player_entity_property.property_integer)
+                            case "float":
+                                _player_entity_property_dict.add("Value", _player_entity_property.property_float)
+                        _player_entity_properties_dict.add(_player_entity_property.property_name, _player_entity_property_dict)
+                    _current_node_dict.add("EntityProperties", _player_entity_properties_dict)
                     # Player HUD assigned
                     _hud_socket = _node.inputs[0]
                     if _hud_socket.is_linked:

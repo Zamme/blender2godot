@@ -141,6 +141,14 @@ class HudSettings(bpy.types.PropertyGroup):
                                         ], name="Hiding HUD effect") # type: ignore
     hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
 
+class PlayerEntityProperty(bpy.types.PropertyGroup):
+    property_name : bpy.props.StringProperty(name="Prop_Name") # type: ignore
+    property_type : bpy.props.StringProperty(name="Type") # type: ignore
+    property_string : bpy.props.StringProperty(name="Value") # type: ignore
+    property_boolean : bpy.props.BoolProperty(name="Value") # type: ignore
+    property_float : bpy.props.FloatProperty(name="Value") # type: ignore
+    property_integer : bpy.props.IntProperty(name="Value") # type: ignore
+
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class MyCustomTree(NodeTree):
     # Description string
@@ -697,6 +705,22 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                 for _control_property in self.scene.controls_settings:
                     _new_action_setting = self.actions_settings.add()
                     _new_action_setting.action_id = _control_property.motion_name
+        # Update entity properties
+        self.player_entity_properties.clear()
+        if self.scene:
+            for _player_property in self.scene.player_entity_properties:
+                _new_property = self.player_entity_properties.add()
+                _new_property.property_name = _player_property.property_name
+                _new_property.property_type = _player_property.property_type
+                match _player_property.property_type:
+                    case "boolean":
+                        _new_property.property_boolean = _player_property.property_boolean
+                    case "string":
+                        _new_property.property_string = _player_property.property_string
+                    case "integer":
+                        _new_property.property_integer = _player_property.property_integer
+                    case "float":
+                        _new_property.property_float = _player_property.property_float
         # Clean new outputs on change scene
         print("Update player")
         self.outputs.clear()
@@ -739,6 +763,20 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                     _name_parts[_p_index] = _name_part.capitalize()
                 _action_rename = " ".join(_name_parts)
                 row3.prop(_player_action, "action_process", text=_action_rename)
+            box3 = box1.box()
+            row4 = box3.row()
+            row4.label(text="Player Properties")
+            for _player_property in self.player_entity_properties:
+                row5 = box3.row()
+                match _player_property.property_type:
+                    case "boolean":
+                        row5.prop(_player_property, "property_boolean", text=_player_property.property_name)
+                    case "string":
+                        row5.prop(_player_property, "property_string", text=_player_property.property_name)
+                    case "integer":
+                        row5.prop(_player_property, "property_integer", text=_player_property.property_name)
+                    case "float":
+                        row5.prop(_player_property, "property_float", text=_player_property.property_name)
             box1.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
@@ -1300,6 +1338,7 @@ classes = (
     ButtonAction,
     ActionsProperties,
     HudSettings,
+    PlayerEntityProperty,
     MyCustomTree,
     MyCustomSocket,
     MyCustomNode,
@@ -1335,9 +1374,10 @@ def register():
 
     bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
     bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
-
+    bpy.types.Node.player_entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
 
 def unregister():
+    del bpy.types.Node.player_entity_properties
     del bpy.types.Node.actions_settings
     del bpy.types.Node.special_objects
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')

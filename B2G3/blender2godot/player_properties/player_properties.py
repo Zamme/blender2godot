@@ -704,11 +704,10 @@ class PlayerPropertyLink(bpy.types.PropertyGroup):
 class PlayerProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name", set=set_player_property_name, get=get_player_property_name) # type: ignore
     property_type : bpy.props.EnumProperty(items=player_property_types, name="Type") # type: ignore
-    property_string : bpy.props.StringProperty(name="Init Value") # type: ignore
-    property_boolean : bpy.props.BoolProperty(name="Init Value") # type: ignore
-    property_float : bpy.props.FloatProperty(name="Init Value") # type: ignore
-    property_integer : bpy.props.IntProperty(name="Init Value") # type: ignore
-    property_links : bpy.props.CollectionProperty(type=PlayerPropertyLink, name="Property Links") # type: ignore
+    property_string : bpy.props.StringProperty(name="Default") # type: ignore
+    property_boolean : bpy.props.BoolProperty(name="Default") # type: ignore
+    property_float : bpy.props.FloatProperty(name="Default") # type: ignore
+    property_integer : bpy.props.IntProperty(name="Default") # type: ignore
 
 class AddPlayerPropertyOperator(bpy.types.Operator):
     bl_idname = "scene.add_player_property_operator"

@@ -68,7 +68,7 @@ def load_handler(dummy):
 
 def update_workspace():
     # UPDATE WORKSPACE
-    print("Updating workspace")
+    #print("Updating workspace")
     if bpy.context.scene.name == "B2G_GameManager":
         for _area in bpy.context.screen.areas:
             if _area.type == "VIEW_3D":
