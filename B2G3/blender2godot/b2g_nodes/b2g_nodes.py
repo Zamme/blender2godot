@@ -23,7 +23,7 @@ For B2G Nodes
 import os, json
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
-#from blender2godot.player_properties import player_properties # type: ignore
+from blender2godot.stage_properties import stage_properties # type: ignore
 
 
 action_type_options = [("none", "None", "", 0), 
@@ -149,6 +149,11 @@ class PlayerEntityProperty(bpy.types.PropertyGroup):
     property_float : bpy.props.FloatProperty(name="Value") # type: ignore
     property_integer : bpy.props.IntProperty(name="Value") # type: ignore
 
+class StageObject(bpy.types.PropertyGroup):
+    object_name : bpy.props.StringProperty(name="Stage Object Name") # type: ignore
+    object_type : bpy.props.StringProperty(name="Stage Object Type") # type: ignore
+    #damage_zone_amount : bpy.props.FloatProperty(name="Damage Zone Amount") # type: ignore
+    
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class MyCustomTree(NodeTree):
     # Description string
@@ -596,10 +601,29 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    def on_update_scene(self, context):
+        # Update stage objects
+        self.stage_objects.clear()
+        if self.scene:
+            for _stage_object in self.scene.objects:
+                if _stage_object.stage_object_type != "none":
+                    _new_stage_object = self.stage_objects.add()
+                    _new_stage_object.object_name = _stage_object.name
+                    _new_stage_object.object_type = _stage_object.stage_object_type
+                    #_new_stage_object.damage_zone_amount = _stage_object.damage_zone_amount
+            # Update Sockets
+            self.inputs.clear()
+            self.outputs.clear()
+            self.init(context)
+            for _stage_object in self.stage_objects:
+                match _stage_object.object_type:
+                    case "damage_zone":
+                        _damage_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
+
     def poll_scenes(self, object):
         return object.scene_type == "stage"
     
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes) # type: ignore
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", update=on_update_scene, poll=poll_scenes) # type: ignore
 
     def init(self, context):
         self.inputs.new("B2G_Player_SocketType", "Player")
@@ -622,17 +646,40 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
             if not self.scene.player_spawn_empty:
                 row2 = box1.row()
                 row2.label(text="Player spawn not set", icon="INFO")
+            # Stage objects
+            box2 = box1.box()
+            row3 = box2.row()
+            row3.label(text="Stage Objects")
+            for _stage_object in self.stage_objects:
+                box3 = box2.box()
+                row4 = box3.row()
+                row4.label(text=_stage_object.object_name)
+                _stage_object_type_string = ""
+                for _ot_index,_ot in enumerate(stage_properties.stage_object_types):
+                    if stage_properties.stage_object_types[_ot_index][0] == _stage_object.object_type:
+                        _stage_object_type_string = stage_properties.stage_object_types[_ot_index][1]
+                row4.label(text=_stage_object_type_string)
+                '''
+                row5 = box3.row()
+                match _stage_object.object_type:
+                    case "player_spawn_empty":
+                        pass
+                        #row5.label(text="Player spawn")
+                    case "damage_zone":
+                        row5.prop(_stage_object, "damage_zone_amount")
+                '''
         else:
             row2 = box1.row()
             row2.label(text="Stage scene not set", icon="INFO")
         # Check scene links
         if self.scene:
-            if not self.inputs[0].is_linked:
-                row2 = box1.row()
-                row2.label(text="Player not set", icon="INFO")
-            if not self.inputs[1].is_linked:
-                row2 = box1.row()
-                row2.label(text="Stage not in pipeline", icon="INFO")
+            if len(self.inputs) > 0:
+                if not self.inputs[0].is_linked:
+                    row2 = box1.row()
+                    row2.label(text="Player not set", icon="INFO")
+                if not self.inputs[1].is_linked:
+                    row2 = box1.row()
+                    row2.label(text="Stage not in pipeline", icon="INFO")
 
         # EXPORT PROPERTY
         if self.scene:
@@ -654,22 +701,23 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
-        _input_player = self.inputs[0]
-        for _link in _input_player.links:
-            _valid_link = False
-            if type(_link.from_node).__name__ == "B2G_Player_Scene_Node":
-                _valid_link = True
-            else:
+        if len(self.inputs) > 0:
+            _input_player = self.inputs[0]
+            for _link in _input_player.links:
                 _valid_link = False
-            _link.is_valid = _valid_link
-        _input_go = self.inputs[1]
-        for _link in _input_go.links:
-            _valid_link = False
-            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_Stage_Socket")):
-                _valid_link = True
-            else:
+                if type(_link.from_node).__name__ == "B2G_Player_Scene_Node":
+                    _valid_link = True
+                else:
+                    _valid_link = False
+                _link.is_valid = _valid_link
+            _input_go = self.inputs[1]
+            for _link in _input_go.links:
                 _valid_link = False
-            _link.is_valid = _valid_link
+                if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_Stage_Socket")):
+                    _valid_link = True
+                else:
+                    _valid_link = False
+                _link.is_valid = _valid_link
 
 class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -1339,6 +1387,7 @@ classes = (
     ActionsProperties,
     HudSettings,
     PlayerEntityProperty,
+    StageObject,
     MyCustomTree,
     MyCustomSocket,
     MyCustomNode,
@@ -1375,6 +1424,7 @@ def register():
     bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
     bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
     bpy.types.Node.player_entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
+    bpy.types.Node.stage_objects = bpy.props.CollectionProperty(type=StageObject)
 
 def unregister():
     del bpy.types.Node.player_entity_properties

@@ -25,6 +25,9 @@ import bpy
 
 stage_object_types = [
     ("none", "None", "", 0),
+    ("player_spawn_empty", "Player Spawn Point", "", 1),
+    ("damage_zone", "Damage Zone", "", 2),
+    ("goal_zone", "Goal Zone", "", 3),
 ]
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
@@ -102,7 +105,18 @@ class StagePropertiesPanel(bpy.types.Panel):
             box3.label(text=context.active_object.name)
             #if context.active_object.godot_exportable:
             box3.prop(context.active_object, "stage_object_type", text="Object Type")
+            box3.prop(context.active_object, "is_visible")
             box3.prop(context.active_object, "collider")
+            '''
+            box4 = box.box()
+            row1 = box4.row()
+            row1.label(text="Type Properties")
+            match context.active_object.stage_object_type:
+                case "none":
+                    box4.label(text="No properties")
+                case "damage_zone":
+                    box4.prop(context.active_object, "damage_zone_amount", text="Default damage")
+            '''
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():
@@ -116,9 +130,15 @@ def init_properties():
         description = "Collider type",
         default = "convex")
     bpy.types.Object.stage_object_type = bpy.props.EnumProperty(items=stage_object_types, name="Stage Object Type")
+    bpy.types.Object.is_visible = bpy.props.BoolProperty(name="Visible", default=True)
+    #bpy.types.Object.damage_zone_amount = bpy.props.FloatProperty(name="Damage Zone Amount")
 
 def clear_properties():
     del bpy.types.Scene.player_spawn_empty
+    del bpy.types.Object.collider
+    del bpy.types.Object.stage_object_type
+    del bpy.types.Object.is_visible
+    #del bpy.types.Object.damage_zone_amount
 
 def register():
     init_properties()
