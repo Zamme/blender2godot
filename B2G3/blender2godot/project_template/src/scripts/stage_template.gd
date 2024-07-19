@@ -59,6 +59,8 @@ const GAMEMANAGER_NAME = "B2G_GameManager"
 const GAMEMANAGER_SCRIPT_FILEPATH = B2G_TOOLS_PATH + GAMEMANAGER_NAME + ".gd"
 const GAMEMANAGER_FILEPATH = SCENES_PATH + GAMEMANAGER_NAME + ".tscn"
 
+const TRIGGER_AREA_BEHAVIOR_PATH = SCRIPTS_PATH + "trigger_area_behavior.gd"
+
 var lights_instance : Spatial = null
 
 var imported_scenes : Array
@@ -77,13 +79,14 @@ var _start_scene_path : String
 var fonts_datas = [] # DEFAULT FONT IS THE FIRST [0]
 var button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
 var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
+var trigger_area_behavior_script = load(TRIGGER_AREA_BEHAVIOR_PATH)
 
 # JSONS
 var _stages_json
 var _players_json
 var _player_json # TODO: PENDING TO FIX MULTI
 var _menus3d_json
-var _colliders_json
+#var _colliders_json
 var _lights_json
 var _huds_json
 var _menus2d_json
@@ -100,7 +103,7 @@ func _ready():
 			if len(_players_json.keys()) > 0:
 				_player_json = _players_json[_players_json.keys()[0]]
 			_menus3d_json = read_json_file(MENUS3D_INFO_JSON_PATH)
-			_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
+			#_colliders_json = self.read_json_file(COLLIDERS_JSON_PATH)
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
@@ -145,6 +148,20 @@ func add_collider(scene_object, collider_type, scene_to_save):
 			pass
 			#self.create_collision_shape(scene_object, scene_to_save)
 
+func add_trigger(object_scene, scene):
+	var _shape : ConvexPolygonShape = ConvexPolygonShape.new()
+	if object_scene is MeshInstance:
+		_shape = object_scene.mesh.create_convex_shape()
+	var _new_area : Area = Area.new()
+	_new_area.name = object_scene.name + "_Area"
+	object_scene.add_child(_new_area)
+	_new_area.set_owner(scene)
+	_new_area.script = trigger_area_behavior_script
+	var _new_collision_shape : CollisionShape = CollisionShape.new()
+	_new_collision_shape.shape = _shape
+	_new_collision_shape.name = object_scene.name + "_CollisionShape"
+	_new_area.add_child(_new_collision_shape)
+	_new_collision_shape.set_owner(scene)
 
 """ TODO
 func add_light_area(scene_object, light_parameters):
@@ -336,105 +353,127 @@ func add_smart_collider(scene):
 						"""
 
 
-func apply_import_changes(scene):
-	print("Aplying changes to " + scene.name)
-	self.get_all_scene_objects(scene)
-	for ob in self.scene_objects_list:
-#		print("Changes to " + ob.name)
-		if ob is MeshInstance: # MESHES
-			if _colliders_json.has(ob.name):# ON SCENARIOS
-				if _colliders_json[ob.name] == "none":
-					pass
-#					print("...without collider!")
-				elif _colliders_json[ob.name] == "convex":
-#					print("...with convex collider!")
-					self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
-				elif _colliders_json[ob.name] == "mesh":
-#					print("...with mesh collider!")
-					self.add_collider(ob, COLLIDER_TYPE.MESH, scene)
-				elif _colliders_json[ob.name] == "smart":
-#					print("...with smart collider!")
-					self.add_collider(ob, COLLIDER_TYPE.SMART, scene)
-			elif _menus3d_json.has(scene.name):
-				if _menus3d_json[scene.name]["SpecialObjects"].has(ob.name):
-#					print("Special Object", ob.name, "found")
-					match _menus3d_json[scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
-						"button":
-							self.add_collider(ob, COLLIDER_TYPE.CONVEX, scene)
-							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
-							ob.add_to_group("menus3d_buttons", true)
-		elif _lights_json.has(ob.name):
-			if lights_instance == null:
-				lights_instance = Spatial.new()
-				lights_instance.name = "Lights"
-				self.add_child(lights_instance)
-				#lights_instance.set_owner(self)
-#			print("Adding light on :" + ob.name)
-			var new_light_color : Color = Color(_lights_json[ob.name + "ColorR"], _lights_json[ob.name + "ColorG"], _lights_json[ob.name + "ColorB"])
-			var new_light_position : Vector3 = Vector3(_lights_json[ob.name + "PositionX"], _lights_json[ob.name + "PositionZ"], -_lights_json[ob.name + "PositionY"])
-			var new_light_rotation : Vector3 = Vector3(_lights_json[ob.name + "RotationX"] -90.0, _lights_json[ob.name + "RotationZ"], -_lights_json[ob.name + "RotationY"])
-			var new_light_energy : float = _lights_json[ob.name + "Energy"]
-			match _lights_json[ob.name]:
-				"POINT":
-					var light_params_dict = {
-						"color" : new_light_color,
-						"energy" : new_light_energy,
-						"range" : _lights_json[ob.name + "Range"],
-						"position" : new_light_position,
-						"rotation" : new_light_rotation
-					}
-					self.add_light_point(ob, light_params_dict)
-				"SUN":
-					var light_params_dict = {
-						"color" : new_light_color,
-						"energy" : new_light_energy,
-						"range" : _lights_json[ob.name + "Range"],
-						"position" : new_light_position,
-						"rotation" : new_light_rotation
-					}
-					self.add_light_directional(ob, light_params_dict)
-				"SPOT":
-					var light_params_dict = {
-						"color" : new_light_color,
-						"energy" : new_light_energy,
-						"range" : _lights_json[ob.name + "Range"],
-						"position" : new_light_position,
-						"rotation" : new_light_rotation
-					}
-					self.add_light_spot(ob, light_params_dict)
-				"AREA":
-					var light_params_dict = {
-						"color" : new_light_color,
-						"energy" : new_light_energy,
-						"range" : _lights_json[ob.name + "Range"],
-						"position" : new_light_position,
-						"rotation" : new_light_rotation
-					}
-					self.add_light_point(ob, light_params_dict) # TODO: Pending to update
-			ob.get_parent().remove_child(ob)
-			ob.queue_free()
-#			lights_to_remove_from_scene.append(ob)
-#	self.clear_lights(scene)
-	#self.add_smart_collider(scene)
-	"""
-	if camera_instance == null:
-		if player_info_json.has("GravityOn"):
-			self.player_gravity_on = player_info_json["GravityOn"]
-			print("Player gravity enabled:" + str(self.player_gravity_on))
-			self.player_camera_inverted = player_info_json["CameraInverted"]
-			print("Player camera inverted:" + str(self.player_camera_inverted))
-		if player_info_json.has("InitialPositionX"):
-			self.initial_player_position = Vector3(player_info_json["InitialPositionX"], player_info_json["InitialPositionZ"], -player_info_json["InitialPositionY"])
-			if player_info_json.has("InitialRotationX"):
-				self.initial_player_rotation = Vector3(0.0, player_info_json["InitialRotationZ"], player_info_json["InitialRotationY"])
-		self.add_player(self.initial_player_position, self.initial_player_rotation)
-	"""
-	return scene
+func apply_import_changes(_scenario_scene):
+	print("Aplying changes to " + _scenario_scene.name)
+	var _stage_name : String = "Stage_" + _scenario_scene.name
+	if _stages_json.has(_stage_name): # IS A STAGE SCENARIO
+		self.get_all_scene_objects(_scenario_scene)
+		var _stage_dict = _stages_json[_stage_name]
+		var _stage_objects_dict = _stage_dict["Objects"]
+		for _stage_object_dict_key in _stage_objects_dict.keys():
+			for _stage_object in self.scene_objects_list:
+				if _stage_object.name == _stage_object_dict_key:
+					# Collider
+					if _stage_object is MeshInstance:
+						if _stage_objects_dict[_stage_object_dict_key].has("Collider"):
+							var collider_type = _stage_objects_dict[_stage_object_dict_key]["Collider"]
+							print("Object ", _stage_object.name)
+							match collider_type :
+								"none":
+	#								pass
+									print("...without collider!")
+								"convex":
+									print("...with convex collider!")
+									self.add_collider(_stage_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
+								"mesh":
+									print("...with mesh collider!")
+									self.add_collider(_stage_object, COLLIDER_TYPE.MESH, _scenario_scene)
+								"smart":
+									print("...with smart collider!")
+									self.add_collider(_stage_object, COLLIDER_TYPE.SMART, _scenario_scene)
+					# Default Visibility
+					if _stage_objects_dict[_stage_object_dict_key].has("Visible"):
+						_stage_object.visible = _stage_objects_dict[_stage_object_dict_key]["Visible"]
+					# Object Type
+					if _stage_objects_dict[_stage_object_dict_key].has("Type"):
+						match _stage_objects_dict[_stage_object_dict_key]["Type"]:
+							"trigger_zone":
+								print("Adding trigger to ", _stage_object.name)
+								self.add_trigger(_stage_object, _scenario_scene)
+					break # Pass to next object
+	else:
+		print("Stage ", _scenario_scene.name, " not found in stages json!")
+#	self.get_all_scene_objects(_stage_scenario_scene)
+#	for ob in self.scene_objects_list:
+##		print("Changes to " + ob.name)
+#		if ob is MeshInstance: # MESHES
+##			if _colliders_json.has(ob.name):# ON SCENARIOS
+##				if _colliders_json[ob.name] == "none":
+##					pass
+###					print("...without collider!")
+##				elif _colliders_json[ob.name] == "convex":
+###					print("...with convex collider!")
+##					self.add_collider(ob, COLLIDER_TYPE.CONVEX, _stage_scenario_scene)
+##				elif _colliders_json[ob.name] == "mesh":
+###					print("...with mesh collider!")
+##					self.add_collider(ob, COLLIDER_TYPE.MESH, _stage_scenario_scene)
+##				elif _colliders_json[ob.name] == "smart":
+###					print("...with smart collider!")
+##					self.add_collider(ob, COLLIDER_TYPE.SMART, _stage_scenario_scene)
+#			if _menus3d_json.has(_stage_scenario_scene.name):
+#				if _menus3d_json[_stage_scenario_scene.name]["SpecialObjects"].has(ob.name):
+##					print("Special Object", ob.name, "found")
+#					match _menus3d_json[_stage_scenario_scene.name]["SpecialObjects"][ob.name]["ObjectType"]:
+#						"button":
+#							self.add_collider(ob, COLLIDER_TYPE.CONVEX, _stage_scenario_scene)
+#							ob.script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
+#							ob.add_to_group("menus3d_buttons", true)
+#		elif _lights_json.has(ob.name):
+#			if lights_instance == null:
+#				lights_instance = Spatial.new()
+#				lights_instance.name = "Lights"
+#				self.add_child(lights_instance)
+#				#lights_instance.set_owner(self)
+##			print("Adding light on :" + ob.name)
+#			var new_light_color : Color = Color(_lights_json[ob.name + "ColorR"], _lights_json[ob.name + "ColorG"], _lights_json[ob.name + "ColorB"])
+#			var new_light_position : Vector3 = Vector3(_lights_json[ob.name + "PositionX"], _lights_json[ob.name + "PositionZ"], -_lights_json[ob.name + "PositionY"])
+#			var new_light_rotation : Vector3 = Vector3(_lights_json[ob.name + "RotationX"] -90.0, _lights_json[ob.name + "RotationZ"], -_lights_json[ob.name + "RotationY"])
+#			var new_light_energy : float = _lights_json[ob.name + "Energy"]
+#			match _lights_json[ob.name]:
+#				"POINT":
+#					var light_params_dict = {
+#						"color" : new_light_color,
+#						"energy" : new_light_energy,
+#						"range" : _lights_json[ob.name + "Range"],
+#						"position" : new_light_position,
+#						"rotation" : new_light_rotation
+#					}
+#					self.add_light_point(ob, light_params_dict)
+#				"SUN":
+#					var light_params_dict = {
+#						"color" : new_light_color,
+#						"energy" : new_light_energy,
+#						"range" : _lights_json[ob.name + "Range"],
+#						"position" : new_light_position,
+#						"rotation" : new_light_rotation
+#					}
+#					self.add_light_directional(ob, light_params_dict)
+#				"SPOT":
+#					var light_params_dict = {
+#						"color" : new_light_color,
+#						"energy" : new_light_energy,
+#						"range" : _lights_json[ob.name + "Range"],
+#						"position" : new_light_position,
+#						"rotation" : new_light_rotation
+#					}
+#					self.add_light_spot(ob, light_params_dict)
+#				"AREA":
+#					var light_params_dict = {
+#						"color" : new_light_color,
+#						"energy" : new_light_energy,
+#						"range" : _lights_json[ob.name + "Range"],
+#						"position" : new_light_position,
+#						"rotation" : new_light_rotation
+#					}
+#					self.add_light_point(ob, light_params_dict) # TODO: Pending to update
+#			ob.get_parent().remove_child(ob)
+#			ob.queue_free()
+	return _scenario_scene
 
 
-func apply_import_changes_to_list(scenes_list, path):
-	for scene in scenes_list:
-		self.apply_import_changes(scene)
+#func apply_import_changes_to_list(scenes_list, path):
+#	for scene in scenes_list:
+#		self.apply_import_changes(scene)
 
 
 #func clear_imported_scenes():
@@ -779,6 +818,7 @@ func create_stages(_files_to_import):
 	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
 					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
+					_new_stage.stage_objects_dict =_stages_json[_key]["Objects"]
 					_new_stage.player_spawn_name = _stages_json[_key]["PlayerSpawnObjectName"]
 					if _stages_json[_key].has("DefaultEnvironment"):
 						if _stages_json[_key]["DefaultEnvironment"] is Dictionary:
@@ -809,6 +849,13 @@ func dir_contents(path, file_type = ".glb"):
 		print("An error occurred when trying to access the path " + MODELS_PATH)
 	return files_to_import
 
+
+#func get_all_scene_objects(scene):
+#	var _scene_objects = []
+#	for ob in scene.get_children():
+#		_scene_objects.append(ob)
+#		if ob.get_child_count() > 0:
+#			self.get_all_scene_objects(ob)
 
 func get_all_scene_objects(scene):
 	for ob in scene.get_children():

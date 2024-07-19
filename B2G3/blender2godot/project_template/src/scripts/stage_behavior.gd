@@ -14,36 +14,16 @@ var free_camera : Camera
 
 onready var scenario_scene = get_child(0)
 
-var optional_dict : Dictionary
+export var optional_dict : Dictionary
+export var stage_objects_dict : Dictionary
 var gm_ref
 
 
 func _ready():
 	print("Stage ", name, " loaded!")
 	self.gm_ref = get_tree().current_scene
-	if player_spawn_name != "":
-		player_spawn = get_player_spawn()
-		if player_spawn:
-			var player_node
-			if optional_dict.has("Player"):
-				player_node = self.gm_ref.get_tree_node(optional_dict["Player"], self.gm_ref.gm_dict)
-			var _player_name : String = ""
-			if player_node:
-				_player_name = player_node["SceneName"]
-			if  _player_name == "":
-				print("No player found. Loading free camera...")
-				get_tree().current_scene.show_message("No player detected")
-				add_free_camera()
-			else:
-				add_player(_player_name, player_node)
-		else:
-			print("No player spawn found. Loading free camera...")
-			get_tree().current_scene.show_message("No player spawn found")
-			add_free_camera()
-	else:
-		print("No player spawn defined. Loading free camera...")
-		get_tree().current_scene.show_message("No player spawn defined")
-		add_free_camera()
+	self.setup_stage_objects()
+	self.setup_player()
 
 func add_free_camera():
 	free_camera = Camera.new()
@@ -68,5 +48,33 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 func get_player_spawn():
 	return scenario_scene.find_node(player_spawn_name)
 
+func setup_player():
+	if player_spawn_name != "":
+		player_spawn = get_player_spawn()
+		if player_spawn:
+			var player_node
+			if optional_dict.has("Player"):
+				player_node = self.gm_ref.get_tree_node(optional_dict["Player"], self.gm_ref.gm_dict)
+			var _player_name : String = ""
+			if player_node:
+				_player_name = player_node["SceneName"]
+			if  _player_name == "":
+				print("No player found. Loading free camera...")
+				get_tree().current_scene.show_message("No player detected")
+				add_free_camera()
+			else:
+				add_player(_player_name, player_node)
+		else:
+			print("No player spawn found. Loading free camera...")
+			get_tree().current_scene.show_message("No player spawn found")
+			add_free_camera()
+	else:
+		print("No player spawn defined. Loading free camera...")
+		get_tree().current_scene.show_message("No player spawn defined")
+		add_free_camera()
+
 func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
+
+func setup_stage_objects(): # Really?
+	pass

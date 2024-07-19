@@ -304,7 +304,7 @@ class ExportGameOperator(bpy.types.Operator):
     godot_project_settings_filepath = ""
     stages_info_filepath = ""
     
-    dict_colliders = my_dictionary()
+    #dict_colliders = my_dictionary()
     dict_players_info = my_dictionary()
     dict_lights_info = my_dictionary()
     dict_godot_project_settings = my_dictionary()
@@ -322,6 +322,7 @@ class ExportGameOperator(bpy.types.Operator):
                 _checked = True
         return _checked
     
+    '''
     def export_colliders(self, context, _scene):
         _last_scene = context.window.scene
         print("Exporting colliders...")
@@ -337,7 +338,8 @@ class ExportGameOperator(bpy.types.Operator):
         with open(self.colliders_filepath, 'w') as outfile:
             outfile.write(self.data_colliders + '\n')
         context.window.scene = _last_scene
-    
+    '''
+
     def export_environment(self, context, _scene):
         print("Exporting environment ...")
         _dict = my_dictionary()
@@ -524,7 +526,6 @@ class ExportGameOperator(bpy.types.Operator):
         self.models_folder_path = os.path.join(self.assets_folder_path, self.models_folder_name)
         if not os.path.isdir(self.models_folder_path):
             os.mkdir(self.models_folder_path)
-        _sc_index = 0
         for _sc_added in bpy.data.scenes:
             if _sc_added.scene_exportable:
                 match _sc_added.scene_type:
@@ -536,24 +537,15 @@ class ExportGameOperator(bpy.types.Operator):
                         self.export_menu2d_dict(context, _sc_added)
                     case "stage":
                         self.export_scene(context, _sc_added)
-                        self.export_colliders(context, _sc_added)
+                        #self.export_colliders(context, _sc_added)
                         self.export_lights(context)
-                        _temp_dict = my_dictionary()
-                        _temp_dict.add("SceneName", _sc_added.name)
-                        if not _sc_added.player_spawn_empty:
-                            _temp_dict.add("PlayerSpawnObjectName", "")
-                        else:
-                            _temp_dict.add("PlayerSpawnObjectName", _sc_added.player_spawn_empty.name)
-                        _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
-                        self.dict_stages_info.add(_sc_index, _temp_dict)
-                        _sc_index += 1                            
+                        self.export_stage_info(context, _sc_added)
                     case "player":
                         self.export_scene(context, _sc_added)
                         self.export_player_info(context, _sc_added)
                     case "3dmenu":
                         self.export_scene(context, _sc_added)
                         self.export_menu3d_dict(context, _sc_added)
-        #bpy.ops.scene.set_godot_project_environment_operator()
         self.export_stages_info(context)
         self.export_players_info(context)
         self.export_menus2d_info(context)
@@ -619,46 +611,6 @@ class ExportGameOperator(bpy.types.Operator):
         else:
             print("Custom icon is not a png image. Loading default icon.")
     
-    ''' SECU EXPORT HUD
-    def export_hud(self, context, _hud_scene):
-        _last_scene = context.window.scene
-        self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
-        if not os.path.isdir(self.huds_folder_path):
-            os.mkdir(self.huds_folder_path)
-        print("Exporting hud scene", _hud_scene.name)
-        context.window.scene = _hud_scene
-        for _obj in _hud_scene.objects:
-            _obj.select_set(_obj.godot_exportable)
-            bpy.ops.object.mode_set(mode = 'OBJECT')
-            if _obj.type == "GPENCIL":
-                for _layer in _obj.data.layers:
-                    _layer.use_lights = False
-            if hasattr(_obj, "hud_element_properties"):
-                if _obj.is_containing_element:
-                    _obj.hide_render = True
-        bpy.ops.view3d.view_camera()
-        hud_path = os.path.join(self.huds_folder_path, _hud_scene.name)
-        if len(_hud_scene.objects) > 0:
-            match _hud_scene.hud_settings.hud_export_format:
-                case "svg":
-                    hud_path = hud_path + ".svg"
-                    bpy.ops.wm.gpencil_export_svg(filepath=hud_path, check_existing=True, 
-                                                use_fill=True,
-                                                selected_object_type="SELECTED", stroke_sample=0.0,
-                                                use_normalized_thickness=True, use_clip_camera=True)
-                case "png":
-                    hud_path = hud_path + ".png"
-                    _hud_scene.render.engine = "BLENDER_EEVEE"
-                    bpy.context.scene.render.filepath = hud_path
-                    bpy.context.scene.render.film_transparent = True
-                    bpy.context.scene.view_layers["ViewLayer"].use_pass_z = True
-                    bpy.ops.render.render(write_still = True)
-            print("Scene", _hud_scene.name, "exported.")
-        else:
-            print("Scene ", _hud_scene.name, " empty!")
-        context.window.scene = _last_scene
-    '''
-
     def export_hud(self, context, _hud_scene):
         _last_scene = context.window.scene
         self.huds_folder_path = os.path.join(self.assets_folder_path, self.huds_folder_name)
@@ -980,19 +932,7 @@ class ExportGameOperator(bpy.types.Operator):
                 if _obj.special_object_info.menu_object_type != "none":
                     _special_objects.add(_obj.name, {
                         "ObjectType" : _obj.special_object_info.menu_object_type,
-                        #"ActionOnClick" : _obj.special_object_info.button_action_on_click
                     })
-                    #print("Special object", _obj.name, "Info", _obj.special_object_info.button_action_on_click, "Param", _obj.special_object_info.scene_parameter)
-                    #_pref_param = ""
-                    #match _obj.special_object_info.button_action_on_click:
-                        #case "load_stage":
-                            #_pref_param = "Stage_"
-                        #case "load_3dmenu":
-                            #_pref_param = "Menu3d_"
-                        #case "load_2dmenu":
-                            #_pref_param = "Menu2d_"
-                    #_action_parameter_rename = _pref_param + _obj.special_object_info.action_parameter
-                    #_special_objects[_obj.name]["ActionParameter"] = _action_parameter_rename
         _temp_dict.add("SpecialObjects", _special_objects)
         # ENVIRONMENT
         _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
@@ -1062,18 +1002,6 @@ class ExportGameOperator(bpy.types.Operator):
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
-        # ACTIONS ON GAMEMANAGER!!!
-        #_actions_dictionary = my_dictionary()
-        #for _action_setting in _player_scene.actions_settings:
-            #_actions_dictionary.add(_action_setting.action_id, _action_setting.action_process)
-        #self.dict_player_info.add("PlayerActions", _actions_dictionary)
-        # HUD
-        #_hud_dictionary = my_dictionary()
-        #_hud_dictionary.add("HudSceneName", _player_scene.player_hud_scene)
-        #self.dict_player_info.add("PlayerHUD", _hud_dictionary)
-        # PAUSE MENU
-        #if _player_scene.pause_menu2d:
-            #self.dict_player_info.add("PauseMenu", _player_scene.pause_menu2d)
         
         # ADD to global
         self.dict_players_info.add(_player_scene.name, self.dict_player_info)
@@ -1099,6 +1027,26 @@ class ExportGameOperator(bpy.types.Operator):
             print("Scene ", _scene.name, " empty!")
         context.window.scene = _last_scene
     
+    def export_stage_info(self, context, _stage_scene):
+        _stage_dict = my_dictionary()
+        _stage_dict.add("SceneName", _stage_scene.name)
+        if not _stage_scene.player_spawn_empty:
+            _stage_dict.add("PlayerSpawnObjectName", "")
+        else:
+            _stage_dict.add("PlayerSpawnObjectName", _stage_scene.player_spawn_empty.name)
+        _stage_dict.add("DefaultEnvironment", self.export_environment(context, _stage_scene))
+        _stage_objects = my_dictionary()
+        for _stage_object in _stage_scene.objects:
+            _stage_object_dict = my_dictionary()
+            #_stage_object_dict.add("Name", _stage_object.name)
+            _stage_object_dict.add("Type", _stage_object.stage_object_type)
+            _stage_object_dict.add("Visible", _stage_object.is_visible)
+            _stage_object_dict.add("Collider", _stage_object.collider)
+            _stage_objects.add(_stage_object.name, _stage_object_dict)
+        _stage_dict.add("Objects", _stage_objects)
+        _stage_name = "Stage_" + _stage_scene.name
+        self.dict_stages_info.add(_stage_name, _stage_dict)
+
     def export_stages_info(self, context):
         self.find_stages_info_file_path(context)
         self.data_stages_info = json.dumps(self.dict_stages_info, indent=1, ensure_ascii=True)

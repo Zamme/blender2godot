@@ -610,15 +610,19 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                     _new_stage_object = self.stage_objects.add()
                     _new_stage_object.object_name = _stage_object.name
                     _new_stage_object.object_type = _stage_object.stage_object_type
-                    #_new_stage_object.damage_zone_amount = _stage_object.damage_zone_amount
             # Update Sockets
             self.inputs.clear()
             self.outputs.clear()
             self.init(context)
             for _stage_object in self.stage_objects:
                 match _stage_object.object_type:
-                    case "damage_zone":
-                        _damage_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
+                    case "trigger_zone":
+                        _trigger_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
+                        _trigger_zone_enter_socket.link_limit = 1
+                        _trigger_zone_stay_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Stay"))
+                        _trigger_zone_stay_socket.link_limit = 1
+                        _trigger_zone_exit_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Exit"))
+                        _trigger_zone_exit_socket.link_limit = 1
 
     def poll_scenes(self, object):
         return object.scene_type == "stage"
@@ -628,8 +632,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     def init(self, context):
         self.inputs.new("B2G_Player_SocketType", "Player")
         self.inputs.new("B2G_Pipeline_SocketType", "Go")
-        _new_output = self.outputs.new("B2G_Pipeline_SocketType", "Go")
-        _new_output.link_limit = 1
+        #_new_output = self.outputs.new("B2G_Pipeline_SocketType", "Go")
+        #_new_output.link_limit = 1
 
     def copy(self, node):
         print("Copying from node ", node)

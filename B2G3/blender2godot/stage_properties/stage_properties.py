@@ -26,8 +26,7 @@ import bpy
 stage_object_types = [
     ("none", "None", "", 0),
     ("player_spawn_empty", "Player Spawn Point", "", 1),
-    ("damage_zone", "Damage Zone", "", 2),
-    ("goal_zone", "Goal Zone", "", 3),
+    ("trigger_zone", "Trigger Zone", "", 2),
 ]
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
