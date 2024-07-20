@@ -36,11 +36,11 @@ var b2g_hud
 
 func _ready():
 	print("GameManager Loaded")
+	self.resume_gm()
 	# DEBUG
 	if debug_hud_enabled:
 		add_b2g_hud()
 	# END DEBUG
-	self.resume_gm()
 
 func execute_command(_command : String, _parameter : String):
 	var _param : String

@@ -6,7 +6,7 @@ export var node_info : Dictionary
 
 export var PAUSE_MENU_PATH : String = ""
 export var gravity_enabled : bool
-export var camera_name : String = ""
+
 export var hud_scene_name : String
 export var camera_inverted : bool = true
 
@@ -53,7 +53,7 @@ func _ready():
 	gravity_enabled = optional_dict["GravityOn"] # TODO: pending to pass to nodes
 	setup_dictionaries()
 	player_mesh = find_player_mesh()
-	camera = find_camera(camera_name)
+	camera = find_camera(optional_dict["PlayerCameraObject"]["CameraName"])
 	mouse_rotation_axises = get_mouse_rotation_axises()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	if not _hud_dict.empty():
@@ -233,13 +233,13 @@ func process_input(_delta):
 	var input_movement_vector = Vector2()
 
 	if Input.is_action_pressed("b2g_go_forward"):
-		input_movement_vector.y -= 1
-	if Input.is_action_pressed("b2g_go_backward"):
 		input_movement_vector.y += 1
+	if Input.is_action_pressed("b2g_go_backward"):
+		input_movement_vector.y -= 1
 	if Input.is_action_pressed("b2g_strafe_left"):
-		input_movement_vector.x += 1
-	if Input.is_action_pressed("b2g_strafe_right"):
 		input_movement_vector.x -= 1
+	if Input.is_action_pressed("b2g_strafe_right"):
+		input_movement_vector.x += 1
 	#if Input.is_key_pressed(16777217):
 		#get_tree().quit()
 	
@@ -264,10 +264,10 @@ func process_input(_delta):
 		if camera_inverted:
 			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 		else:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -_delta))
 	if Input.is_action_pressed("b2g_rotate_right"):
 		if camera_inverted:
-			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -1.0 * _delta))
+			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * -_delta))
 		else:
 			self.rotate_object_local(Vector3.UP, deg2rad(GAMEPAD_AXIS_SENSITIVITY * _delta))
 	# ----------------------------------
@@ -328,7 +328,6 @@ func _input(event):
 		if event is InputEventMouseMotion and (Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED):
 			if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
 				if camera_inverted:
-					print(camera, "Rotating y")
 					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * current_delta))
 				else:
 					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -current_delta))

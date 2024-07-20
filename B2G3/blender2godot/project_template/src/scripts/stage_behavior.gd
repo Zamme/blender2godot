@@ -19,6 +19,8 @@ export var node_info : Dictionary
 
 var stage_objects_dict : Dictionary
 var gm_ref
+var _enter_triggers : Dictionary
+var _exit_triggers : Dictionary
 
 
 func _ready():
@@ -27,6 +29,7 @@ func _ready():
 	self.setup_spawn_name()
 	self.setup_stage_objects()
 	self.setup_player()
+	self.setup_triggers()
 
 func add_free_camera():
 	free_camera = Camera.new()
@@ -88,8 +91,29 @@ func setup_spawn_name():
 func setup_stage_objects():
 	stage_objects_dict = optional_dict["Objects"]
 
+func setup_triggers():
+	print(node_info["Outputs"])
+	for _node_output_key in node_info["Outputs"].keys():
+		print(_node_output_key)
+		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
+		match _node_key_parts[1]:
+			"Enter":
+				_enter_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
+			"Exit":
+				_exit_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
+
 func stage_trigger_entered(_body_entered, _arg):
-	print(_body_entered.name, " entered ", _arg.name)
+	var _msg : String
+#	_msg = _body_entered.name + " entered " + _arg.name
+	if _enter_triggers.has(_arg.name.rsplit("_", true, 1)[0]):
+		_msg = "Trigger calls " + _enter_triggers[_arg.name.rsplit("_", true, 1)[0]]
+		print(_msg)
+		self.gm_ref.show_message(_msg)
 
 func stage_trigger_exited(_body_exited, _arg):
-	print(_body_exited.name, " exited ", _arg.name)
+	var _msg : String
+#	_msg = _body_exited.name + " exited " + _arg.name
+	if _exit_triggers.has(_arg.name.rsplit("_", true, 1)[0]):
+		_msg = "Trigger calls " + _exit_triggers[_arg.name.rsplit("_", true, 1)[0]]
+		print(_body_exited.name, " exited ", _arg.name)
+		self.gm_ref.show_message(_msg)
