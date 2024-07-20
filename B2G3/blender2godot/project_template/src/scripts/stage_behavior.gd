@@ -78,3 +78,9 @@ func set_optional_dict(_dict : Dictionary):
 
 func setup_stage_objects(): # Really?
 	pass
+
+func stage_trigger_entered(_body_entered, _arg):
+	print(_body_entered.name, " entered ", _arg.name)
+
+func stage_trigger_exited(_body_exited, _arg):
+	print(_body_exited.name, " exited ", _arg.name)

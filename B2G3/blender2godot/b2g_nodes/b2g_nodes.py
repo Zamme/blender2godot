@@ -619,8 +619,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                     case "trigger_zone":
                         _trigger_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
                         _trigger_zone_enter_socket.link_limit = 1
-                        _trigger_zone_stay_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Stay"))
-                        _trigger_zone_stay_socket.link_limit = 1
+                        #_trigger_zone_stay_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Stay"))
+                        #_trigger_zone_stay_socket.link_limit = 1
                         _trigger_zone_exit_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Exit"))
                         _trigger_zone_exit_socket.link_limit = 1
 
