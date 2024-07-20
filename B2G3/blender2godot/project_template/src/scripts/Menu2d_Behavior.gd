@@ -10,6 +10,7 @@ var _player_scene
 var selectable_objects = []
 var current_selected_object_index = -1
 export var optional_dict : Dictionary
+export var node_info : Dictionary
 
 
 func _ready():

@@ -6,7 +6,8 @@ onready var _menu = get_node(name.replace("Menu3d_", ""))
 
 var selectable_objects = []
 var current_selected_object_index = -1
-var optional_dict : Dictionary
+export var optional_dict : Dictionary
+export var node_info : Dictionary
 
 
 func _ready():

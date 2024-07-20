@@ -587,7 +587,8 @@ func create_huds():
 		_new_hud.set_anchors_preset(Control.PRESET_WIDE)
 		var _svg_path : String = HUDS_TEXTURES_PATH + _key + "." + ".png"
 		_new_hud.script = load(HUD_BEHAVIOR_FILEPATH)
-		_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
+		_new_hud.optional_dict = _huds_json[_key]
+		#_new_hud.hud_objects_info = _huds_json[_key]["Objects"]
 		_new_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_hud_scene(_new_hud, _huds_json[_key]["Objects"])
@@ -607,6 +608,7 @@ func create_menus2d():
 		_new_menu2d.set_anchors_preset(Control.PRESET_WIDE)
 		var _svg_path : String = MENUS2D_TEXTURES_PATH + _key + "." + ".png"
 		_new_menu2d.script = menus2d_behavior_script
+		_new_menu2d.optional_dict = _menus2d_json[_key]
 		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
@@ -629,6 +631,7 @@ func create_menus3d(_files_to_import):
 					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.get_file_to_import_path(_fn_without_ext)])
 					var _new_menu_path : String = MENUS3D_PATH + _new_menu_name + ".tscn"
 					_new_menu.script = load(MENU3D_BEHAVIOR_PATH)
+					_new_menu.optional_dict = _menus3d_json[_key]
 					var _new_camera : Camera = Camera.new()
 					var _new_camera_dict = _menus3d_json[_key]["MenuCameraObjectDict"]
 					_new_camera.name = _new_camera_dict["MenuCameraObjectName"]
@@ -655,9 +658,7 @@ func create_menus3d(_files_to_import):
 					yield(get_tree(), "idle_frame")
 					self.repack_scene(_new_menu, _new_menu_path)
 
-func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
-						 _pause_menu, _gravity_enabled,
-						 _animations, _controls):
+func create_player_props(_player_mesh_scene_name, _player_json):
 	print("Creating player...")
 	# CREATE ENTITY AND PHYSICS BODY
 	var player_entity_instance : KinematicBody = KinematicBody.new()
@@ -666,6 +667,7 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 	player_entity_instance.add_child(player_collision_shape)
 	player_collision_shape.set_owner(player_entity_instance)
 	var caps_shape : CapsuleShape = CapsuleShape.new()
+	var _shape_props = _player_json["PlayerDimensions"]
 	if _shape_props:
 		caps_shape.height = _shape_props["DimZ"]/2.0
 		caps_shape.radius = max(_shape_props["DimX"], _shape_props["DimY"])/2.0
@@ -677,28 +679,17 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
 	# ADD ENTITY BEHAVIOR
 	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
+	player_entity_instance.optional_dict = _player_json
 	# JSON INFO TO ENTITY BEHAVIOR
 	# GENERAL
-	player_entity_instance._player_mesh_name = _player_mesh_scene_name
-	player_entity_instance.gravity_enabled = _gravity_enabled
-	# ENTITY PROPERTIES
-#	if _entity_props:
-#		player_entity_instance._entity_properties = _entity_props
-	# PAUSE, ANIMATIONS, ACTIONS, ETC
-	if _pause_menu:
-		player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
-	if _animations:
-		player_entity_instance._animations = _animations
-	#if _actions:
-		#player_entity_instance._actions_dict = _actions
-	if _camera_props:
-		player_entity_instance.camera_name = get_dict_property(_camera_props, "CameraName")
-	if _controls:
-		player_entity_instance._controls = _controls
-#	if _hud:
-#		player_entity_instance.hud_scene_name = get_dict_property(_hud, "HudSceneName")
+	#player_entity_instance._player_mesh_name = _player_mesh_scene_name
+	#player_entity_instance.gravity_enabled = _gravity_enabled
+
+#	if _pause_menu:
+#		player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
 	# PLAYER CAMERA
 	var _player_camera
+	var _camera_props = _player_json["PlayerCameraObject"]
 	if _camera_props:
 		_player_camera = self.create_camera(get_dict_property(_camera_props, "CameraName"))
 		player_entity_instance.add_child(_player_camera)
@@ -730,6 +721,7 @@ func create_player_props(_player_mesh_scene_name, _camera_props, _shape_props,
 	print("Player created.")
 	
 	# PLAYER CONTROLS
+	var _controls = _player_json["PlayerControls"]
 	if _controls:
 		for _control_prop_key in _controls.keys():
 			var _action = InputEventAction.new()
@@ -786,18 +778,16 @@ func create_players(_files_to_import):
 			if not _player_json.empty():
 				if _player_json.has("PlayerSceneName"):
 					if _player_json["PlayerSceneName"] == _fn_without_ext:
-						var _cam_props = get_dict_property(_player_json, "PlayerCameraObject")
-						var _shape_props = get_dict_property(_player_json, "PlayerDimensions")
-						var _pause_menu_name = get_dict_property(_player_json, "PauseMenu")
-						var _gravity_enabled = get_dict_property(_player_json, "GravityOn")
-						var _animations = get_dict_property(_player_json, "PlayerAnimations")
+						#var _cam_props = get_dict_property(_player_json, "PlayerCameraObject")
+						#var _shape_props = get_dict_property(_player_json, "PlayerDimensions")
+						#var _pause_menu_name = get_dict_property(_player_json, "PauseMenu")
+						#var _gravity_enabled = get_dict_property(_player_json, "GravityOn")
+						#var _animations = get_dict_property(_player_json, "PlayerAnimations")
 						#var _actions = get_dict_property(_player_json, "PlayerActions")
-						var _controls = get_dict_property(_player_json, "PlayerControls")
+						#var _controls = get_dict_property(_player_json, "PlayerControls")
 #						var _hud = get_dict_property(_player_json, "PlayerHUD")
 #						var _entity_props = get_dict_property(_player_json, "PlayerEntityProperties")
-						create_player_props(_fn_without_ext, _cam_props, _shape_props,
-											 _pause_menu_name, _gravity_enabled,
-											 _animations, _controls)
+						create_player_props(_fn_without_ext, _player_json)
 		else:
 			print("No player added")
 
@@ -818,8 +808,8 @@ func create_stages(_files_to_import):
 	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
 					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
-					_new_stage.stage_objects_dict =_stages_json[_key]["Objects"]
-					_new_stage.player_spawn_name = _stages_json[_key]["PlayerSpawnObjectName"]
+					_new_stage.optional_dict = _stages_json[_key]
+					#_new_stage.stage_objects_dict =_stages_json[_key]["Objects"]
 					if _stages_json[_key].has("DefaultEnvironment"):
 						if _stages_json[_key]["DefaultEnvironment"] is Dictionary:
 							var _new_world_environment = create_environment(_stages_json[_key]["DefaultEnvironment"])

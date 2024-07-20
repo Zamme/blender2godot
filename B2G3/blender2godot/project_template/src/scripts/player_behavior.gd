@@ -1,36 +1,39 @@
 class_name PlayerBehavior extends KinematicBody
 
 
-export var hud_dict : Dictionary
+export var optional_dict : Dictionary
+export var node_info : Dictionary
+
 export var PAUSE_MENU_PATH : String = ""
 export var gravity_enabled : bool
 export var camera_name : String = ""
 export var hud_scene_name : String
 export var camera_inverted : bool = true
-export var _controls : Dictionary
-export var _animations : Dictionary
-export var _actions_dict : Dictionary
-export var _player_mesh_name : String = ""
-export var _actions : Dictionary
-export var _entity_properties : Dictionary
 
+var _hud_dict : Dictionary
+var _controls : Dictionary
+var _animations : Dictionary
+var _player_mesh_name : String = ""
+var _actions : Dictionary
+var _entity_properties : Dictionary
+var _properties_linked : Dictionary
+
+# TODO: PASS TO NODES
 const GRAVITY = -24.8
-var vel = Vector3()
 const MAX_SPEED = 4.5
 const JUMP_SPEED = 18
 const ACCEL = 4.5
-
-var dir = Vector3()
-
 const DEACCEL= 16
 const MAX_SLOPE_ANGLE = 40
+
+var dir = Vector3()
+var vel = Vector3()
+
 
 var camera : Camera
 
 var MOUSE_SENSITIVITY = 2.5
 var GAMEPAD_AXIS_SENSITIVITY = 25.0
-
-
 
 var player_mesh
 var _hud
@@ -41,34 +44,32 @@ var current_delta = 0.0
 var pause_control
 
 var stage_scene
-var optional_dict : Dictionary = {}
-var properties_linked : Dictionary = {}
+
 var gm_ref
 
 
 func _ready():
 	self.gm_ref = get_tree().current_scene
+	gravity_enabled = optional_dict["GravityOn"] # TODO: pending to pass to nodes
+	setup_dictionaries()
 	player_mesh = find_player_mesh()
 	camera = find_camera(camera_name)
 	mouse_rotation_axises = get_mouse_rotation_axises()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	set_actions()
-	if self.optional_dict.has("HUD"):
-		self.hud_dict = self.gm_ref.get_tree_node(optional_dict["HUD"], self.gm_ref.gm_dict)
-		self.properties_linked = self.optional_dict["PropertiesLinked"]
+	if not _hud_dict.empty():
 		add_hud()
 	
 	# TESTING
 	#player_mesh._test_anim()
 
 func add_hud():
-	if hud_dict.has("SceneName"):
-		hud_scene_name = hud_dict["SceneName"]
+	if _hud_dict.has("SceneName"):
+		hud_scene_name = _hud_dict["SceneName"]
 	if hud_scene_name != "":
 		print("Adding HUD:", hud_scene_name)
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
-		_hud.hud_settings = hud_dict["Settings"]
+		_hud.hud_settings = _hud_dict["Settings"]
 		add_child(_hud)
 
 func animate():
@@ -148,10 +149,6 @@ func pause_game_enable(_enable):
 		pause_control.queue_free()
 	print("Paused: ", get_tree().paused)
 
-func set_actions():
-	for _action_key in _actions_dict.keys():
-		_actions[_action_key] = _actions_dict[_action_key]
-
 func set_entity_property_value(_property_name, _value):
 	var _translated_value
 	match typeof(_value):
@@ -165,6 +162,21 @@ func set_entity_property_value(_property_name, _value):
 			_translated_value = String(_value)
 	_entity_properties[_property_name]["Value"] = _translated_value
 	# TODO: EMIT A SIGNAL TO LINKED CONTROLS?
+
+func setup_dictionaries():
+	if self.node_info.has("HUD"):
+		self._hud_dict = self.gm_ref.get_tree_node(node_info["HUD"], self.gm_ref.gm_dict)
+		self._properties_linked = self.node_info["PropertiesLinked"]
+	if self.optional_dict.has("PlayerAnimations"):
+		self._animations = self.optional_dict["PlayerAnimations"]
+	if self.optional_dict.has("PlayerControls"):
+		self._controls = self.optional_dict["PlayerControls"]
+	else:
+		print("PlayerControls not found on optional_dict")
+	if self.optional_dict.has("PlayerEntityProperties"):
+		self._entity_properties = self.optional_dict["PlayerEntityProperties"]
+	if self.node_info.has("ActionsSettings"):
+		self._actions = self.node_info["ActionsSettings"]
 
 func toogle_pause():
 	pause_game_enable(!get_tree().paused)
@@ -221,13 +233,13 @@ func process_input(_delta):
 	var input_movement_vector = Vector2()
 
 	if Input.is_action_pressed("b2g_go_forward"):
-		input_movement_vector.y += 1
-	if Input.is_action_pressed("b2g_go_backward"):
 		input_movement_vector.y -= 1
+	if Input.is_action_pressed("b2g_go_backward"):
+		input_movement_vector.y += 1
 	if Input.is_action_pressed("b2g_strafe_left"):
-		input_movement_vector.x -= 1
-	if Input.is_action_pressed("b2g_strafe_right"):
 		input_movement_vector.x += 1
+	if Input.is_action_pressed("b2g_strafe_right"):
+		input_movement_vector.x -= 1
 	#if Input.is_key_pressed(16777217):
 		#get_tree().quit()
 	
@@ -313,13 +325,14 @@ func process_movement(delta):
 
 func _input(event):
 	if not stage_scene.is_paused:
-		if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		if event is InputEventMouseMotion and (Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED):
 			if mouse_rotation_axises[0] or mouse_rotation_axises[1]:
 				if camera_inverted:
+					print(camera, "Rotating y")
 					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * current_delta))
 				else:
-					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -1.0 * current_delta))
-			
+					camera.rotate_x(deg2rad(event.relative.y * MOUSE_SENSITIVITY * -current_delta))
+
 			if mouse_rotation_axises[2] or mouse_rotation_axises[3]:
-				self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -1 * current_delta))
+				self.rotate_object_local(Vector3.UP, deg2rad(event.relative.x * MOUSE_SENSITIVITY * -current_delta))
 

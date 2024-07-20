@@ -103,7 +103,7 @@ func load_menu2d(_menu_filepath):
 func load_menu3d(_menu_filepath):
 	load_scene(_menu_filepath, true, self.current_node)
 
-func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _optional_dict : Dictionary = {}):
+func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _node_dict : Dictionary = {}):
 	if _unload_current:
 		if b2g_current_scene:
 			b2g_current_scene.queue_free()
@@ -111,8 +111,8 @@ func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _
 	var _file : File = File.new()
 	if _file.file_exists(_new_scene_path):
 		b2g_current_scene = load(_new_scene_path).instance()
-		if not _optional_dict.empty():
-			b2g_current_scene.set_optional_dict(_optional_dict)
+		if not _node_dict.empty():
+			b2g_current_scene.node_info = _node_dict
 	else:
 		b2g_current_scene = Spatial.new()
 		print("Scene filepath not found")

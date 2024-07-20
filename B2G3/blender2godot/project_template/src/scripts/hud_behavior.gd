@@ -6,9 +6,11 @@ const FONT_POS_FACTOR_Y = 42.0
 
 const FONT_FACTOR = 40
 
-export var hud_objects_info : Dictionary
+export var optional_dict : Dictionary
+
 export var hud_settings : Dictionary
 
+var hud_objects_info : Dictionary
 var fade_timer : Timer
 var fade_tween : Tween
 
@@ -17,7 +19,8 @@ var fade_tween : Tween
 
 func _ready():
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
-	link_objects()
+	setup_hud_objects_info()
+	#link_objects()
 	update_hud_objects_info()
 	start_hud()
 	update_hud_objects_info()
@@ -53,6 +56,10 @@ func link_objects():
 		if hud_objects_info[_key].has("SourceInfoScene"):
 			hud_objects_info[_key]["LinkedEntity"] = find_child_by_name(get_tree().current_scene, hud_objects_info[_key]["SourceInfoScene"])
 
+func setup_hud_objects_info():
+	if optional_dict.has("Objects"):
+		hud_objects_info = optional_dict["Objects"]
+
 func start_fade():
 	fade_tween.interpolate_property(self, "modulate",
 			Color(1.0, 1.0, 1.0, 0.0), Color(1.0, 1.0, 1.0, 1.0), hud_settings["ShowTransitionTime"],
@@ -79,7 +86,7 @@ func start_hud():
 #		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
 
 func update_hud_objects_info():
-	var _parent_props : Dictionary = get_parent().properties_linked
+	var _parent_props : Dictionary = get_parent()._properties_linked
 	for _parent_prop_key in _parent_props.keys():
 		for _child in get_children():
 			if _parent_props[_parent_prop_key] == _child.name:

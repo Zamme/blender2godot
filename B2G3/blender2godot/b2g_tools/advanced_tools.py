@@ -408,6 +408,11 @@ class ExportGameOperator(bpy.types.Operator):
                     _player_socket = _node.inputs[0]
                     if _player_socket.is_linked:
                         _current_node_dict.add("Player", _player_socket.links[0].from_node.name)
+                    _outputs_dict = my_dictionary()
+                    for _output in _node.outputs:
+                        if len(_output.links) > 0:
+                            _outputs_dict.add(_output.name, _output.links[0].to_node.name)
+                    _current_node_dict.add("Outputs", _outputs_dict)
                 case "B2G_Player_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)

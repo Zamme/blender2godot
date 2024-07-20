@@ -15,13 +15,16 @@ var free_camera : Camera
 onready var scenario_scene = get_child(0)
 
 export var optional_dict : Dictionary
-export var stage_objects_dict : Dictionary
+export var node_info : Dictionary
+
+var stage_objects_dict : Dictionary
 var gm_ref
 
 
 func _ready():
 	print("Stage ", name, " loaded!")
 	self.gm_ref = get_tree().current_scene
+	self.setup_spawn_name()
 	self.setup_stage_objects()
 	self.setup_player()
 
@@ -36,9 +39,9 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 	if _fileobject.file_exists(_player_entity_path):
 		player = load(_player_entity_path).instance()
 		if not _player_node.empty():
-			player.set_optional_dict(_player_node)
-			player._actions_dict = _player_node["ActionsSettings"]
-			player._entity_properties = _player_node["EntityProperties"]
+			player.node_info = _player_node
+			#player._actions_dict = _player_node["ActionsSettings"]
+			#player._entity_properties = _player_node["EntityProperties"]
 		add_child(player)
 		player.set_stage_scene(self)
 	else:
@@ -53,11 +56,13 @@ func setup_player():
 		player_spawn = get_player_spawn()
 		if player_spawn:
 			var player_node
-			if optional_dict.has("Player"):
-				player_node = self.gm_ref.get_tree_node(optional_dict["Player"], self.gm_ref.gm_dict)
+			if node_info.has("Player"):
+				player_node = self.gm_ref.get_tree_node(node_info["Player"], self.gm_ref.gm_dict)
 			var _player_name : String = ""
 			if player_node:
 				_player_name = player_node["SceneName"]
+			else:
+				print("Player node not found")
 			if  _player_name == "":
 				print("No player found. Loading free camera...")
 				get_tree().current_scene.show_message("No player detected")
@@ -76,8 +81,12 @@ func setup_player():
 func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
 
-func setup_stage_objects(): # Really?
-	pass
+func setup_spawn_name():
+	if self.optional_dict.has("PlayerSpawnObjectName"):
+		self.player_spawn_name = self.optional_dict["PlayerSpawnObjectName"]
+
+func setup_stage_objects():
+	stage_objects_dict = optional_dict["Objects"]
 
 func stage_trigger_entered(_body_entered, _arg):
 	print(_body_entered.name, " entered ", _arg.name)
