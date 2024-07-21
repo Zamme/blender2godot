@@ -490,7 +490,8 @@ class B2G_Finish_Node(MyCustomTreeNode, Node):
     bl_icon = 'SOUND'
 
     def init(self, context):
-        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_input = self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        _new_input.link_limit = 0
 
     def copy(self, node):
         print("Copying from node ", node)

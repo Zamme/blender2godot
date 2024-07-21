@@ -43,33 +43,49 @@ func _ready():
 	# END DEBUG
 
 func execute_command(_command : String, _parameter : String):
+	print("Command to execute: ", _command)
+	print("With parameter :", _parameter)
 	var _param : String
 	match _command:
 		"load_stage":
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
-				if self.current_node:
-					var _scene_name = self.current_node["SceneName"]
-					_param = self.STAGES_DIRPATH + self.STAGE_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
-					print("Current node:", self.current_node)
+			if self.current_node:
+				var _scene_name = self.current_node["SceneName"]
+				_param = self.STAGES_DIRPATH + self.STAGE_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+				print("Current node:", self.current_node)
 #					print("action parameter:", _parameter)
-					self.load_stage(_param)
+				self.load_stage(_param)
 		"load_3dmenu":
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
-				if self.current_node:
-					var _scene_name = self.current_node["SceneName"]
-					_param = self.MENUS3D_DIRPATH + self.MENU3D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
-					self.load_menu3d(_param)
+			if self.current_node:
+				var _scene_name = self.current_node["SceneName"]
+				_param = self.MENUS3D_DIRPATH + self.MENU3D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+				self.load_menu3d(_param)
 		"load_2dmenu":
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
-				if self.current_node:
-					var _scene_name = self.current_node["SceneName"]
-					_param = self.MENUS2D_DIRPATH + self.MENUS2D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
-					self.load_menu2d(_param)
+			if self.current_node:
+				var _scene_name = self.current_node["SceneName"]
+				_param = self.MENUS2D_DIRPATH + self.MENUS2D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+				self.load_menu2d(_param)
 		"quit_game":
 			self.quit_game()
+
+func execute_node(_node_name : String):
+	var _last_node_executed = self.current_node
+	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
+	print("Execute: ", self.current_node["Type"])
+	match self.current_node["Type"]:
+		"B2G_Finish_Node":
+			self.quit_game()
+		"B2G_Stage_Scene_Node":
+			self.execute_command("load_stage", "")
+		"B2G_2dMenu_Scene_Node":
+			self.execute_command("load_2dmenu", "")
+		"B2G_3dMenu_Scene_Node":
+			self.execute_command("load_3dmenu", "")
 
 func get_node_next_node(_tree, _node_name):
 	var _node
