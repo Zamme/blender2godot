@@ -32,8 +32,9 @@ func do_click_action():
 		if self.button_dict.has("ActionParameter"):
 			_action_parameter = self.button_dict["ActionParameter"]
 			_msg += " " + self.button_dict["ActionParameter"]
-#	print("Message: ", _msg)
-	self.gm_ref.execute_command(_action_to_do, _action_parameter)
+	print("Message: ", _msg)
+#	self.gm_ref.execute_command(_action_to_do, _action_parameter)
+	self.gm_ref.execute_node(_action_parameter)
 
 
 

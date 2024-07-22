@@ -81,7 +81,7 @@ def get_actions_list_array(self, context):
     os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
     for p_path in possible_paths:
         if os.path.isdir(p_path):
-            _filepath = os.path.join(p_path, "b2g_actions_list.json")
+            _filepath = os.path.join(p_path, "b2g_game_actions_list.json")
             if os.path.isfile(_filepath):
                 with open(_filepath, 'r') as outfile:
                     _actions_list = json.load(outfile)

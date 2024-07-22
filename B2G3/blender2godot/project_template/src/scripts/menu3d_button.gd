@@ -43,7 +43,7 @@ func do_click_action():
 		if self.button_dict.has("ActionParameter"):
 			_action_parameter = self.button_dict["ActionParameter"]
 			_msg += " " + self.button_dict["ActionParameter"]
-	self.gm_ref.execute_command(_action_to_do, _action_parameter)
+	self.gm_ref.execute_node(_action_parameter)
 #	print(_msg)
 
 func get_collider():
@@ -60,7 +60,7 @@ func select_object(_selected : bool):
 func _on_click_event(_cam, _event, _pos, _norm, _s_idx):
 	if _event is InputEventMouseButton:
 		if _event.pressed:
-#			print("clicked")
+			print("clicked")
 			do_click_action()
 		else:
 			pass

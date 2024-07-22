@@ -1,0 +1,26 @@
+{
+  "None": {
+    "ActionName": "None",
+    "ActionDescription": "None"
+  },
+  "GoUp": {
+    "ActionName": "Go Up",
+    "ActionDescription": "Go Up"
+  },
+  "GoDown": {
+    "ActionName": "Go Down",
+    "ActionDescription": "Go Down"
+  },
+  "GoLeft": {
+    "ActionName": "Go Left",
+    "ActionDescription": "Go Left"
+  },
+  "GoRight": {
+    "ActionName": "Go Right",
+    "ActionDescription": "Go Right"
+  },
+  "Back": {
+    "ActionName": "Back",
+    "ActionDescription": "Back"
+  }
+}

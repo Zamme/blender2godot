@@ -930,6 +930,7 @@ class ExportGameOperator(bpy.types.Operator):
             _cam_dict.add("FOV", _sc_added.menu_camera_object.data.angle)
             _cam_dict.add("KeepFOV", _sc_added.menu_camera_object.data.sensor_fit)
             _temp_dict.add("MenuCameraObjectDict", _cam_dict)
+        _temp_dict.add("SceneName", _sc_added.name)
         # MENU'S SPECIAL OBJECTS
         _special_objects = my_dictionary()
         for _obj in _sc_added.objects:
@@ -942,7 +943,8 @@ class ExportGameOperator(bpy.types.Operator):
         # ENVIRONMENT
         _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
         # ADD DICT TO INFO
-        self.dict_menus3d_info.add(_sc_added.name, _temp_dict)
+        _menu_name = "Menu3d_" + _sc_added.name
+        self.dict_menus3d_info.add(_menu_name, _temp_dict)
 
     def export_menus3d_info(self, context):
         self.find_menus3d_info_file_path(context)

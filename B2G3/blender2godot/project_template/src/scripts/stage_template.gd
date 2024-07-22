@@ -78,8 +78,10 @@ var _start_scene_path : String
 
 var fonts_datas = [] # DEFAULT FONT IS THE FIRST [0]
 var button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
+var menus3d_behavior_script = load(MENU3D_BEHAVIOR_PATH)
 var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
 var trigger_area_behavior_script = load(TRIGGER_AREA_BEHAVIOR_PATH)
+var menus3d_button_behavior_script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
 
 # JSONS
 var _stages_json
@@ -354,9 +356,9 @@ func add_smart_collider(scene):
 
 
 func apply_import_changes(_scenario_scene):
-	print("Aplying changes to " + _scenario_scene.name)
-	var _stage_name : String = "Stage_" + _scenario_scene.name
-	if _stages_json.has(_stage_name): # IS A STAGE SCENARIO
+	print("Applying changes to " + _scenario_scene.name)
+	if _stages_json.has("Stage_" + _scenario_scene.name): # IS A STAGE SCENARIO
+		var _stage_name = "Stage_" + _scenario_scene.name
 		self.get_all_scene_objects(_scenario_scene)
 		var _stage_dict = _stages_json[_stage_name]
 		var _stage_objects_dict = _stage_dict["Objects"]
@@ -391,8 +393,21 @@ func apply_import_changes(_scenario_scene):
 								print("Adding trigger to ", _stage_object.name)
 								self.add_trigger(_stage_object, _scenario_scene)
 					break # Pass to next object
+	elif _menus3d_json.has("Menu3d_" + _scenario_scene.name): # IS A MENU 3D SCENARIO
+		print("Menu 3d in applying!!!!!")
+		var _menu3d_name = "Menu3d_" + _scenario_scene.name
+		self.get_all_scene_objects(_scenario_scene)
+		var _menu3d_dict = _menus3d_json[_menu3d_name]
+		for _menu3d_object in self.scene_objects_list:
+			if _menus3d_json[_menu3d_name]["SpecialObjects"].has(_menu3d_object.name):
+#					print("Special Object", ob.name, "found")
+				match _menus3d_json[_menu3d_name]["SpecialObjects"][_menu3d_object.name]["ObjectType"]:
+					"button":
+						self.add_collider(_menu3d_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
+						_menu3d_object.script = menus3d_button_behavior_script
+						_menu3d_object.add_to_group("menus3d_buttons", true)
 	else:
-		print("Stage ", _scenario_scene.name, " not found in stages json!")
+		print("Scene ", _scenario_scene.name, " not found in jsons!")
 #	self.get_all_scene_objects(_stage_scenario_scene)
 #	for ob in self.scene_objects_list:
 ##		print("Changes to " + ob.name)
@@ -609,6 +624,7 @@ func create_menus2d():
 		var _svg_path : String = MENUS2D_TEXTURES_PATH + _key + "." + ".png"
 		_new_menu2d.script = menus2d_behavior_script
 		_new_menu2d.optional_dict = _menus2d_json[_key]
+#		_new_menu2d.node_name = _game_manager_json
 		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
@@ -616,21 +632,23 @@ func create_menus2d():
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
 func create_menus3d(_files_to_import):
+	print("Creating menus 3d...")
 	var _directory : Directory = Directory.new()
 	if !_directory.dir_exists(MENUS3D_PATH):
 		_directory.make_dir(MENUS3D_PATH)
 	# Create Menus 3d
 	for _file_to_import in _files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
+		print("Searching ", _fn_without_ext)
 		if _menus3d_json:
 			for _key in _menus3d_json.keys():
-				#print("In mount menus: ", _fn_without_ext, " vs ", _key)
-				if str(_fn_without_ext) == _key:
+				if str(_fn_without_ext) == (_menus3d_json[_key]["SceneName"]):
+					print("Editing ", _fn_without_ext)
 					var _new_menu_name : String = "Menu3d_" + _file_to_import.get_file()
 					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
 					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.get_file_to_import_path(_fn_without_ext)])
 					var _new_menu_path : String = MENUS3D_PATH + _new_menu_name + ".tscn"
-					_new_menu.script = load(MENU3D_BEHAVIOR_PATH)
+					_new_menu.script = menus3d_behavior_script
 					_new_menu.optional_dict = _menus3d_json[_key]
 					var _new_camera : Camera = Camera.new()
 					var _new_camera_dict = _menus3d_json[_key]["MenuCameraObjectDict"]
@@ -642,7 +660,7 @@ func create_menus3d(_files_to_import):
 							var _new_world_environment = create_environment(_menus3d_json[_key]["DefaultEnvironment"])
 							_new_menu.add_child(_new_world_environment)
 							_new_world_environment.set_owner(_new_menu)
-					yield(get_tree(),"idle_frame")
+#					yield(get_tree(),"idle_frame")
 					_new_camera.translate(Vector3(_new_camera_dict["Position"]["PosX"], _new_camera_dict["Position"]["PosZ"], -_new_camera_dict["Position"]["PosY"]))
 					_new_camera.rotation_degrees = Vector3(rad2deg(_new_camera_dict["Rotation"]["RotX"]) - 90.0, rad2deg(_new_camera_dict["Rotation"]["RotZ"]), rad2deg(_new_camera_dict["Rotation"]["RotY"]))
 					_new_camera.fov = rad2deg(_new_camera_dict["FOV"])
@@ -653,10 +671,11 @@ func create_menus3d(_files_to_import):
 							_new_camera.keep_aspect = Camera.KEEP_HEIGHT
 						"HORIZONTAL":
 							_new_camera.keep_aspect = Camera.KEEP_WIDTH
-					yield(get_tree(), "idle_frame")
+					#yield(get_tree(), "idle_frame")
 					self.prepare_menu3d_scene(_new_menu)
-					yield(get_tree(), "idle_frame")
+					#yield(get_tree(), "idle_frame")
 					self.repack_scene(_new_menu, _new_menu_path)
+	print("Menus 3d created.")
 
 func create_player_props(_player_mesh_scene_name, _player_json):
 	print("Creating player...")
@@ -1057,8 +1076,6 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 
 func prepare_menu3d_scene(_menu_scene):
 	print("Menu 3d scene name:", _menu_scene.name)
-#	ob.button_dict = _game_manager_json["Nodes"][scene.name]["SpecialObjects"][ob.name]
-
 
 func output_matrix():
 	var output_matrix_text = []

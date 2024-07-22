@@ -10,11 +10,15 @@ var _player_scene
 var selectable_objects = []
 var current_selected_object_index = -1
 export var optional_dict : Dictionary
+export var node_name : String
 export var node_info : Dictionary
+
+var special_objects : Dictionary
 
 
 func _ready():
 	pause_mode = Node.PAUSE_MODE_PROCESS
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
 		select_object(0)
@@ -56,12 +60,15 @@ func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
 
 func setup_menu():
-	print(optional_dict)
-	for _special_object_key in optional_dict["SpecialObjects"].keys():
-		for _selectable_object in selectable_objects:
-			print("Selectable Object:", _selectable_object.name)
-			if _special_object_key == _selectable_object.name:
-				_selectable_object.button_dict = optional_dict["SpecialObjects"][_special_object_key]
+#	print(optional_dict)
+	if node_info.has("SpecialObjects"):
+		special_objects = node_info["SpecialObjects"]
+		for _special_object_key in special_objects.keys():
+			for _selectable_object in selectable_objects:
+				if _special_object_key == _selectable_object.name:
+					print("Selectable Object:", _selectable_object.name)
+					_selectable_object.button_dict = special_objects[_special_object_key]
+	pass
 
 func update_objects():
 	var _index : int = 0
@@ -108,13 +115,15 @@ func _on_exit_timer():
 			queue_free()
 
 func _process(delta):
-	if Input.is_action_just_pressed("b2g_pause_game"):
-		if !_timer:
-			create_exit_timer()
-	if Input.is_action_just_released("b2g_go_forward"):
-		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-	if Input.is_action_just_released("b2g_go_backward"):
-		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-	if Input.is_action_just_released("b2g_action_0"):
-		do_action()
+	# TODO: HOW TO KNOW WHAT ACTION IS FOR?
+#	if Input.is_action_just_pressed("b2g_pause_game"):
+#		if !_timer:
+#			create_exit_timer()
+#	if Input.is_action_just_released("b2g_go_forward"):
+#		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
+#	if Input.is_action_just_released("b2g_go_backward"):
+#		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
+#	if Input.is_action_just_released("b2g_action_0"):
+#		do_action()
+	pass
 

@@ -59,12 +59,13 @@ func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
 
 func setup_menu():
-	print(optional_dict)
+#	print(optional_dict)
 	for _special_object_key in optional_dict["SpecialObjects"].keys():
 		for _selectable_object in selectable_objects:
 			print("Selectable Object:", _selectable_object.name)
 			if _special_object_key == _selectable_object.name:
 				_selectable_object.button_dict = optional_dict["SpecialObjects"][_special_object_key]
+	pass
 
 func update_objects():
 	var _index : int = 0
@@ -73,11 +74,13 @@ func update_objects():
 		_index += 1
 
 func _process(delta):
-	if Input.is_action_just_released("b2g_go_forward"):
-		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-	if Input.is_action_just_released("b2g_go_backward"):
-		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-	if Input.is_action_just_released("b2g_action_0"):
-		do_action()
-	if Input.is_action_just_released("b2g_pause_game"):
-		get_tree().quit()
+	# TODO: HOW TO KNOW WHAT ACTION IS FOR?
+#	if Input.is_action_just_released("b2g_go_forward"):
+#		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
+#	if Input.is_action_just_released("b2g_go_backward"):
+#		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
+#	if Input.is_action_just_released("b2g_action_0"):
+#		do_action()
+#	if Input.is_action_just_released("b2g_pause_game"):
+#		get_tree().quit()
+	pass
