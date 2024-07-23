@@ -808,10 +808,14 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                         _new_property.property_integer = _player_property.property_integer
                     case "float":
                         _new_property.property_float = _player_property.property_float
-        # Clean new outputs on change scene
+        # Clean inputs on change scene
+        self.inputs.clear()
+        self.inputs.new("B2G_HUD_SocketType", "HUD")
+        # Clean outputs on change scene
         print("Update player")
         self.outputs.clear()
         self.outputs.new("B2G_Player_SocketType", "Player")
+        self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
         # Load entity properties as new outputs
         if self.scene:
             for _entity_property in self.scene.player_entity_properties:
@@ -822,9 +826,10 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     def init(self, context):
         # INPUTS
         self.inputs.new("B2G_HUD_SocketType", "HUD")
-        self.inputs.new("B2G_2dmenu_SocketType", "Pause Menu") # TODO: Change by pausemenu_socket
+        #self.inputs.new("B2G_2dmenu_SocketType", "Pause Menu")
         # OUTPUTS
         self.outputs.new("B2G_Player_SocketType", "Player")
+        self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -1170,6 +1175,10 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
         return object.scene_type == "overlay_menu"
 
     def on_update_scene(self, context):
+        # Clean outputs
+        self.inputs.clear()
+        # Set default outputs
+        self.inputs.new("B2G_OverlayMenu_SocketType", "Overlay")
         # Clean new outputs on change scene
         self.outputs.clear()
         #self.new_outputs.clear()
@@ -1190,7 +1199,7 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
     
     def init(self, context):
-        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        self.inputs.new("B2G_OverlayMenu_SocketType", "Overlay")
         
 
     def copy(self, node):
@@ -1203,6 +1212,8 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
         box1 = layout.box()
         row1 = box1.row()
         row1.prop(self, "scene", text="Scene")
+        row3 = box1.row()
+        row3.prop(self, "with_pause", text="Pause Game")
         if self.scene:
             row2 = box1.row()
             box2 = row2.box()
@@ -1255,7 +1266,6 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
                         if _output_index == -1:
                             _new_socket = self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
                             _new_socket.link_limit = 1
-                            #self.new_outputs.append(self.outputs.new("B2G_Stage_SocketType", _special_object.button_name))
                         else:
                             if type(self.outputs[_output_index]).__name__ != "B2G_Stage_Socket":
                                 self.outputs.remove(self.outputs[_special_object.button_name])
@@ -1599,6 +1609,7 @@ def register():
     bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
     bpy.types.Node.player_entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
     bpy.types.Node.stage_objects = bpy.props.CollectionProperty(type=StageObject)
+    bpy.types.Node.with_pause = bpy.props.BoolProperty(name="With Pause", default=True)
 
 def unregister():
     del bpy.types.Node.player_entity_properties

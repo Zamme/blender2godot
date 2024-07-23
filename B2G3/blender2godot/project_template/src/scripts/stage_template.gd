@@ -8,6 +8,7 @@ const ASSETS_PATH = "res://assets/"
 const MODELS_PATH = ASSETS_PATH + "models/"
 const HUDS_TEXTURES_PATH = ASSETS_PATH + "huds/"
 const MENUS2D_TEXTURES_PATH = ASSETS_PATH + "menus2d/"
+const OVERLAYS_TEXTURES_PATH = ASSETS_PATH + "overlays/"
 
 const SRC_PATH = "res://src/"
 const SCENES_PATH = SRC_PATH + "scenes/"
@@ -42,6 +43,12 @@ const MENUS2D_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "Menu2d_Behavior.gd"
 const MENU2D_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "Menu2dButton_Behavior.gd"
 const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
+const OVERLAYS_PATH = SCENES_PATH + "overlays/"
+const OVERLAYS_SCENES_PREFIX = "Overlay_"
+const OVERLAYS_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "OverlayMenu_Behavior.gd"
+const OVERLAYS_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "OverlayButton_Behavior.gd"
+const OVERLAYS_SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
+
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const INFOS_DIRPATH = "res://infos/"
 const COLLIDERS_JSON_PATH = INFOS_DIRPATH + "colliders_info.json"
@@ -53,6 +60,7 @@ const COLLIDERS_MATRIX_PATH = INFOS_DIRPATH + "colliders_matrix.txt"
 const GODOT_PROJECT_SETTINGS_JSON_PATH = INFOS_DIRPATH + "godot_project_settings.json"
 const STAGES_INFO_JSON_PATH = INFOS_DIRPATH + "stages_info.json"
 const MENUS2D_INFO_JSON_PATH = INFOS_DIRPATH + "menus2d_info.json"
+const OVERLAYS_INFO_JSON_PATH = INFOS_DIRPATH + "overlays_info.json"
 const GAMEMANAGER_INFO_JSON_PATH = INFOS_DIRPATH + "game_manager_info.json"
 
 const GAMEMANAGER_NAME = "B2G_GameManager"
@@ -79,6 +87,7 @@ var _start_scene_path : String
 var fonts_datas = [] # DEFAULT FONT IS THE FIRST [0]
 var button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
 var menus3d_behavior_script = load(MENU3D_BEHAVIOR_PATH)
+var overlay_menu_behavior_script = load(OVERLAYS_BEHAVIOR_FILEPATH)
 var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
 var trigger_area_behavior_script = load(TRIGGER_AREA_BEHAVIOR_PATH)
 var menus3d_button_behavior_script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
@@ -92,6 +101,7 @@ var _menus3d_json
 var _lights_json
 var _huds_json
 var _menus2d_json
+var _overlays_json
 var _godot_project_settings_json
 var _game_manager_json
 
@@ -109,6 +119,7 @@ func _ready():
 			_lights_json = self.read_json_file(LIGHTS_JSON_PATH)
 			_huds_json = self.read_json_file(HUDS_JSON_PATH)
 			_menus2d_json = self.read_json_file(MENUS2D_INFO_JSON_PATH)
+			_overlays_json = self.read_json_file(OVERLAYS_INFO_JSON_PATH)
 			_godot_project_settings_json = self.read_json_file(GODOT_PROJECT_SETTINGS_JSON_PATH)
 			_game_manager_json = self.read_json_file(GAMEMANAGER_INFO_JSON_PATH)
 			self.mount_scenes()
@@ -677,6 +688,26 @@ func create_menus3d(_files_to_import):
 					self.repack_scene(_new_menu, _new_menu_path)
 	print("Menus 3d created.")
 
+func create_overlays():
+	var _directory : Directory = Directory.new()
+	if !_directory.dir_exists(OVERLAYS_PATH):
+		_directory.make_dir(OVERLAYS_PATH)
+	# Create Menus2d
+	for _key in _overlays_json.keys():
+		var _new_overlay_name : String = OVERLAYS_SCENES_PREFIX + _key
+		var _new_overlay_path : String = OVERLAYS_PATH + _new_overlay_name + ".tscn"
+		var _new_overlay : Control = Control.new()
+		_new_overlay.name = _new_overlay_name
+		_new_overlay.set_anchors_preset(Control.PRESET_WIDE)
+		var _svg_path : String = OVERLAYS_TEXTURES_PATH + _key + "." + ".png"
+		_new_overlay.script = overlay_menu_behavior_script
+		_new_overlay.optional_dict = _overlays_json[_key]
+		_new_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		yield(get_tree(),"idle_frame")
+		self.prepare_overlay_menu_scene(_new_overlay, _overlays_json[_key]["Objects"])
+		yield(get_tree(),"idle_frame")
+		self.repack_scene(_new_overlay, _new_overlay_path)
+
 func create_player_props(_player_mesh_scene_name, _player_json):
 	print("Creating player...")
 	# CREATE ENTITY AND PHYSICS BODY
@@ -932,6 +963,7 @@ func mount_scenes():
 	create_menus3d(files_to_import)
 	create_huds()
 	create_menus2d()
+	create_overlays()
 	yield(get_tree(),"idle_frame")
 
 func prepare_hud_scene(_hud_scene, _hud_objects):
@@ -1076,6 +1108,101 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 
 func prepare_menu3d_scene(_menu_scene):
 	print("Menu 3d scene name:", _menu_scene.name)
+
+func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
+	print("Preparing ", _menu_scene.name, " objects:")
+	var FONT_FACTOR = 32
+	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
+	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
+	var SCALE_FACTOR = 35.5
+	var _pending_contents = []
+#	_menu_scene.set_optional_dict(_menu_objects)
+
+	for _menu_object_info in _menu_objects.keys():
+		match _menu_objects[_menu_object_info]["Type"]:
+			"FONT":
+				if _menu_objects[_menu_object_info]["ElementType"] == "button_content":
+					_pending_contents.append(_menu_object_info)
+					continue
+				print(_menu_objects[_menu_object_info]["Location"])
+				var _new_label : Label = Label.new()
+				_new_label.name = _menu_object_info
+				_menu_scene.add_child(_new_label)
+				_new_label.set_owner(_menu_scene)
+				var _new_font : DynamicFont = DynamicFont.new()
+				if self.fonts_datas.size() == 0:
+					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+				_new_font.font_data = self.fonts_datas[0]
+				_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
+				_new_label.set("custom_fonts/font", _new_font)
+				_new_label.text = _menu_objects[_menu_object_info]["Body"]
+				_new_label.align = Label.ALIGN_CENTER
+				_new_label.valign = Label.VALIGN_CENTER
+				_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
+				_new_label.set_pivot_offset(_new_label.rect_size/2)
+				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+				var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+			"GPENCIL":
+				match _menu_objects[_menu_object_info]["ElementType"]:
+					"button":
+						var _new_button : Button = Button.new()
+						_new_button.name = _menu_object_info
+						_menu_scene.add_child(_new_button)
+						_new_button.set_owner(_menu_scene)
+						var _filepath : String = OVERLAYS_TEXTURES_PATH + _menu_scene.name.trim_prefix(OVERLAYS_SCENES_PREFIX) + "_" + _menu_object_info + ".png"
+						_new_button.icon = load(_filepath)
+						_new_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+						_new_button.grow_vertical = Control.GROW_DIRECTION_BOTH
+						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
+						_new_button.set_pivot_offset(_new_button.rect_size/2)
+						_new_button.flat = true
+						_new_button.icon_align = Button.ALIGN_CENTER
+						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+						_new_button.script = button_behavior_script
+						yield(get_tree(),"idle_frame")
+						_new_button.add_to_group("menus2d_buttons", true)
+					"none":
+						var _new_button : TextureRect = TextureRect.new()
+						_new_button.name = _menu_object_info
+						_menu_scene.add_child(_new_button)
+						_new_button.set_owner(_menu_scene)
+						var _filepath : String = OVERLAYS_TEXTURES_PATH + _menu_scene.name.trim_prefix(OVERLAYS_SCENES_PREFIX) + "_" + _menu_object_info + ".png"
+						_new_button.texture = load(_filepath)
+						_new_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+						_new_button.grow_vertical = Control.GROW_DIRECTION_BOTH
+						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
+						_new_button.set_pivot_offset(_new_button.rect_size/2)
+						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+	# REORDERING DEPTH
+	var _objects = []
+	for _object in _menu_scene.get_children():
+		_objects.append(_object)
+	for _menu_object_info in _menu_objects.keys():
+		if _menu_objects[_menu_object_info]["Type"] != "CAMERA":
+			for _object in _objects:
+				if _object.name == _menu_object_info:
+					if _object:
+						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
+						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
+					else:
+						print("Object ", _menu_object_info, " not found")
+	# PENDING CONTENTS
+	for _pending_content in _pending_contents:
+		if _menu_objects[_pending_content]["Type"] == "FONT":
+			var _button_name : String = _menu_objects[_pending_content]["Container"]
+			for _object in _menu_scene.get_children():
+				if _object.name == _button_name:
+					_object.text = _menu_objects[_pending_content]["Body"]
+				var _new_font : DynamicFont = DynamicFont.new()
+				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				_new_font.size = int(float(_menu_objects[_pending_content]["Size"])*FONT_FACTOR)
+				_object.set("custom_fonts/font", _new_font)
+	print("Finished.")
 
 func output_matrix():
 	var output_matrix_text = []

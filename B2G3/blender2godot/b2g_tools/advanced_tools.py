@@ -36,6 +36,7 @@ from blender2godot.scene_properties import scene_properties # type: ignore
 INFOS_FOLDER_NAME = "infos"
 HUDS_INFO_FILENAME = "huds_info.json"
 MENUS2D_INFO_FILENAME = "menus2d_info.json"
+OVERLAY_MENUS_INFO_FILENAME = "overlays_info.json"
 STAGES_INFO_FILENAME = "stages_info.json"
 COLLIDERS_INFO_FILENAME = "colliders_info.json"
 PLAYERS_INFO_FILENAME = "players_info.json"
@@ -296,6 +297,7 @@ class ExportGameOperator(bpy.types.Operator):
     huds_folder_name = "huds"
     menus2d_folder_name = "menus2d"
     menus3d_folder_name = "menus3d"
+    overlay_menus_folder_name = "overlays"
     players_folder_name = "players"
     stages_folder_name = "stages"
     colliders_filepath = ""
@@ -311,6 +313,7 @@ class ExportGameOperator(bpy.types.Operator):
     dict_stages_info = my_dictionary()
     dict_menus3d_info = my_dictionary()
     dict_menus2d_info = my_dictionary()
+    dict_overlay_menus_info = my_dictionary()
     dict_huds_info = my_dictionary()
 
     controls_list = get_controls_list()
@@ -390,7 +393,6 @@ class ExportGameOperator(bpy.types.Operator):
         self.game_manager_settings = my_dictionary()
         _gm_node_tree = bpy.data.node_groups.get("GameManager")
         _gm_nodes = _gm_node_tree.nodes
-        #print(_gm_node_tree)
         _nodes_dict = my_dictionary()
         for _node in _gm_nodes:
             print("Exporting node:", _node.name)
@@ -551,10 +553,14 @@ class ExportGameOperator(bpy.types.Operator):
                     case "3dmenu":
                         self.export_scene(context, _sc_added)
                         self.export_menu3d_dict(context, _sc_added)
+                    case "overlay_menu":
+                        self.export_overlay_menu(context, _sc_added)
+                        self.export_overlay_menu_dict(context, _sc_added)
         self.export_stages_info(context)
         self.export_players_info(context)
         self.export_menus2d_info(context)
         self.export_menus3d_info(context)
+        self.export_overlay_menu_info(context)
         self.export_huds_info(context)
         self.export_icon(context)
         self.export_godot_project_settings(context)
@@ -952,6 +958,123 @@ class ExportGameOperator(bpy.types.Operator):
         with open(self.menus3d_info_filepath, 'w') as outfile:
             outfile.write(self.data_menus3d_info + '\n')   
 
+    def export_overlay_menu(self, context, _overlay_menu_scene):
+        _last_scene = context.window.scene
+        self.overlay_menus_folder_path = os.path.join(self.assets_folder_path, self.overlay_menus_folder_name)
+        if not os.path.isdir(self.overlay_menus_folder_path):
+            os.mkdir(self.overlay_menus_folder_path)
+        print("Exporting overlay menu scene", _overlay_menu_scene.name)
+        context.window.scene = _overlay_menu_scene
+        # ENSURE 3D VIEW FOR CONTEXT
+        for _area in bpy.context.screen.areas:
+            if _area.type == "NODE_EDITOR":
+                _area.type = "VIEW_3D"
+                _area.ui_type = "VIEW_3D"
+        bpy.ops.view3d.view_camera()
+        _last_use_border = _overlay_menu_scene.render.use_border
+        _last_use_crop_to_border = _overlay_menu_scene.render.use_crop_to_border
+        _overlay_menu_scene.render.use_border = True
+        _overlay_menu_scene.render.use_crop_to_border = True
+        cam = _overlay_menu_scene.camera 
+        camType = cam.data.type
+        matrix = cam.matrix_world.normalized()
+        frame = [matrix @ v for v in cam.data.view_frame(scene=_overlay_menu_scene)]
+        origin = matrix.to_translation()
+        frame.append(origin)
+        p1, p2, p3, p4 = frame[0:4]
+        l = cam.location
+        v1 = p2 - p3
+        v2 = p4 - p3
+        normal = cross(v1, v2)
+        hud_path = os.path.join(self.overlay_menus_folder_path, _overlay_menu_scene.name)
+        _overlay_menu_scene.render.engine = "BLENDER_EEVEE"
+        objs = []
+        s1s = []
+        s2s = []
+        for _obj in _overlay_menu_scene.objects:
+            if _obj.type == "GPENCIL":
+                if _obj.godot_exportable:
+                    objs.append(_obj)
+                    for _obj2 in _overlay_menu_scene.objects:
+                        _obj2.hide_render = (_obj2 != _obj)
+                    for _layer in _obj.data.layers:
+                        _layer.use_lights = False
+                    bpy.ops.object.mode_set(mode = 'OBJECT')
+                    s1s.clear()
+                    s2s.clear()
+                    verts = [_obj.matrix_world @ v.co for v in _obj.data.layers[0].active_frame.strokes[0].points]
+                    for v in verts:
+                        # direction of line to be parameterized, if orthogonal, direction should be normal
+                        if camType == 'ORTHO':
+                            direction = normal
+                        else:
+                            direction = l - v
+                        # parametric value for projection to camera
+                        t = -(dot(normal, v) - dot(p1, normal))/dot(normal, direction)
+                        # vert projected to camera frustum
+                        vP = v + Vector(t * direction)
+                        # matrix with v1 and v2 as basis vectors (has to be square in order to invert)      
+                        mtxB = Matrix((v1, v2)).to_3x3()
+                        # find scalars to stretch basis vectors to projected point on frustum
+                        scalars = (vP - p3) @ mtxB.inverted() 
+                        # horizontal scalar append to all horizontal scalars:
+                        s1s.append(scalars[0])
+                        # vertical scalar append to all vertical scalars:
+                        s2s.append(scalars[1])
+                    x_min, y_min, x_max, y_max = min(s1s), min(s2s), max(s1s), max(s2s)
+
+                    _overlay_menu_scene.render.border_min_x = x_min
+                    _overlay_menu_scene.render.border_min_y = y_min
+                    _overlay_menu_scene.render.border_max_x = x_max
+                    _overlay_menu_scene.render.border_max_y = y_max
+
+                    _file_path = hud_path + "_" + _obj.name + ".png"
+                    _overlay_menu_scene.render.filepath = _file_path
+                    _overlay_menu_scene.render.film_transparent = True
+                    _overlay_menu_scene.view_layers["ViewLayer"].use_pass_z = True
+                    bpy.ops.render.render(write_still = True, use_viewport=True)
+        if len(objs) > 0:
+            print("Scene", _overlay_menu_scene.name, "exported with", str(len(objs)), "objects.")
+        else:
+            print("Scene ", _overlay_menu_scene.name, " empty!")
+        _overlay_menu_scene.render.use_border = _last_use_border
+        _overlay_menu_scene.render.use_crop_to_border = _last_use_border
+        for _obj in _overlay_menu_scene.objects:
+            _obj.hide_render = False
+        context.window.scene = _last_scene
+
+    def export_overlay_menu_dict(self, context, _sc_added):
+        _overlay_menu_dict = my_dictionary()
+        _overlay_menu_objects_dict = my_dictionary()
+        for _overlay_menu_obj in _sc_added.objects:
+            _overlay_menu_object_dict = my_dictionary()
+            _overlay_menu_object_dict.add("Type", _overlay_menu_obj.type)
+            _overlay_menu_object_dict.add("ElementType", _overlay_menu_obj.menu_overlay_object_properties.menu_overlay_object_type)
+            loc, rot, sca = _overlay_menu_obj.matrix_world.decompose()
+            _overlay_menu_object_dict.add("Location", Vector3ToString(loc))
+            _overlay_menu_object_dict.add("Depth", _overlay_menu_obj.menu_overlay_object_properties.object_depth)
+            match _overlay_menu_obj.type:
+                case "FONT":
+                    _overlay_menu_object_dict.add("FontFilepath", _overlay_menu_obj.data.font.filepath)
+                    _overlay_menu_object_dict.add("Body", _overlay_menu_obj.data.body)
+                    _overlay_menu_object_dict.add("Size", _overlay_menu_obj.data.size)
+                case "GPENCIL":
+                    _co_array = []
+                    for _point in _overlay_menu_obj.data.layers[0].active_frame.strokes[0].points:
+                        _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
+                    _overlay_menu_object_dict.add("Points", _co_array)
+            if _overlay_menu_obj.menu_overlay_object_properties.menu_overlay_object_type == "button_content":
+                _overlay_menu_object_dict.add("Container", _overlay_menu_obj.parent.name)
+            _overlay_menu_objects_dict.add(_overlay_menu_obj.name, _overlay_menu_object_dict)
+        _overlay_menu_dict.add("Objects", _overlay_menu_objects_dict)
+        self.dict_overlay_menus_info.add(_sc_added.name, _overlay_menu_dict)
+
+    def export_overlay_menu_info(self, context):
+        self.find_overlay_menus_info_file_path(context)
+        self.data_overlay_menus_info = json.dumps(self.dict_overlay_menus_info, indent=1, ensure_ascii=True)
+        with open(self.overlay_menus_info_filepath, 'w') as outfile:
+            outfile.write(self.data_overlay_menus_info + '\n')   
+
     def export_player_info(self, context, _player_scene):
         print("Exporting player...")
         # GENERAL PROPS
@@ -1075,6 +1198,9 @@ class ExportGameOperator(bpy.types.Operator):
         
     def find_menus2d_info_file_path(self, context):
         self.menus2d_info_filepath = os.path.join(self.infos_dirpath, MENUS2D_INFO_FILENAME)
+
+    def find_overlay_menus_info_file_path(self, context):
+        self.overlay_menus_info_filepath = os.path.join(self.infos_dirpath, OVERLAY_MENUS_INFO_FILENAME)
 
     def find_players_info_file_path(self, context):
         self.players_info_filepath = os.path.join(self.infos_dirpath, PLAYERS_INFO_FILENAME)
