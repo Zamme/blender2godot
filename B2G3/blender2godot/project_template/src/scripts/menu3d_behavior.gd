@@ -9,8 +9,11 @@ var current_selected_object_index = -1
 export var optional_dict : Dictionary
 export var node_info : Dictionary
 
+var gm_ref
+
 
 func _ready():
+	self.gm_ref = get_tree().current_scene
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
 		select_object(0)
@@ -64,8 +67,7 @@ func setup_menu():
 		for _selectable_object in selectable_objects:
 			print("Selectable Object:", _selectable_object.name)
 			if _special_object_key == _selectable_object.name:
-				_selectable_object.button_dict = optional_dict["SpecialObjects"][_special_object_key]
-	pass
+				_selectable_object.button_dict = self.gm_ref.current_node["SpecialObjects"][_special_object_key]
 
 func update_objects():
 	var _index : int = 0
