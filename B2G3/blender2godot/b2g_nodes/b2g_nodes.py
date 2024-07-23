@@ -26,11 +26,19 @@ from bpy.types import NodeTree, Node, NodeSocket
 from blender2godot.stage_properties import stage_properties # type: ignore
 
 
-action_type_options = [("none", "None", "", 0), 
+menu_button_action_type_options = [("none", "None", "", 0), 
                         ("load_stage", "Load Stage", "", 1),
                         ("load_2dmenu", "Load Menu 2D", "", 2),
                         ("load_3dmenu", "Load Menu 3D", "", 3),
                         ("quit_game", "Quit Game", "", 4)
+                        ]
+
+overlay_button_action_type_options = [("none", "None", "", 0), 
+                        ("close_overlay", "Close Overlay", "", 5),
+                        ("load_stage", "Load Stage", "", 1),
+                        ("load_2dmenu", "Load Menu 2D", "", 2),
+                        ("load_3dmenu", "Load Menu 3D", "", 3),
+                        ("quit_game", "Quit Game", "", 4),
                         ]
 
 property_node_sockets = {
@@ -121,7 +129,14 @@ class ActionsProperties(bpy.types.PropertyGroup):
 class ButtonAction(bpy.types.PropertyGroup):
     button_node_name : bpy.props.StringProperty(name="Button Node") # type: ignore
     button_name : bpy.props.StringProperty(name="Button Name") # type: ignore
-    button_action_on_click : bpy.props.EnumProperty(items=action_type_options, name="Action On Click", update=on_button_action_update) # type: ignore
+    button_action_on_click : bpy.props.EnumProperty(items=menu_button_action_type_options, name="Action On Click", update=on_button_action_update) # type: ignore
+    action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
+    scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
+
+class OverlayButtonAction(bpy.types.PropertyGroup):
+    button_node_name : bpy.props.StringProperty(name="Button Node") # type: ignore
+    button_name : bpy.props.StringProperty(name="Button Name") # type: ignore
+    button_action_on_click : bpy.props.EnumProperty(items=overlay_button_action_type_options, name="Action On Click", update=on_button_action_update) # type: ignore
     action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
@@ -372,6 +387,25 @@ class B2G_2dmenu_Socket(NodeSocket):
     bl_idname = 'B2G_2dmenu_SocketType'
     # Label for nice name display
     bl_label = "2D Menu Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.0, 1.0, 0.0, 1.0)
+
+class B2G_OverlayMenu_Socket(NodeSocket):
+    # Description string
+    """overlay menu socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_OverlayMenu_SocketType'
+    # Label for nice name display
+    bl_label = "Overlay Menu Socket"
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -869,7 +903,6 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     bl_height_default = 100.0
 
     new_inputs = []
-    valid_sockets = ["B2G_Float_Socket", "B2G_Integer_Socket", "B2G_Boolean_Socket", "B2G_String_Socket"]
 
     def poll_scenes(self, object):
         return object.scene_type == "hud"
@@ -939,11 +972,12 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
+        valid_sockets = ["B2G_Float_Socket", "B2G_Integer_Socket", "B2G_Boolean_Socket", "B2G_String_Socket"]
         for _input in self.inputs:
             for _link in _input.links:
                 _valid_link = False
                 #print(type(_link.from_socket).__name__)
-                if type(_link.from_socket).__name__ in self.valid_sockets:
+                if type(_link.from_socket).__name__ in valid_sockets:
                     _valid_link = True
                 else:
                     _valid_link = False
@@ -1119,6 +1153,136 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:
                             self.outputs.remove(self.outputs[_special_object.button_name])
+
+class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_OverlayMenu_Scene_NodeType'
+    # Label for nice name display
+    bl_label = "Menu Overlay Scene"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    #new_outputs = []
+
+    def poll_scenes(self, object):
+        return object.scene_type == "overlay_menu"
+
+    def on_update_scene(self, context):
+        # Clean new outputs on change scene
+        self.outputs.clear()
+        #self.new_outputs.clear()
+        # Load entity properties as new outputs
+        if self.scene:
+            self.overlay_special_objects.clear()
+            for _object in self.scene.objects:
+                if _object.menu_overlay_object_properties.menu_overlay_object_type == "button":
+                    _new_special_object = self.overlay_special_objects.add()
+                    _new_special_object.button_node_name = self.name
+                    _new_special_object.button_name = _object.name
+        else:
+            self.outputs.clear()
+            #for _new_output in self.new_outputs:
+                #self.outputs.remove(_new_output)
+            #self.new_outputs.clear()
+
+    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Go")
+        
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "scene", text="Scene")
+        if self.scene:
+            row2 = box1.row()
+            box2 = row2.box()
+            #row3 = box2.row()
+            #row3.label(text=_object.name)
+            for _special_object in self.overlay_special_objects:
+                box3 = box2.box()
+                row4 = box3.row()
+                row4.label(text=_special_object.button_name)
+                row5 = box3.row()
+                row5.prop(_special_object, "button_action_on_click")
+            layout.prop(self.scene, "scene_exportable", text="Export")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        if self.scene:
+            return (self.scene.name + "(Menu Overlay)")
+        else:
+            return "Menu Overlay"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        print("Update", self.name)
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        '''Mark invalid links, must be called from a timer'''
+        _input_go = self.inputs[0]
+        for _link in _input_go.links:
+            _valid_link = False
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_OverlayMenu_Socket")):
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link
+
+    def update_sockets(self):
+        print("Update", self.name, "links")
+        for _special_object in self.overlay_special_objects:
+            match _special_object.button_action_on_click:
+                    case "none":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index > -1:
+                            self.outputs.remove(self.outputs[_special_object.button_name])
+                    case "load_stage":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            _new_socket = self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                            #self.new_outputs.append(self.outputs.new("B2G_Stage_SocketType", _special_object.button_name))
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_Stage_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_Stage_SocketType", _special_object.button_name)
+                    case "load_2dmenu":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            _new_socket = self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_2dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_2dmenu_SocketType", _special_object.button_name)
+                    case "load_3dmenu":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index == -1:
+                            _new_socket = self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
+                            _new_socket.link_limit = 1
+                        else:
+                            if type(self.outputs[_output_index]).__name__ != "B2G_3dmenu_Socket":
+                                self.outputs.remove(self.outputs[_special_object.button_name])
+                                self.outputs.new("B2G_3dmenu_SocketType", _special_object.button_name)
+                    case "quit_game":
+                        _output_index = self.outputs.find(_special_object.button_name)
+                        if _output_index > -1:
+                            self.outputs.remove(self.outputs[_special_object.button_name])
+
 
 class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -1356,6 +1520,7 @@ node_categories = [
         NodeItem("B2G_HUD_Scene_NodeType"),
         NodeItem("B2G_2dMenu_Scene_NodeType"),
         NodeItem("B2G_3dMenu_Scene_NodeType"),
+        NodeItem("B2G_OverlayMenu_Scene_NodeType"),
         NodeItem("B2G_NPC_Scene_NodeType"),
     ]),
     MyNodeCategory('MATH', "Math", items=[
@@ -1389,6 +1554,7 @@ node_categories = [
 
 classes = (
     ButtonAction,
+    OverlayButtonAction,
     ActionsProperties,
     HudSettings,
     PlayerEntityProperty,
@@ -1404,6 +1570,7 @@ classes = (
     B2G_Stage_Socket,
     B2G_2dmenu_Socket,
     B2G_3dmenu_Socket,
+    B2G_OverlayMenu_Socket,
     B2G_Player_Socket,
     B2G_HUD_Socket,
     B2G_Start_Node,
@@ -1415,6 +1582,7 @@ classes = (
     B2G_HUD_Scene_Node,
     B2G_2dMenu_Scene_Node,
     B2G_3dMenu_Scene_Node,
+    B2G_OverlayMenu_Scene_Node,
     B2G_NPC_Scene_Node,
 )
 
@@ -1427,6 +1595,7 @@ def register():
     nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
     bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
+    bpy.types.Node.overlay_special_objects = bpy.props.CollectionProperty(type=OverlayButtonAction, name="Special Objects")
     bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
     bpy.types.Node.player_entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
     bpy.types.Node.stage_objects = bpy.props.CollectionProperty(type=StageObject)
@@ -1434,6 +1603,7 @@ def register():
 def unregister():
     del bpy.types.Node.player_entity_properties
     del bpy.types.Node.actions_settings
+    del bpy.types.Node.overlay_special_objects
     del bpy.types.Node.special_objects
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
 

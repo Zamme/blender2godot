@@ -37,7 +37,7 @@ from blender2godot.display_properties import display_properties # type: ignore
 
 from blender2godot.splash_properties import splash_properties # type: ignore
 
-from blender2godot.b2g_tools import (
+from blender2godot.b2g_tools import ( # type: ignore
 	advanced_tools,
 	general_tools,
 	)
@@ -49,6 +49,8 @@ from blender2godot.player_properties import player_properties # type: ignore
 from blender2godot.menu3d_properties import menu3d_properties # type: ignore
 
 from blender2godot.menu2d_properties import menu2d_properties # type: ignore
+
+from blender2godot.menu_overlay_properties import menu_overlay_properties  # type: ignore
 
 from blender2godot.hud_properties import hud_properties # type: ignore
 
@@ -107,6 +109,7 @@ def register():
     player_properties.register()
     menu3d_properties.register()
     menu2d_properties.register()
+    menu_overlay_properties.register()
     hud_properties.register()
     test_project.register()
     game_export.register()
@@ -132,6 +135,7 @@ def unregister():
     hud_properties.unregister()
     menu3d_properties.unregister()
     menu2d_properties.unregister()
+    menu_overlay_properties.unregister()
     player_properties.unregister()
     test_project.unregister()
     game_export.unregister()

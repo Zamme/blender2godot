@@ -19,8 +19,12 @@
     "ActionName": "Go Right",
     "ActionDescription": "Go Right"
   },
-  "Back": {
+  "ABack": {
     "ActionName": "Back",
     "ActionDescription": "Back"
+  },
+  "ASelect": {
+    "ActionName": "Select",
+    "ActionDescription": "Select"
   }
 }

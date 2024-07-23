@@ -33,7 +33,7 @@ scene_types = [
     ("hud", "HUD", "", 5),
     ("loading", "Loading", "", 6),
     ("npc", "NPC", "", 7),
-    ("pausemenu", "Pause Menu", "", 8),
+    ("overlay_menu", "Overlay Menu", "", 8),
     ]
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
