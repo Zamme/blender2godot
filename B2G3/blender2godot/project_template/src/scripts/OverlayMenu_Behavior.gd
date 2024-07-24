@@ -66,7 +66,7 @@ func setup_menu():
 		for _special_object_key in special_objects.keys():
 			for _selectable_object in selectable_objects:
 				if _special_object_key == _selectable_object.name:
-					print("Selectable Object:", _selectable_object.name)
+#					print("Selectable Object:", _selectable_object.name)
 					_selectable_object.button_dict = special_objects[_special_object_key]
 	pass
 

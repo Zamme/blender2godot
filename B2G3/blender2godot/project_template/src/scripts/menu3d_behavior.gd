@@ -65,7 +65,7 @@ func setup_menu():
 #	print(optional_dict)
 	for _special_object_key in optional_dict["SpecialObjects"].keys():
 		for _selectable_object in selectable_objects:
-			print("Selectable Object:", _selectable_object.name)
+#			print("Selectable Object:", _selectable_object.name)
 			if _special_object_key == _selectable_object.name:
 				_selectable_object.button_dict = self.gm_ref.current_node["SpecialObjects"][_special_object_key]
 

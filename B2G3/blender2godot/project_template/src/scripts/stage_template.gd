@@ -49,6 +49,8 @@ const OVERLAYS_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "OverlayMenu_Behavior.gd"
 const OVERLAYS_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "OverlayButton_Behavior.gd"
 const OVERLAYS_SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 
+const DEFAULT_FONT_PATH = B2G_TOOLS_PATH + "FreeMonoBold.ttf"
+
 const LIGHTS_SCENE_PATH = SCENES_PATH + "Lights.tscn"
 const INFOS_DIRPATH = "res://infos/"
 const COLLIDERS_JSON_PATH = INFOS_DIRPATH + "colliders_info.json"
@@ -380,19 +382,19 @@ func apply_import_changes(_scenario_scene):
 					if _stage_object is MeshInstance:
 						if _stage_objects_dict[_stage_object_dict_key].has("Collider"):
 							var collider_type = _stage_objects_dict[_stage_object_dict_key]["Collider"]
-							print("Object ", _stage_object.name)
+#							print("Object ", _stage_object.name)
 							match collider_type :
 								"none":
-	#								pass
-									print("...without collider!")
+									pass
+#									print("...without collider!")
 								"convex":
-									print("...with convex collider!")
+#									print("...with convex collider!")
 									self.add_collider(_stage_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
 								"mesh":
-									print("...with mesh collider!")
+#									print("...with mesh collider!")
 									self.add_collider(_stage_object, COLLIDER_TYPE.MESH, _scenario_scene)
 								"smart":
-									print("...with smart collider!")
+#									print("...with smart collider!")
 									self.add_collider(_stage_object, COLLIDER_TYPE.SMART, _scenario_scene)
 					# Default Visibility
 					if _stage_objects_dict[_stage_object_dict_key].has("Visible"):
@@ -401,11 +403,11 @@ func apply_import_changes(_scenario_scene):
 					if _stage_objects_dict[_stage_object_dict_key].has("Type"):
 						match _stage_objects_dict[_stage_object_dict_key]["Type"]:
 							"trigger_zone":
-								print("Adding trigger to ", _stage_object.name)
+#								print("Adding trigger to ", _stage_object.name)
 								self.add_trigger(_stage_object, _scenario_scene)
 					break # Pass to next object
 	elif _menus3d_json.has("Menu3d_" + _scenario_scene.name): # IS A MENU 3D SCENARIO
-		print("Menu 3d in applying!!!!!")
+#		print("Menu 3d in applying!!!!!")
 		var _menu3d_name = "Menu3d_" + _scenario_scene.name
 		self.get_all_scene_objects(_scenario_scene)
 		var _menu3d_dict = _menus3d_json[_menu3d_name]
@@ -637,9 +639,9 @@ func create_menus2d():
 		_new_menu2d.optional_dict = _menus2d_json[_key]
 #		_new_menu2d.node_name = _game_manager_json
 		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		yield(get_tree(),"idle_frame")
+#		yield(get_tree(),"idle_frame")
 		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
-		yield(get_tree(),"idle_frame")
+#		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
 func create_menus3d(_files_to_import):
@@ -650,11 +652,11 @@ func create_menus3d(_files_to_import):
 	# Create Menus 3d
 	for _file_to_import in _files_to_import:
 		var _fn_without_ext = _file_to_import.get_file().trim_suffix("." + _file_to_import.get_file().get_extension())
-		print("Searching ", _fn_without_ext)
+#		print("Searching ", _fn_without_ext)
 		if _menus3d_json:
 			for _key in _menus3d_json.keys():
 				if str(_fn_without_ext) == (_menus3d_json[_key]["SceneName"]):
-					print("Editing ", _fn_without_ext)
+#					print("Editing ", _fn_without_ext)
 					var _new_menu_name : String = "Menu3d_" + _file_to_import.get_file()
 					_new_menu_name = _new_menu_name.trim_suffix("." + _new_menu_name.get_extension())
 					var _new_menu = self.add_scenes_to_new_scene(_new_menu_name, [self.get_file_to_import_path(_fn_without_ext)])
@@ -703,7 +705,7 @@ func create_overlays():
 		_new_overlay.script = overlay_menu_behavior_script
 		_new_overlay.optional_dict = _overlays_json[_key]
 		_new_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		yield(get_tree(),"idle_frame")
+#		yield(get_tree(),"idle_frame")
 		self.prepare_overlay_menu_scene(_new_overlay, _overlays_json[_key]["Objects"])
 		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_overlay, _new_overlay_path)
@@ -854,12 +856,9 @@ func create_stages(_files_to_import):
 					var _new_stage_name : String = STAGE_SCENES_PREFIX + _file_to_import.get_file()
 					_new_stage_name = _new_stage_name.trim_suffix("." + _new_stage_name.get_extension())
 					var _new_stage = self.add_scenes_to_new_scene(_new_stage_name, [self.get_file_to_import_path(_fn_without_ext)])
-	#				var _spawn_object = _new_stage.find_node(_stages_json[_key]["PlayerSpawnObjectName"])
-	#				_spawn_object.name = PLAYER_SPAWN_OBJECT_NAME
 					var _new_stage_path : String = STAGES_PATH + _new_stage_name + ".tscn"
 					_new_stage.script = load(STAGE_BEHAVIOR_SCRIPT_PATH)
 					_new_stage.optional_dict = _stages_json[_key]
-					#_new_stage.stage_objects_dict =_stages_json[_key]["Objects"]
 					if _stages_json[_key].has("DefaultEnvironment"):
 						if _stages_json[_key]["DefaultEnvironment"] is Dictionary:
 							var _new_world_environment = create_environment(_stages_json[_key]["DefaultEnvironment"])
@@ -881,7 +880,7 @@ func dir_contents(path, file_type = ".glb"):
 			if dir.current_is_dir():
 				pass
 			else:
-				print("Found file: " + file_name)
+#				print("Found file: " + file_name)
 				if file_name.ends_with(file_type):
 					files_to_import.append(file_name)
 			file_name = dir.get_next()
@@ -968,13 +967,12 @@ func mount_scenes():
 
 func prepare_hud_scene(_hud_scene, _hud_objects):
 	var FONT_FACTOR = 32
-	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 35.5
 	for _hud_object_info in _hud_objects.keys():
 		match _hud_objects[_hud_object_info]["Type"]:
 			"FONT":
-				print(_hud_objects[_hud_object_info]["Location"])
+#				print(_hud_objects[_hud_object_info]["Location"])
 				var _new_label : Label = Label.new()
 				_new_label.name = _hud_object_info
 				_hud_scene.add_child(_new_label)
@@ -992,7 +990,7 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
 				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
 				_new_label.set_pivot_offset(_new_label.rect_size/2)
-				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+#				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
 				var _location_split = _hud_objects[_hud_object_info]["Location"].split(",")
 #				_new_label.rect_position = _display_size/2
 				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
@@ -1014,39 +1012,37 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 func prepare_menu2d_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
 	var FONT_FACTOR = 32
-	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 35.5
 	var _pending_contents = []
-#	_menu_scene.set_optional_dict(_menu_objects)
-
+	
 	for _menu_object_info in _menu_objects.keys():
 		match _menu_objects[_menu_object_info]["Type"]:
 			"FONT":
 				if _menu_objects[_menu_object_info]["ElementType"] == "button_content":
 					_pending_contents.append(_menu_object_info)
-					continue
-				print(_menu_objects[_menu_object_info]["Location"])
-				var _new_label : Label = Label.new()
-				_new_label.name = _menu_object_info
-				_menu_scene.add_child(_new_label)
-				_new_label.set_owner(_menu_scene)
-				var _new_font : DynamicFont = DynamicFont.new()
-				if self.fonts_datas.size() == 0:
-					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
-				_new_font.font_data = self.fonts_datas[0]
-				_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
-				_new_label.set("custom_fonts/font", _new_font)
-				_new_label.text = _menu_objects[_menu_object_info]["Body"]
-				_new_label.align = Label.ALIGN_CENTER
-				_new_label.valign = Label.VALIGN_CENTER
-				_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
-				_new_label.set_pivot_offset(_new_label.rect_size/2)
-				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
-				var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
-				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+				else:
+	#				print(_menu_objects[_menu_object_info]["Location"])
+					var _new_label : Label = Label.new()
+					_new_label.name = _menu_object_info
+					_menu_scene.add_child(_new_label)
+					_new_label.set_owner(_menu_scene)
+					var _new_font : DynamicFont = DynamicFont.new()
+					if self.fonts_datas.size() == 0:
+						self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+					_new_font.font_data = self.fonts_datas[0]
+					_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
+					_new_label.set("custom_fonts/font", _new_font)
+					_new_label.text = _menu_objects[_menu_object_info]["Body"]
+					_new_label.align = Label.ALIGN_CENTER
+					_new_label.valign = Label.VALIGN_CENTER
+					_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+					_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+					_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
+					_new_label.set_pivot_offset(_new_label.rect_size/2)
+	#				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+					var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+					_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 			"GPENCIL":
 				match _menu_objects[_menu_object_info]["ElementType"]:
 					"button":
@@ -1065,7 +1061,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 						_new_button.script = button_behavior_script
-						yield(get_tree(),"idle_frame")
+#						yield(get_tree(),"idle_frame")
 						_new_button.add_to_group("menus2d_buttons", true)
 					"none":
 						var _new_button : TextureRect = TextureRect.new()
@@ -1089,7 +1085,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 			for _object in _objects:
 				if _object.name == _menu_object_info:
 					if _object:
-						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
+#						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
 						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
 					else:
 						print("Object ", _menu_object_info, " not found")
@@ -1101,50 +1097,51 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 				if _object.name == _button_name:
 					_object.text = _menu_objects[_pending_content]["Body"]
 				var _new_font : DynamicFont = DynamicFont.new()
-				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				if self.fonts_datas.size() == 0:
+					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+				_new_font.font_data = self.fonts_datas[0]
 				_new_font.size = int(float(_menu_objects[_pending_content]["Size"])*FONT_FACTOR)
 				_object.set("custom_fonts/font", _new_font)
 	print("Finished.")
 
 func prepare_menu3d_scene(_menu_scene):
-	print("Menu 3d scene name:", _menu_scene.name)
+	print("Preparing Menu 3d scene name:", _menu_scene.name)
 
 func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 	print("Preparing ", _menu_scene.name, " objects:")
 	var FONT_FACTOR = 32
-	var DEFAULT_FONT_PATH = "res://b2g_tools/FreeMonoBold.ttf"
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 35.5
 	var _pending_contents = []
-#	_menu_scene.set_optional_dict(_menu_objects)
-
+	
 	for _menu_object_info in _menu_objects.keys():
+		print("Processing ", _menu_object_info)
 		match _menu_objects[_menu_object_info]["Type"]:
 			"FONT":
 				if _menu_objects[_menu_object_info]["ElementType"] == "button_content":
 					_pending_contents.append(_menu_object_info)
-					continue
-				print(_menu_objects[_menu_object_info]["Location"])
-				var _new_label : Label = Label.new()
-				_new_label.name = _menu_object_info
-				_menu_scene.add_child(_new_label)
-				_new_label.set_owner(_menu_scene)
-				var _new_font : DynamicFont = DynamicFont.new()
-				if self.fonts_datas.size() == 0:
-					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
-				_new_font.font_data = self.fonts_datas[0]
-				_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
-				_new_label.set("custom_fonts/font", _new_font)
-				_new_label.text = _menu_objects[_menu_object_info]["Body"]
-				_new_label.align = Label.ALIGN_CENTER
-				_new_label.valign = Label.VALIGN_CENTER
-				_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-				_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-				_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
-				_new_label.set_pivot_offset(_new_label.rect_size/2)
-				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
-				var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
-				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+				else:
+	#				print(_menu_objects[_menu_object_info]["Location"])
+					var _new_label : Label = Label.new()
+					_new_label.name = _menu_object_info
+					_menu_scene.add_child(_new_label)
+					_new_label.set_owner(_menu_scene)
+					var _new_font : DynamicFont = DynamicFont.new()
+					if self.fonts_datas.size() == 0:
+						self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+					_new_font.font_data = self.fonts_datas[0]
+					_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
+					_new_label.set("custom_fonts/font", _new_font)
+					_new_label.text = _menu_objects[_menu_object_info]["Body"]
+					_new_label.align = Label.ALIGN_CENTER
+					_new_label.valign = Label.VALIGN_CENTER
+					_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+					_new_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+					_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
+					_new_label.set_pivot_offset(_new_label.rect_size/2)
+	#				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
+					var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+					_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 			"GPENCIL":
 				match _menu_objects[_menu_object_info]["ElementType"]:
 					"button":
@@ -1163,8 +1160,8 @@ func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 						_new_button.script = button_behavior_script
-						yield(get_tree(),"idle_frame")
-						_new_button.add_to_group("menus2d_buttons", true)
+#						yield(get_tree(),"idle_frame")
+						_new_button.add_to_group("overlay_buttons", true)
 					"none":
 						var _new_button : TextureRect = TextureRect.new()
 						_new_button.name = _menu_object_info
@@ -1178,6 +1175,7 @@ func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 						_new_button.set_pivot_offset(_new_button.rect_size/2)
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+		print(_menu_object_info, " processed.")
 	# REORDERING DEPTH
 	var _objects = []
 	for _object in _menu_scene.get_children():
@@ -1187,7 +1185,7 @@ func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 			for _object in _objects:
 				if _object.name == _menu_object_info:
 					if _object:
-						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
+#						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
 						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
 					else:
 						print("Object ", _menu_object_info, " not found")
@@ -1199,7 +1197,9 @@ func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 				if _object.name == _button_name:
 					_object.text = _menu_objects[_pending_content]["Body"]
 				var _new_font : DynamicFont = DynamicFont.new()
-				_new_font.font_data = load(DEFAULT_FONT_PATH)
+				if self.fonts_datas.size() == 0:
+					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
+				_new_font.font_data = self.fonts_datas[0]
 				_new_font.size = int(float(_menu_objects[_pending_content]["Size"])*FONT_FACTOR)
 				_object.set("custom_fonts/font", _new_font)
 	print("Finished.")
