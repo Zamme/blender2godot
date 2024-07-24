@@ -8,11 +8,13 @@ const MENUS3D_DIRPATH = SCENES_PATH + "menus3d/"
 const MENUS2D_DIRPATH = SCENES_PATH + "menus2d/"
 const PLAYERS_DIRPATH = SCENES_PATH + "players/"
 const HUDS_SCENES_DIRPATH = SCENES_PATH + "huds/"
+const OVERLAYS_SCENES_DIRPATH = SCENES_PATH + "overlays/"
 const MENU2D_BUTTON_BEHAVIOR_PATH = "res://b2g_tools/B2G_Menu2dButton.gd"
 const SELECTED_OBJECT_OVERLAY_COLOR = Color(1.0, 1.0, 1.0, 0.75)
 const STAGE_SCENES_PREFIX = "Stage_"
 const MENU3D_SCENES_PREFIX = "Menu3d_"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
+const OVERLAYS_SCENES_PREFIX = "Overlay_"
 const SCENE_EXTENSION = ".tscn"
 const _prefix_dict : Dictionary = {"B2G_Stage_Scene_Node" : ["Stage_", STAGES_DIRPATH],
 								"B2G_2dMenu_Scene_Node" : ["Menu2d_", MENUS2D_DIRPATH],
@@ -76,16 +78,19 @@ func execute_command(_command : String, _parameter : String):
 func execute_node(_node_name : String):
 	var _last_node_executed = self.current_node
 	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
-	print("Execute: ", self.current_node["Type"])
-	match self.current_node["Type"]:
-		"B2G_Finish_Node":
-			self.quit_game()
-		"B2G_Stage_Scene_Node":
-			self.execute_command("load_stage", "")
-		"B2G_2dMenu_Scene_Node":
-			self.execute_command("load_2dmenu", "")
-		"B2G_3dMenu_Scene_Node":
-			self.execute_command("load_3dmenu", "")
+	if self.current_node:
+		print("Execute: ", self.current_node["Type"])
+		match self.current_node["Type"]:
+			"B2G_Finish_Node":
+				self.quit_game()
+			"B2G_Stage_Scene_Node":
+				self.execute_command("load_stage", "")
+			"B2G_2dMenu_Scene_Node":
+				self.execute_command("load_2dmenu", "")
+			"B2G_3dMenu_Scene_Node":
+				self.execute_command("load_3dmenu", "")
+	else:
+		print("No node to execute!")
 
 func get_node_next_node(_tree, _node_name):
 	var _node

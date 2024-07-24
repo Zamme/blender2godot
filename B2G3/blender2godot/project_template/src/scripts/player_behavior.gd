@@ -4,7 +4,6 @@ class_name PlayerBehavior extends KinematicBody
 export var optional_dict : Dictionary
 export var node_info : Dictionary
 
-export var PAUSE_MENU_PATH : String = ""
 export var gravity_enabled : bool
 
 export var hud_scene_name : String
@@ -17,6 +16,7 @@ var _player_mesh_name : String = ""
 var _actions : Dictionary
 var _entity_properties : Dictionary
 var _properties_linked : Dictionary
+var _pause_menu_dict : Dictionary
 
 # TODO: PASS TO NODES
 const GRAVITY = -24.8
@@ -42,7 +42,7 @@ var mouse_rotation_axises = [false, false, false, false]
 var current_delta = 0.0
 
 var pause_control
-
+var PAUSE_MENU_PATH : String = ""
 var stage_scene
 
 var gm_ref
@@ -83,21 +83,19 @@ func animate():
 				player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
-	print(PAUSE_MENU_PATH)
-	if PAUSE_MENU_PATH.ends_with("none.tscn"):
-		get_tree().quit()
+	if self._pause_menu_dict.has("SceneName"):
+		self.PAUSE_MENU_PATH = self.gm_ref.OVERLAYS_SCENES_DIRPATH + self.gm_ref.OVERLAYS_SCENES_PREFIX + self._pause_menu_dict["SceneName"] + self.gm_ref.SCENE_EXTENSION
+		stage_scene.is_paused = self._pause_menu_dict["PauseGame"]
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	yield(get_tree(),"idle_frame")
+	var _pause_control_file = File.new()
+	if _pause_control_file.file_exists(PAUSE_MENU_PATH): 
+		pause_control = load(PAUSE_MENU_PATH).instance()
+		pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
+		pause_control.set_player_scene(self)
+		add_child(pause_control)
 	else:
-		stage_scene.is_paused = true
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		yield(get_tree(),"idle_frame")
-		var _pause_control_file = File.new()
-		if _pause_control_file.file_exists(PAUSE_MENU_PATH): 
-			pause_control = load(PAUSE_MENU_PATH).instance()
-			pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
-			pause_control.set_player_scene(self)
-			add_child(pause_control)
-		else:
-			get_tree().quit()
+		get_tree().quit()
 
 func find_camera(_camera_object_name):
 #	print("Searching ", _camera_object_name, " on ", self.name)
@@ -167,6 +165,9 @@ func setup_dictionaries():
 	if self.node_info.has("HUD"):
 		self._hud_dict = self.gm_ref.get_tree_node(node_info["HUD"], self.gm_ref.gm_dict)
 		self._properties_linked = self.node_info["PropertiesLinked"]
+	if self.node_info.has("PauseMenuOverlay"):
+		self._pause_menu_dict = self.gm_ref.get_tree_node(node_info["PauseMenuOverlay"], self.gm_ref.gm_dict)
+		print(self._pause_menu_dict)
 	if self.optional_dict.has("PlayerAnimations"):
 		self._animations = self.optional_dict["PlayerAnimations"]
 	if self.optional_dict.has("PlayerControls"):

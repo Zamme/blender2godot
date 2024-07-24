@@ -27,7 +27,7 @@ func _ready():
 func get_selectable_objects():
 	var _sel_objects = []
 	for _object in get_tree().current_scene.get_all_children(self):
-		if _object.is_in_group("overlay_menus_buttons"):
+		if _object.is_in_group("overlay_buttons"):
 			_sel_objects.append(_object)
 	return _sel_objects
 

@@ -87,7 +87,8 @@ var quit_timer : Timer
 var _start_scene_path : String
 
 var fonts_datas = [] # DEFAULT FONT IS THE FIRST [0]
-var button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
+var menu2d_button_behavior_script = load(MENU2D_BUTTON_BEHAVIOR_PATH)
+var overlay_button_behavior_script = load(OVERLAYS_BUTTON_BEHAVIOR_PATH)
 var menus3d_behavior_script = load(MENU3D_BEHAVIOR_PATH)
 var overlay_menu_behavior_script = load(OVERLAYS_BEHAVIOR_FILEPATH)
 var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
@@ -1060,7 +1061,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						_new_button.icon_align = Button.ALIGN_CENTER
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
-						_new_button.script = button_behavior_script
+						_new_button.script = menu2d_button_behavior_script
 #						yield(get_tree(),"idle_frame")
 						_new_button.add_to_group("menus2d_buttons", true)
 					"none":
@@ -1159,7 +1160,7 @@ func prepare_overlay_menu_scene(_menu_scene, _menu_objects):
 						_new_button.icon_align = Button.ALIGN_CENTER
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
-						_new_button.script = button_behavior_script
+						_new_button.script = overlay_button_behavior_script
 #						yield(get_tree(),"idle_frame")
 						_new_button.add_to_group("overlay_buttons", true)
 					"none":

@@ -1,4 +1,4 @@
-class_name Menu2dButton_Behavior extends Button
+class_name OverlayButton_Behavior extends Button
 
 
 var gm_ref

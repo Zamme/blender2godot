@@ -451,6 +451,14 @@ class ExportGameOperator(bpy.types.Operator):
                                         if len(_output.links) > 0:
                                             _props.add(_entity_property.property_name, _output.links[0].to_socket.name)
                             _current_node_dict.add("PropertiesLinked", _props)
+                    # Pause Menu assigned
+                    print("Assigning pause")
+                    for _output in _node.outputs:
+                        print(_output, type(_output).__name__)
+                        if type(_output).__name__ == "B2G_OverlayMenu_Socket":
+                            if len(_output.links) > 0:
+                                _current_node_dict.add("PauseMenuOverlay", _output.links[0].to_node.name)
+                            break
                 case "B2G_HUD_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
@@ -515,6 +523,35 @@ class ExportGameOperator(bpy.types.Operator):
                                             _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
                             _special_objects_dict.add(_special_object.button_name, _special_object_dict)
                         _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
+                case "B2G_OverlayMenu_Scene_Node":
+                    if _node.scene:
+                        _current_node_dict.add("SceneName", _node.scene.name)
+                        _current_node_dict.add("PauseGame", _node.with_pause)
+                        _special_objects_dict = my_dictionary()
+                        for _special_object in _node.overlay_special_objects:
+                            _special_object_dict = my_dictionary()
+                            _special_object_dict.add("ActionOnClick", _special_object.button_action_on_click)
+                            match _special_object.button_action_on_click:
+                                case "none":
+                                    pass
+                                case "load_stage":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                case "load_2dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                                case "load_3dmenu":
+                                    _output_index = _node.outputs.find(_special_object.button_name)
+                                    if _output_index > -1:
+                                        if _node.outputs[_output_index].is_linked:
+                                            _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
+                            _special_objects_dict.add(_special_object.button_name, _special_object_dict)
+                        _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
+            
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)
@@ -523,6 +560,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.game_manager_info = json.dumps(self.game_manager_dict, indent=1, ensure_ascii=True)
         with open(self.game_manager_filepath, 'w') as outfile:
             outfile.write(self.game_manager_info + '\n')
+        print("Game Manager exported.")
 
     def export_game_project(self, context):
         print("Exporting game", context.scene.project_folder)
