@@ -21,30 +21,22 @@ func do_click_action():
 			_msg += " " + self.button_dict["ActionParameter"]
 #	print("Message: ", _msg)
 #	self.gm_ref.execute_command(_action_to_do, _action_parameter)
-	self.gm_ref.execute_node(_action_parameter)
-
-
-
-#var _param : String
-#	var _dir : Directory = Directory.new()
-#	match action_to_do:
-#		"close_menu":
-#			menu_scene.create_exit_timer()
-#		"load_stage":
-#			_param = STAGES_PATH + STAGE_SCENES_PREFIX + action_parameter + ".tscn"
-#			if _dir.file_exists(_param):
-#				get_tree().current_scene.load_scene(_param, true)
-#		"load_3dmenu":
-#			_param = MENUS3D_PATH + MENU3D_SCENES_PREFIX + action_parameter + ".tscn"
-#			if _dir.file_exists(_param):
-#				get_tree().current_scene.load_scene(_param, true)
-#		"load_2dmenu":
-#			_param = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + action_parameter + ".tscn"
-#			if _dir.file_exists(_param):
-#				get_tree().current_scene.load_scene(_param, true)
-#		"quit_game":
-#			get_tree().quit()
-
+	print("ActionToDo: ", _action_to_do)
+	print("ActionParameter: ", _action_parameter)
+	match _action_to_do:
+		"close_overlay":
+			self.gm_ref.continue_game()
+		"load_2dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_3dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_stage":
+			self.gm_ref.execute_node(_action_parameter)
+		"quit_game":
+			self.gm_ref.quit_game()
+		_:
+			print("Action unknown!")
+			self.gm_ref.show_message("Action Unknown")
 
 func select_object(_selected : bool):
 	if _selected:

@@ -83,19 +83,24 @@ func animate():
 				player_mesh._play_animation(_animations["idle"])
 
 func create_pause():
-	if self._pause_menu_dict.has("SceneName"):
-		self.PAUSE_MENU_PATH = self.gm_ref.OVERLAYS_SCENES_DIRPATH + self.gm_ref.OVERLAYS_SCENES_PREFIX + self._pause_menu_dict["SceneName"] + self.gm_ref.SCENE_EXTENSION
-		stage_scene.is_paused = self._pause_menu_dict["PauseGame"]
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	yield(get_tree(),"idle_frame")
-	var _pause_control_file = File.new()
-	if _pause_control_file.file_exists(PAUSE_MENU_PATH): 
-		pause_control = load(PAUSE_MENU_PATH).instance()
-		pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
-		pause_control.set_player_scene(self)
-		add_child(pause_control)
+	if self.node_info.has("PauseMenuOverlay"):
+		self.gm_ref.execute_node(self.node_info["PauseMenuOverlay"])
 	else:
 		get_tree().quit()
+
+#	if self._pause_menu_dict.has("SceneName"):
+#		self.PAUSE_MENU_PATH = self.gm_ref.OVERLAYS_SCENES_DIRPATH + self.gm_ref.OVERLAYS_SCENES_PREFIX + self._pause_menu_dict["SceneName"] + self.gm_ref.SCENE_EXTENSION
+#		stage_scene.is_paused = self._pause_menu_dict["PauseGame"]
+#	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+#	yield(get_tree(),"idle_frame")
+#	var _pause_control_file = File.new()
+#	if _pause_control_file.file_exists(PAUSE_MENU_PATH): 
+#		pause_control = load(PAUSE_MENU_PATH).instance()
+#		pause_control.pause_mode = Node.PAUSE_MODE_PROCESS
+#		pause_control.set_player_scene(self)
+#		add_child(pause_control)
+#	else:
+#		get_tree().quit()
 
 func find_camera(_camera_object_name):
 #	print("Searching ", _camera_object_name, " on ", self.name)

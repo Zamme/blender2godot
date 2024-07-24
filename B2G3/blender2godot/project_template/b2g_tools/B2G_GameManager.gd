@@ -27,9 +27,11 @@ export var debug_hud_enabled : bool
 #var current_stage_node_loaded
 
 var b2g_current_scene
+var b2g_current_overlay
 enum GameState {None, Starting, Loading, Menu, Playing, Pause, Finished}
 var current_state = GameState.None
 var current_node
+var _last_node_executed
 
 # DEBUG
 const B2G_HUD_FILEPATH = "res://b2g_tools/B2G_HUD.tscn"
@@ -43,6 +45,12 @@ func _ready():
 	if debug_hud_enabled:
 		add_b2g_hud()
 	# END DEBUG
+
+func continue_game():
+	print("Continue game")
+	self.b2g_current_overlay.queue_free()
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	self.b2g_current_scene.is_paused = false
 
 func execute_command(_command : String, _parameter : String):
 	print("Command to execute: ", _command)
@@ -72,11 +80,19 @@ func execute_command(_command : String, _parameter : String):
 				var _scene_name = self.current_node["SceneName"]
 				_param = self.MENUS2D_DIRPATH + self.MENUS2D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
 				self.load_menu2d(_param)
+		"load_overlay":
+			if _parameter != "":
+				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
+			if self.current_node:
+				var _scene_name = self.current_node["SceneName"]
+				var _with_pause = self.current_node["PauseGame"]
+				_param = self.OVERLAYS_SCENES_DIRPATH + self.OVERLAYS_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+				self.load_overlay(_param, _with_pause)
 		"quit_game":
 			self.quit_game()
 
 func execute_node(_node_name : String):
-	var _last_node_executed = self.current_node
+	self._last_node_executed = self.current_node
 	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
 	if self.current_node:
 		print("Execute: ", self.current_node["Type"])
@@ -89,6 +105,8 @@ func execute_node(_node_name : String):
 				self.execute_command("load_2dmenu", "")
 			"B2G_3dMenu_Scene_Node":
 				self.execute_command("load_3dmenu", "")
+			"B2G_OverlayMenu_Scene_Node":
+				self.execute_command("load_overlay", "")
 	else:
 		print("No node to execute!")
 
@@ -124,20 +142,36 @@ func load_menu2d(_menu_filepath):
 func load_menu3d(_menu_filepath):
 	load_scene(_menu_filepath, true, self.current_node)
 
-func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _node_dict : Dictionary = {}):
-	if _unload_current:
-		if b2g_current_scene:
-			b2g_current_scene.queue_free()
-	print("Loading ", _new_scene_path)
-	var _file : File = File.new()
-	if _file.file_exists(_new_scene_path):
-		b2g_current_scene = load(_new_scene_path).instance()
-		if not _node_dict.empty():
-			b2g_current_scene.node_info = _node_dict
+func load_overlay(_overlay_filepath, _with_pause):
+	load_scene(_overlay_filepath, false, self.current_node, true)
+	self.b2g_current_scene.is_paused = _with_pause
+
+func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _node_dict : Dictionary = {}, _is_overlay : bool = false):
+	if _is_overlay:
+		print("Loading overlay ", _new_scene_path)
+		var _file : File = File.new()
+		if _file.file_exists(_new_scene_path):
+			b2g_current_overlay = load(_new_scene_path).instance()
+			if not _node_dict.empty():
+				b2g_current_overlay.node_info = _node_dict
+		else:
+			b2g_current_overlay = Spatial.new()
+			print("Overlay filepath not found")
+		add_child(b2g_current_overlay)
 	else:
-		b2g_current_scene = Spatial.new()
-		print("Scene filepath not found")
-	add_child(b2g_current_scene)
+		if _unload_current:
+			if b2g_current_scene:
+				b2g_current_scene.queue_free()
+		print("Loading scene ", _new_scene_path)
+		var _file : File = File.new()
+		if _file.file_exists(_new_scene_path):
+			b2g_current_scene = load(_new_scene_path).instance()
+			if not _node_dict.empty():
+				b2g_current_scene.node_info = _node_dict
+		else:
+			b2g_current_scene = Spatial.new()
+			print("Scene filepath not found")
+		add_child(b2g_current_scene)
 
 func load_stage(_stage_filepath):
 	load_scene(_stage_filepath, true, self.current_node)
@@ -191,8 +225,12 @@ func update_state():
 
 	# DEBUG
 func add_b2g_hud():
+	var b2g_hud_canvas : CanvasLayer = CanvasLayer.new()
+	b2g_hud_canvas.layer = 99
+	b2g_hud_canvas.name = "HUD_Canvas_Layer"
 	b2g_hud = load(B2G_HUD_FILEPATH).instance()
-	add_child(b2g_hud)
+	b2g_hud_canvas.add_child(b2g_hud)
+	add_child(b2g_hud_canvas)
 
 func show_message(_text):
 	if b2g_hud:
