@@ -24,6 +24,7 @@ import os, json
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket
 from blender2godot.stage_properties import stage_properties # type: ignore
+from blender2godot.addon_config import addon_config # type: ignore
 
 
 menu_button_action_type_options = [("none", "None", "", 0), 
@@ -170,15 +171,18 @@ class StageObject(bpy.types.PropertyGroup):
     #damage_zone_amount : bpy.props.FloatProperty(name="Damage Zone Amount") # type: ignore
     
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
-class MyCustomTree(NodeTree):
+class GameManagerTree(NodeTree):
     # Description string
     '''A custom node tree type that will show up in the editor type list'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'CustomTreeType'
+    bl_idname = 'GameManagerTreeType'
     # Label for nice name display
     bl_label = "GameManager Node Tree"
     # Icon identifier
     bl_icon = 'NODETREE'
+
+    def init(self, context):
+        print("HEY")
 
 
 # Custom socket type
@@ -222,7 +226,7 @@ class MyCustomSocket(NodeSocket):
 class MyCustomTreeNode:
     @classmethod
     def poll(cls, ntree):
-        return ntree.bl_idname == 'CustomTreeType'
+        return ntree.bl_idname == 'GameManagerTreeType'
 
 
 # Derived from the Node base type.
@@ -484,13 +488,17 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "Start"
     # Icon identifier
-    bl_icon = 'SOUND'
-
+    bl_icon = 'NODE'
+    
     def init(self, context):
         _new_socket = self.outputs.new("B2G_Pipeline_SocketType", "Go")
         #_new_socket.display_shape="SQUARE"
         #_new_socket.description = "Pipeline socket"
         _new_socket.link_limit = 1
+
+    #def draw_header(self, context):
+        #layout = self.layout
+        #layout.label(icon_value=addon_config.preview_collections[0]["pipeline_icon"].icon_id)        
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -521,7 +529,7 @@ class B2G_Finish_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "Finish"
     # Icon identifier
-    bl_icon = 'SOUND'
+    bl_icon = 'NODE'
 
     def init(self, context):
         _new_input = self.inputs.new("B2G_Pipeline_SocketType", "Go")
@@ -1519,7 +1527,7 @@ from nodeitems_utils import NodeCategory, NodeItem
 class MyNodeCategory(NodeCategory):
     @classmethod
     def poll(cls, context):
-        return context.space_data.tree_type == 'CustomTreeType'
+        return context.space_data.tree_type == 'GameManagerTreeType'
 
 
 # all categories in a list
@@ -1569,7 +1577,7 @@ classes = (
     HudSettings,
     PlayerEntityProperty,
     StageObject,
-    MyCustomTree,
+    GameManagerTree,
     MyCustomSocket,
     MyCustomNode,
     B2G_String_Socket,

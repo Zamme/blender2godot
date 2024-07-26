@@ -79,8 +79,8 @@ class MenuOverlaySpecialObject(bpy.types.PropertyGroup):
 
 class ButtonOverlayProperties(bpy.types.PropertyGroup):
     button_name : bpy.props.StringProperty(name="New button name", default="NewButton") # type: ignore
-    button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR", default=(0.0,0.0,0.0,1.0)) # type: ignore
-    button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR", default=(1.0,1.0,1.0,1.0)) # type: ignore
+    button_border_color : bpy.props.FloatVectorProperty(name="Button Border Color", size=4, subtype="COLOR") # type: ignore
+    button_fill_color : bpy.props.FloatVectorProperty(name="Button Fill Color", size=4, subtype="COLOR") # type: ignore
     button_shape : bpy.props.EnumProperty(items=shape_options, name="Button shape") # type: ignore
     radius_parameter : bpy.props.FloatProperty(name="Button Radius", min=1.0, max=10.0, default=3.0) # type: ignore
     segments_parameter : bpy.props.IntProperty(name="Button Segments", min=8, max=64, default=12) # type: ignore
@@ -119,10 +119,10 @@ class CreateMenuOverlayBaseButtonOperator(bpy.types.Operator):
         box1 = row1.box()
         row2 = box1.row()
         row2.prop(self.new_button_props, "button_name", text="Name")
-        row3 = box1.row()
-        row3.prop(self.new_button_props, "button_border_color")
-        row4 = box1.row()
-        row4.prop(self.new_button_props, "button_fill_color")
+        #row3 = box1.row()
+        #row3.prop(self.new_button_props, "button_border_color")
+        #row4 = box1.row()
+        #row4.prop(self.new_button_props, "button_fill_color")
         row5 = box1.row()
         row5.prop_tabs_enum(self.new_button_props, "button_shape")
         box2 = box1.box()
@@ -226,13 +226,16 @@ class MenuOverlayPropertiesPanel(bpy.types.Panel):
     
     _gamemanager_added = False
     _not_in_gamemanager = False
-   
+
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "overlay_menu"):
-                _ret = True
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "overlay_menu") and (context.scene.name != context.scene.gamemanager_scene_name)):
+                    _ret = True
         return _ret
     
     def draw_header(self, context):

@@ -248,12 +248,18 @@ class HUDPropertiesPanel(bpy.types.Panel):
     #bl_options = {"DEFAULT_CLOSED"}
     bl_order = 3
 
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "hud"):
-                _ret = True
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "hud") and (context.scene.name != context.scene.gamemanager_scene_name)):
+                    _ret = True
         return _ret
     
     def draw_header(self, context):

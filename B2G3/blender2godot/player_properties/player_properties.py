@@ -479,9 +479,11 @@ class PlayerAnimationsPanel(bpy.types.Panel):
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "player"):
-                if context.scene.player_object:
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "player") and (context.scene.name != context.scene.gamemanager_scene_name)):
                     _ret = True
         return _ret
     
@@ -522,12 +524,17 @@ class PlayerCameraPanel(bpy.types.Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 8
     
+    _gamemanager_added = False
+    _not_in_gamemanager = False
+
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "player"):
-                if context.scene.player_object:
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "player") and (context.scene.name != context.scene.gamemanager_scene_name)):
                     _ret = True
         return _ret
     
@@ -570,9 +577,11 @@ class PlayerControlsPanel(bpy.types.Panel):
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "player"):
-                if context.scene.player_object:
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "player") and (context.scene.name != context.scene.gamemanager_scene_name)):
                     _ret = True
         return _ret
     
@@ -781,9 +790,12 @@ class PlayerPropertiesPanel(bpy.types.Panel):
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if (context.scene.scene_type == "player"):
-                _ret = True
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "player") and (context.scene.name != context.scene.gamemanager_scene_name)):
+                    _ret = True
         return _ret
     
     def draw_header(self, context):

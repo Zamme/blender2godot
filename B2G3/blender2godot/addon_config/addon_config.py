@@ -73,11 +73,17 @@ def update_workspace():
         for _area in bpy.context.screen.areas:
             if _area.type == "VIEW_3D":
                 _area.type = "NODE_EDITOR"
-                _area.ui_type = "CustomTreeType"
+                _area.ui_type = "GameManagerTreeType"
         if not bpy.data.node_groups.get("GameManager"):
-            bpy.ops.node.new_node_tree(type='CustomTreeType', name='GameManager')
-        _gm_node_tree = bpy.data.node_groups.get("GameManager")
-        _gm_nodes = _gm_node_tree.nodes
+            bpy.ops.node.new_node_tree(type='GameManagerTreeType', name='GameManager')
+            _gm_node_tree = bpy.data.node_groups.get("GameManager")
+            _start_node = _gm_node_tree.nodes.new(type="B2G_Start_NodeType")
+            _start_node.location = (-300.0, 0.0)
+            _finish_node = _gm_node_tree.nodes.new(type="B2G_Finish_NodeType")
+            _finish_node.location = (300.0, 0.0)
+        else:
+            _gm_node_tree = bpy.data.node_groups.get("GameManager")
+        #_gm_nodes = _gm_node_tree.nodes
         for _area in bpy.context.screen.areas:
             if _area.type == "NODE_EDITOR":
                 for _region in _area.regions:
@@ -87,10 +93,11 @@ def update_workspace():
                         #_region.active_panel_category = "Blender2Godot"
                     pass
                 for _space in _area.spaces:
-                    #print("Space:",_space.type)
+                    print("Space:",_space.type)
                     if _space.type == "NODE_EDITOR":
-                        _space.node_tree = bpy.data.node_groups.get("GameManager")
-                        bpy.data.node_groups.get("GameManager").use_fake_user = True
+                        _space.node_tree = _gm_node_tree
+                        if not _space.node_tree.use_fake_user:
+                            _space.node_tree.use_fake_user = True
         
         # --- UPDATE GAMEMANAGER TREE ---
         # SCENES NODES
@@ -281,7 +288,13 @@ class Blender2GodotPanelOnView3d(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Change to B2G Nodes Viewer")
+        scene = context.scene
+        if not self._gamemanager_added:
+            row = layout.row()
+            box = row.box()
+            box.operator("scene.create_gamemanager_operator")
+        else:
+            layout.label(text="Change to B2G Nodes Viewer")
 
 def init_handlers():
     bpy.app.handlers.load_post.append(load_handler)

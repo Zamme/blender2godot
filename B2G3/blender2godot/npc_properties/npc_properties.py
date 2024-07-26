@@ -40,9 +40,12 @@ class NpcPropertiesPanel(bpy.types.Panel):
     @classmethod 
     def poll(self, context):
         _ret = False
-        if hasattr(context.scene, "scene_type"):
-            if ((context.scene.scene_type == "npc") and (context.scene.name != context.scene.gamemanager_scene_name)):
-                _ret = True
+        _gm_index = bpy.data.scenes.find(context.scene.gamemanager_scene_name)
+        self._gamemanager_added = (_gm_index > -1)
+        if self._gamemanager_added:
+            if hasattr(context.scene, "scene_type"):
+                if ((context.scene.scene_type == "npc") and (context.scene.name != context.scene.gamemanager_scene_name)):
+                    _ret = True
         return _ret
     
     def draw_header(self, context):

@@ -43,8 +43,22 @@ func do_click_action():
 		if self.button_dict.has("ActionParameter"):
 			_action_parameter = self.button_dict["ActionParameter"]
 			_msg += " " + self.button_dict["ActionParameter"]
-	self.gm_ref.execute_node(_action_parameter)
-#	print(_msg)
+	match _action_to_do:
+		"close_overlay":
+			self.gm_ref.continue_game()
+		"load_2dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_3dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_stage":
+			self.gm_ref.execute_node(_action_parameter)
+		"quit_game":
+			self.gm_ref.quit_game()
+		_:
+			print("Action unknown!")
+			self.gm_ref.show_message("Action Unknown")
+#	self.gm_ref.execute_node(_action_parameter)
+	pass
 
 func get_collider():
 	for _child in get_children():
@@ -60,7 +74,7 @@ func select_object(_selected : bool):
 func _on_click_event(_cam, _event, _pos, _norm, _s_idx):
 	if _event is InputEventMouseButton:
 		if _event.pressed:
-			print("clicked")
+#			print("clicked")
 			do_click_action()
 		else:
 			pass

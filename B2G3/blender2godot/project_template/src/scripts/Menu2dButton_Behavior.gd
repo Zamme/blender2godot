@@ -19,9 +19,21 @@ func do_click_action():
 		if self.button_dict.has("ActionParameter"):
 			_action_parameter = self.button_dict["ActionParameter"]
 			_msg += " " + self.button_dict["ActionParameter"]
-#	print("Message: ", _msg)
-#	self.gm_ref.execute_command(_action_to_do, _action_parameter)
-	self.gm_ref.execute_node(_action_parameter)
+	match _action_to_do:
+		"close_overlay":
+			self.gm_ref.continue_game()
+		"load_2dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_3dmenu":
+			self.gm_ref.execute_node(_action_parameter)
+		"load_stage":
+			self.gm_ref.execute_node(_action_parameter)
+		"quit_game":
+			self.gm_ref.quit_game()
+		_:
+			print("Action unknown!")
+			self.gm_ref.show_message("Action Unknown")
+
 
 
 

@@ -109,6 +109,7 @@ func execute_node(_node_name : String):
 				self.execute_command("load_overlay", "")
 	else:
 		print("No node to execute!")
+		self.show_message("No node to execute!")
 
 func get_node_next_node(_tree, _node_name):
 	var _node
@@ -157,7 +158,7 @@ func load_scene(_new_scene_path : String = "", _unload_current : bool = false, _
 		else:
 			b2g_current_overlay = Spatial.new()
 			print("Overlay filepath not found")
-		add_child(b2g_current_overlay)
+		self.b2g_current_scene.add_child(b2g_current_overlay)
 	else:
 		if _unload_current:
 			if b2g_current_scene:
