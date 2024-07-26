@@ -184,7 +184,9 @@ func quit_game():
 func resume_gm():
 	if not self.current_node:
 		self.current_node = self.get_node_next_node(self.gm_dict, "Start")
-	
+		if not self.current_node:
+			show_message("No scene to load")
+			return
 	var _scene_filepath : String = ""
 	var _scene_type : String = ""
 	if current_node.has("SceneName"):

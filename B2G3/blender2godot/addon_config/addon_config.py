@@ -78,9 +78,10 @@ def update_workspace():
             bpy.ops.node.new_node_tree(type='GameManagerTreeType', name='GameManager')
             _gm_node_tree = bpy.data.node_groups.get("GameManager")
             _start_node = _gm_node_tree.nodes.new(type="B2G_Start_NodeType")
-            _start_node.location = (-300.0, 0.0)
+            _start_node.location = (-300.0, 20.0)
             _finish_node = _gm_node_tree.nodes.new(type="B2G_Finish_NodeType")
-            _finish_node.location = (300.0, 0.0)
+            _finish_node.location = (300.0, -20.0)
+            _gm_node_tree.links.new(_start_node.outputs[0], _finish_node.inputs[0])
         else:
             _gm_node_tree = bpy.data.node_groups.get("GameManager")
         #_gm_nodes = _gm_node_tree.nodes
@@ -93,7 +94,6 @@ def update_workspace():
                         #_region.active_panel_category = "Blender2Godot"
                     pass
                 for _space in _area.spaces:
-                    print("Space:",_space.type)
                     if _space.type == "NODE_EDITOR":
                         _space.node_tree = _gm_node_tree
                         if not _space.node_tree.use_fake_user:

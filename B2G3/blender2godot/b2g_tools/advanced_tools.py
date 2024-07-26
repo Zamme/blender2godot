@@ -1309,10 +1309,10 @@ class OpenGodotProjectOperator(bpy.types.Operator): # It DOESN'T block blender e
         print("STDOUT:", stdout)
         print("STDERR:", stderr)
         if stdout.find("Godot Engine v3") < 0:
-            print("Godot executable path is not correct")
+            print("Godot importing error or executable path is not correct")
             context.scene.godot_export_ok = False
             context.scene.godot_exporting = False
-            show_error_popup(["Godot executable path is not correct"], "Errors detected", "CANCEL")
+            show_error_popup(["Godot importing error or executable path is not correct"], "Errors detected", "CANCEL")
         if stdout.find("StageTemplateDone"):
             context.scene.godot_export_ok = True
             context.scene.godot_exporting = False
