@@ -21,8 +21,12 @@ func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
-		select_object(0) # TODO: assign by menu2d_default_selected_button, LACKS IN JSON!
+		if optional_dict.has("DefaultButtonSelected"):
+			select_object_by_name(optional_dict["DefaultButtonSelected"])
+		else:
+			select_object_by_index(0)
 	setup_menu()
+#	setup_controls()
 
 func get_selectable_objects():
 	var _sel_objects = []
@@ -52,9 +56,16 @@ func dec_index(_current : int, _min : int, _max : int, _loop : bool):
 func do_action():
 	selectable_objects[current_selected_object_index].do_click_action()
 
-func select_object(_index : int):
+func select_object_by_index(_index : int):
 	current_selected_object_index = _index
 	update_objects()
+
+func select_object_by_name(_name : String):
+	for _sel_obj_index in range(len(selectable_objects)):
+		if selectable_objects[_sel_obj_index].name == _name:
+			current_selected_object_index = _sel_obj_index
+			update_objects()
+			break
 
 func select_object_by_navigation(_navigation_key):
 	var _current_object = selectable_objects[current_selected_object_index]
@@ -66,9 +77,56 @@ func select_object_by_navigation(_navigation_key):
 				update_objects()
 				break
 
-
 func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
+
+#func setup_controls():
+#	# MENU CONTROLS
+#	var _controls = optional_dict["MenuControls"]
+#	if _controls:
+#		for _control_prop_key in _controls.keys():
+#			var _action = InputEventAction.new()
+#			var _prop_path : String = "input/" + _control_prop_key
+#			ProjectSettings.set(_prop_path, 0)
+#			var property_info = {
+#				"name": _prop_path,
+#				"type": TYPE_INT,
+#				"hint": PROPERTY_HINT_ENUM,
+#				"hint_string": ""
+#			}
+#			ProjectSettings.add_property_info(property_info)
+#			var _input_evs = []
+#			for _input_entry in _controls[_control_prop_key]:
+#				match _input_entry[0]:
+#					"keyboard":
+#						var event_key = InputEventKey.new()
+#						event_key.scancode = int(_input_entry[3])
+#						_input_evs.append(event_key)
+#					"gamepad":
+#						var event_joypad
+#						if _input_entry[1].find("BUTTON") > -1:
+#							event_joypad = InputEventJoypadButton.new()
+#							event_joypad.button_index = int(_input_entry[3])
+#						else:
+#							event_joypad = InputEventJoypadMotion.new()
+#							event_joypad.axis = int(_input_entry[3])
+#							if _input_entry[4]:
+#								event_joypad.axis_value = -1.0
+#							else:
+#								event_joypad.axis_value = 1.0
+#						_input_evs.append(event_joypad)
+#					"mouse":
+#						var event_mouse
+#						if _input_entry[3] != null:
+#							event_mouse = InputEventMouseButton.new()
+#							event_mouse.button_index = int(_input_entry[3])
+#							_input_evs.append(event_mouse)
+#			var _total_input = {
+#								"deadzone": 0.5,
+#								"events": _input_evs
+#								}
+#			ProjectSettings.set_setting(_prop_path, _total_input)
+#		ProjectSettings.save()
 
 func setup_menu():
 #	print(optional_dict)
@@ -126,16 +184,17 @@ func _on_exit_timer():
 			queue_free()
 
 func _process(delta):
-	# TODO: CHANGE BY MENU2D CONTROLS
 #	if Input.is_action_just_pressed("b2g_pause_game"):
 #		if !_timer:
 #			create_exit_timer()
-	if Input.is_action_just_released("b2g_go_forward"):
+	if Input.is_action_just_released("b2g_go_up"):
 		select_object_by_navigation("NavigationUp")
-#		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-	if Input.is_action_just_released("b2g_go_backward"):
+	if Input.is_action_just_released("b2g_go_down"):
 		select_object_by_navigation("NavigationDown")
-#		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
+	if Input.is_action_just_released("b2g_go_left"):
+		select_object_by_navigation("NavigationLeft")
+	if Input.is_action_just_released("b2g_go_right"):
+		select_object_by_navigation("NavigationRight")
 	if Input.is_action_just_released("b2g_action_0"):
 		do_action()
 	pass

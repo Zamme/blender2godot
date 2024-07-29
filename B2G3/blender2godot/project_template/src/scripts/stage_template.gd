@@ -641,7 +641,7 @@ func create_menus2d():
 #		_new_menu2d.node_name = _game_manager_json
 		_new_menu2d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 #		yield(get_tree(),"idle_frame")
-		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key]["Objects"])
+		self.prepare_menu2d_scene(_new_menu2d, _menus2d_json[_key])
 #		yield(get_tree(),"idle_frame")
 		self.repack_scene(_new_menu2d, _new_menu2d_path)
 
@@ -1010,17 +1010,17 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 #				_new_texrect.rect_position = _display_size/2
 				_new_texrect.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 
-func prepare_menu2d_scene(_menu_scene, _menu_objects):
+func prepare_menu2d_scene(_menu_scene, _menu_json):
 	print("Preparing ", _menu_scene.name, " objects:")
 	var FONT_FACTOR = 32
 	var _display_size : Vector2 = Vector2(int(_godot_project_settings_json["DisplaySettings"]["display/window/size/width"]), int(_godot_project_settings_json["DisplaySettings"]["display/window/size/height"]))
 	var SCALE_FACTOR = 35.5
 	var _pending_contents = []
 	
-	for _menu_object_info in _menu_objects.keys():
-		match _menu_objects[_menu_object_info]["Type"]:
+	for _menu_object_info in _menu_json["Objects"].keys():
+		match _menu_json["Objects"][_menu_object_info]["Type"]:
 			"FONT":
-				if _menu_objects[_menu_object_info]["ElementType"] == "button_content":
+				if _menu_json["Objects"][_menu_object_info]["ElementType"] == "button_content":
 					_pending_contents.append(_menu_object_info)
 				else:
 	#				print(_menu_objects[_menu_object_info]["Location"])
@@ -1032,9 +1032,9 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 					if self.fonts_datas.size() == 0:
 						self.fonts_datas.append(load(DEFAULT_FONT_PATH))
 					_new_font.font_data = self.fonts_datas[0]
-					_new_font.size = int(float(_menu_objects[_menu_object_info]["Size"])*FONT_FACTOR)
+					_new_font.size = int(float(_menu_json["Objects"][_menu_object_info]["Size"])*FONT_FACTOR)
 					_new_label.set("custom_fonts/font", _new_font)
-					_new_label.text = _menu_objects[_menu_object_info]["Body"]
+					_new_label.text = _menu_json["Objects"][_menu_object_info]["Body"]
 					_new_label.align = Label.ALIGN_CENTER
 					_new_label.valign = Label.VALIGN_CENTER
 					_new_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -1042,10 +1042,10 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 					_new_label.set_anchors_preset(Control.PRESET_CENTER, true)
 					_new_label.set_pivot_offset(_new_label.rect_size/2)
 	#				print("Label rect size: X=" + str(_new_label.rect_size.x) + " Y=" + str(_new_label.rect_size.y))
-					var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+					var _location_split = _menu_json["Objects"][_menu_object_info]["Location"].split(",")
 					_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 			"GPENCIL":
-				match _menu_objects[_menu_object_info]["ElementType"]:
+				match _menu_json["Objects"][_menu_object_info]["ElementType"]:
 					"button":
 						var _new_button : Button = Button.new()
 						_new_button.name = _menu_object_info
@@ -1059,10 +1059,10 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						_new_button.set_pivot_offset(_new_button.rect_size/2)
 						_new_button.flat = true
 						_new_button.icon_align = Button.ALIGN_CENTER
-						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						var _location_split = _menu_json["Objects"][_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 						_new_button.script = menu2d_button_behavior_script
-						_new_button.navigation_dict = _menu_objects[_menu_object_info]["Navigation"]
+						_new_button.navigation_dict = _menu_json["Objects"][_menu_object_info]["Navigation"]
 #						yield(get_tree(),"idle_frame")
 						_new_button.add_to_group("menus2d_buttons", true)
 					"none":
@@ -1076,34 +1076,80 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						_new_button.grow_vertical = Control.GROW_DIRECTION_BOTH
 						_new_button.set_anchors_preset(Control.PRESET_CENTER, true)
 						_new_button.set_pivot_offset(_new_button.rect_size/2)
-						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
+						var _location_split = _menu_json["Objects"][_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 	# REORDERING DEPTH
 	var _objects = []
 	for _object in _menu_scene.get_children():
 		_objects.append(_object)
-	for _menu_object_info in _menu_objects.keys():
-		if _menu_objects[_menu_object_info]["Type"] != "CAMERA":
+	for _menu_object_info in _menu_json["Objects"].keys():
+		if _menu_json["Objects"][_menu_object_info]["Type"] != "CAMERA":
 			for _object in _objects:
 				if _object.name == _menu_object_info:
 					if _object:
 #						print("Moving object ", _object.name, " to ", _menu_objects[_menu_object_info]["Depth"])
-						_menu_scene.move_child(_object, _menu_objects[_menu_object_info]["Depth"])
+						_menu_scene.move_child(_object, _menu_json["Objects"][_menu_object_info]["Depth"])
 					else:
 						print("Object ", _menu_object_info, " not found")
 	# PENDING CONTENTS
 	for _pending_content in _pending_contents:
-		if _menu_objects[_pending_content]["Type"] == "FONT":
-			var _button_name : String = _menu_objects[_pending_content]["Container"]
+		if _menu_json["Objects"][_pending_content]["Type"] == "FONT":
+			var _button_name : String = _menu_json["Objects"][_pending_content]["Container"]
 			for _object in _menu_scene.get_children():
 				if _object.name == _button_name:
-					_object.text = _menu_objects[_pending_content]["Body"]
+					_object.text = _menu_json["Objects"][_pending_content]["Body"]
 				var _new_font : DynamicFont = DynamicFont.new()
 				if self.fonts_datas.size() == 0:
 					self.fonts_datas.append(load(DEFAULT_FONT_PATH))
 				_new_font.font_data = self.fonts_datas[0]
-				_new_font.size = int(float(_menu_objects[_pending_content]["Size"])*FONT_FACTOR)
+				_new_font.size = int(float(_menu_json["Objects"][_pending_content]["Size"])*FONT_FACTOR)
 				_object.set("custom_fonts/font", _new_font)
+	# MENU CONTROLS
+	var _controls = _menu_json["MenuControls"]
+	if _controls:
+		for _control_prop_key in _controls.keys():
+			var _action = InputEventAction.new()
+			var _prop_path : String = "input/" + _control_prop_key
+			ProjectSettings.set(_prop_path, 0)
+			var property_info = {
+				"name": _prop_path,
+				"type": TYPE_INT,
+				"hint": PROPERTY_HINT_ENUM,
+				"hint_string": ""
+			}
+			ProjectSettings.add_property_info(property_info)
+			var _input_evs = []
+			for _input_entry in _controls[_control_prop_key]:
+				match _input_entry[0]:
+					"keyboard":
+						var event_key = InputEventKey.new()
+						event_key.scancode = int(_input_entry[3])
+						_input_evs.append(event_key)
+					"gamepad":
+						var event_joypad
+						if _input_entry[1].find("BUTTON") > -1:
+							event_joypad = InputEventJoypadButton.new()
+							event_joypad.button_index = int(_input_entry[3])
+						else:
+							event_joypad = InputEventJoypadMotion.new()
+							event_joypad.axis = int(_input_entry[3])
+							if _input_entry[4]:
+								event_joypad.axis_value = -1.0
+							else:
+								event_joypad.axis_value = 1.0
+						_input_evs.append(event_joypad)
+					"mouse":
+						var event_mouse
+						if _input_entry[3] != null:
+							event_mouse = InputEventMouseButton.new()
+							event_mouse.button_index = int(_input_entry[3])
+							_input_evs.append(event_mouse)
+			var _total_input = {
+								"deadzone": 0.5,
+								"events": _input_evs
+								}
+			ProjectSettings.set_setting(_prop_path, _total_input)
+		ProjectSettings.save()
 	print("Finished.")
 
 func prepare_menu3d_scene(_menu_scene):

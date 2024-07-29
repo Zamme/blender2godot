@@ -961,6 +961,21 @@ class ExportGameOperator(bpy.types.Operator):
                     _menu2d_object_dict.add("Container", _menu2d_obj.parent.name)
             _menu2d_objects_dict.add(_menu2d_obj.name, _menu2d_object_dict)
         _menu2d_dict.add("Objects", _menu2d_objects_dict)
+        if _sc_added.menu2d_default_button_selected:
+            _menu2d_dict.add("DefaultButtonSelected", _sc_added.menu2d_default_button_selected.name)
+        # CONTROLS
+        _controls_dictionary = my_dictionary()
+        for _control_setting in _sc_added.menu2d_controls_settings:
+            _control_inputs_array = []
+            for _mot_input in _control_setting.motion_inputs:
+                _inputs = [_mot_input.motion_input_type,
+                            _mot_input.motion_input_blender,
+                            self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotID"],
+                            self.controls_list[(_mot_input.motion_input_type).capitalize()][_mot_input.motion_input_blender]["GodotEnumID"],
+                            _mot_input.motion_input_modifier]
+                _control_inputs_array.append(_inputs)
+            _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
+        _menu2d_dict.add("MenuControls", _controls_dictionary)
         self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)
 
     def export_menus2d_info(self, context):
@@ -992,14 +1007,26 @@ class ExportGameOperator(bpy.types.Operator):
         for _obj in _sc_added.objects:
             if hasattr(_obj, "special_object_info"):
                 if _obj.special_object_info.menu_object_type != "none":
-                    _special_objects.add(_obj.name, {
-                        "ObjectType" : _obj.special_object_info.menu_object_type,
-                    })
+                    _obj_dict = my_dictionary()
+                    _obj_dict.add("ObjectType", _obj.special_object_info.menu_object_type)
+                    _nav_props = my_dictionary()
+                    if _obj.menu3d_button_navigation_properties.navigation_up:
+                        _nav_props.add("NavigationUp", _obj.menu3d_button_navigation_properties.navigation_up.name)
+                    if _obj.menu3d_button_navigation_properties.navigation_down:
+                        _nav_props.add("NavigationDown", _obj.menu3d_button_navigation_properties.navigation_down.name)
+                    if _obj.menu3d_button_navigation_properties.navigation_left:
+                        _nav_props.add("NavigationLeft", _obj.menu3d_button_navigation_properties.navigation_left.name)
+                    if _obj.menu3d_button_navigation_properties.navigation_right:
+                        _nav_props.add("NavigationRight", _obj.menu3d_button_navigation_properties.navigation_right.name)
+                    _obj_dict.add("Navigation", _nav_props)
+                    _special_objects.add(_obj.name, _obj_dict)
         _temp_dict.add("SpecialObjects", _special_objects)
         # ENVIRONMENT
         _temp_dict.add("DefaultEnvironment", self.export_environment(context, _sc_added))
         # ADD DICT TO INFO
         _menu_name = "Menu3d_" + _sc_added.name
+        if _sc_added.menu3d_default_button_selected:
+            _temp_dict.add("DefaultButtonSelected", _sc_added.menu3d_default_button_selected.name)
         self.dict_menus3d_info.add(_menu_name, _temp_dict)
 
     def export_menus3d_info(self, context):

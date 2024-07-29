@@ -5,6 +5,7 @@ class_name Menu3d_Button extends MeshInstance
 #export var action_parameter = "None"
 
 export var button_dict : Dictionary
+export var navigation_dict : Dictionary
 var _button_collider : StaticBody
 var _selected_effect_mesh : MeshInstance
 

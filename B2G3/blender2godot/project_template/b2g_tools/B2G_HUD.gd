@@ -25,7 +25,7 @@ func _show_message(_text):
 	hud_message_label.text = _text
 	hud_message_label.visible = true
 	hud_message_label.modulate.a = 1.0
-	hud_timer.start(2.0)
+	hud_timer.start(1.0)
 
 func _on_b2g_hud_Timer_timeout():
 	hud_message_label_animator.play("fade_out")

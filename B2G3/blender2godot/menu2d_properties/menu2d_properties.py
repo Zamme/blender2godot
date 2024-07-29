@@ -318,7 +318,7 @@ class CONTROLS_UL_menu2d_input(bpy.types.UIList):
                         else:
                             _but_text += " (On press)"
                         _ops = row1.operator("scene.process_input", text=_but_text, icon_value=addon_config.preview_collections[0]["keyboard_icon"].icon_id)
-                        _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
+                        _ops1 = row1.operator("scene.del_menu2d_control", text="", icon="CANCEL")
                     case "gamepad":
                         _but_text = _input_motion.motion_input_blender
                         if "AXIS" in _but_text:
@@ -331,14 +331,14 @@ class CONTROLS_UL_menu2d_input(bpy.types.UIList):
                                 _but_text += " (On release)"
                             else:
                                 _but_text += " (On press)"
-                        _ops = row1.operator("scene.add_gamepad_input", text=_but_text, icon_value=addon_config.preview_collections[0]["gamepad_icon"].icon_id)
-                        _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
+                        _ops = row1.operator("scene.add_menu2d_gamepad_input", text=_but_text, icon_value=addon_config.preview_collections[0]["gamepad_icon"].icon_id)
+                        _ops1 = row1.operator("scene.del_menu2d_control", text="", icon="CANCEL")
                     case "mouse":
-                        _ops = row1.operator("scene.add_mouse_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["mouse_icon"].icon_id)
-                        _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
+                        _ops = row1.operator("scene.add_menu2d_mouse_input", text=_input_motion.motion_input_blender, icon_value=addon_config.preview_collections[0]["mouse_icon"].icon_id)
+                        _ops1 = row1.operator("scene.del_menu2d_control", text="", icon="CANCEL")
                     case "other":
                         row1.label(text="Other entry")
-                        _ops1 = row1.operator("scene.del_control", text="", icon="CANCEL")
+                        _ops1 = row1.operator("scene.del_menu2d_control", text="", icon="CANCEL")
                 if _ops:
                     _ops.current_input_item_index = index
                     _ops.motion_input_index = i_enum
@@ -348,7 +348,7 @@ class CONTROLS_UL_menu2d_input(bpy.types.UIList):
                 if _ops2:
                     _ops2.current_input_item_index = index
                     _ops2.motion_input_index = i_enum
-            box0.operator("scene.add_control", text="Add", icon="PLUS").current_input_item_index=index
+            box0.operator("scene.add_menu2d_control", text="Add", icon="PLUS").current_input_item_index=index
             box0.separator()
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'

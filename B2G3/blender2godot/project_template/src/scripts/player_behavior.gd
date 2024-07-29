@@ -202,7 +202,9 @@ func _physics_process(delta):
 		animate()
 
 func process_action(_action, _delta):
-	print("Action ", _action)
+	var _msg : String = "Action " + _action
+	print(_msg)
+	self.gm_ref.show_message(_msg)
 	match _action:
 		"APause":
 			pause_game_enable(true)
