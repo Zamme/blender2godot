@@ -21,7 +21,7 @@ func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	selectable_objects = get_selectable_objects()
 	if len(selectable_objects) > 0:
-		select_object(0)
+		select_object(0) # TODO: assign by menu2d_default_selected_button, LACKS IN JSON!
 	setup_menu()
 
 func get_selectable_objects():
@@ -56,6 +56,17 @@ func select_object(_index : int):
 	current_selected_object_index = _index
 	update_objects()
 
+func select_object_by_navigation(_navigation_key):
+	var _current_object = selectable_objects[current_selected_object_index]
+	if _current_object.navigation_dict.has(_navigation_key):
+		var next_selected_object_name = _current_object.navigation_dict[_navigation_key]
+		for _sel_obj_index in range(len(selectable_objects)):
+			if selectable_objects[_sel_obj_index].name == next_selected_object_name:
+				current_selected_object_index = _sel_obj_index
+				update_objects()
+				break
+
+
 func set_optional_dict(_dict : Dictionary):
 	self.optional_dict = _dict
 
@@ -87,12 +98,12 @@ func create_exit_timer():
 	add_child(_timer)
 	_timer.start(PAUSE_TIME)
 
-func get_areas():
-	var areas = []
-	for _child in get_children():
-		if _child is Area2D:
-			areas.append(_child)
-	return areas
+#func get_areas():
+#	var areas = []
+#	for _child in get_children():
+#		if _child is Area2D:
+#			areas.append(_child)
+#	return areas
 
 func set_player_scene(_scene):
 	_player_scene = _scene
@@ -115,15 +126,17 @@ func _on_exit_timer():
 			queue_free()
 
 func _process(delta):
-	# TODO: HOW TO KNOW WHAT ACTION IS FOR?
+	# TODO: CHANGE BY MENU2D CONTROLS
 #	if Input.is_action_just_pressed("b2g_pause_game"):
 #		if !_timer:
 #			create_exit_timer()
-#	if Input.is_action_just_released("b2g_go_forward"):
+	if Input.is_action_just_released("b2g_go_forward"):
+		select_object_by_navigation("NavigationUp")
 #		select_object(dec_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-#	if Input.is_action_just_released("b2g_go_backward"):
+	if Input.is_action_just_released("b2g_go_backward"):
+		select_object_by_navigation("NavigationDown")
 #		select_object(inc_index(current_selected_object_index, 0, len(selectable_objects)-1, false))
-#	if Input.is_action_just_released("b2g_action_0"):
-#		do_action()
+	if Input.is_action_just_released("b2g_action_0"):
+		do_action()
 	pass
 

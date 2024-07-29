@@ -81,8 +81,9 @@ def get_input_templates(self, context):
         if os.path.isdir(p_path):
             _listdir = os.listdir(p_path)
             for _i,_l in enumerate(_listdir):
-                _input_name = _l.replace("_template_game_controls.json", "").replace("_", " ").capitalize()
-                input_templates.append((_l, _input_name, _l, "", _i+1))
+                if _l.endswith("game_controls.json"):
+                    _input_name = _l.replace("_template_game_controls.json", "").replace("_", " ").capitalize() + " Game Controls"
+                    input_templates.append((_l, _input_name, _l, "", _i+1))
             return input_templates
         else:
             pass

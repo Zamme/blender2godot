@@ -945,8 +945,20 @@ class ExportGameOperator(bpy.types.Operator):
                     for _point in _menu2d_obj.data.layers[0].active_frame.strokes[0].points:
                         _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
                     _menu2d_object_dict.add("Points", _co_array)
-            if _menu2d_obj.menu2d_object_properties.menu2d_object_type == "button_content":
-                _menu2d_object_dict.add("Container", _menu2d_obj.parent.name)
+            match _menu2d_obj.menu2d_object_properties.menu2d_object_type:
+                case "button":
+                    _nav_props = my_dictionary()
+                    if _menu2d_obj.menu2d_button_navigation_properties.navigation_up:
+                        _nav_props.add("NavigationUp", _menu2d_obj.menu2d_button_navigation_properties.navigation_up.name)
+                    if _menu2d_obj.menu2d_button_navigation_properties.navigation_down:
+                        _nav_props.add("NavigationDown", _menu2d_obj.menu2d_button_navigation_properties.navigation_down.name)
+                    if _menu2d_obj.menu2d_button_navigation_properties.navigation_left:
+                        _nav_props.add("NavigationLeft", _menu2d_obj.menu2d_button_navigation_properties.navigation_left.name)
+                    if _menu2d_obj.menu2d_button_navigation_properties.navigation_right:
+                        _nav_props.add("NavigationRight", _menu2d_obj.menu2d_button_navigation_properties.navigation_right.name)
+                    _menu2d_object_dict.add("Navigation", _nav_props)
+                case "button_content":
+                    _menu2d_object_dict.add("Container", _menu2d_obj.parent.name)
             _menu2d_objects_dict.add(_menu2d_obj.name, _menu2d_object_dict)
         _menu2d_dict.add("Objects", _menu2d_objects_dict)
         self.dict_menus2d_info.add(_sc_added.name, _menu2d_dict)

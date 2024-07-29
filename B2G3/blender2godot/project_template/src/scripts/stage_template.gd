@@ -1062,6 +1062,7 @@ func prepare_menu2d_scene(_menu_scene, _menu_objects):
 						var _location_split = _menu_objects[_menu_object_info]["Location"].split(",")
 						_new_button.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
 						_new_button.script = menu2d_button_behavior_script
+						_new_button.navigation_dict = _menu_objects[_menu_object_info]["Navigation"]
 #						yield(get_tree(),"idle_frame")
 						_new_button.add_to_group("menus2d_buttons", true)
 					"none":

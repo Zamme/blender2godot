@@ -3,6 +3,7 @@ class_name Menu2dButton_Behavior extends Button
 
 var gm_ref
 export var button_dict : Dictionary
+export var navigation_dict : Dictionary
 
 func _ready():
 	self.gm_ref = get_tree().current_scene

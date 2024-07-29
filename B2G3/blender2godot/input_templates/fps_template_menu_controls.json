@@ -1,38 +1,92 @@
 {
   "b2g_go_up": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "UP_ARROW, JOY_AXIS_1",
-    "JA_DefaultInputsModifiers": "on_press, positive",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "UP_ARROW",
+      "JOY_AXIS_1"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "positive"
+    ],
     "ActionID": "GoUp"
   },
   "b2g_go_down": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "DOWN_ARROW, JOY_AXIS_1",
-    "JA_DefaultInputsModifiers": "on_press, negative",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "DOWN_ARROW",
+      "JOY_AXIS_1"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "negative"
+    ],
     "ActionID": "GoDown"
   },
   "b2g_go_left": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "LEFT_ARROW, JOY_AXIS_0",
-    "JA_DefaultInputsModifiers": "on_press, positive",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "LEFT_ARROW",
+      "JOY_AXIS_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "positive"
+    ],
     "ActionID": "GoLeft"
   },
   "b2g_go_right": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "RIGHT_ARROW, JOY_AXIS_0",
-    "JA_DefaultInputsModifiers": "on_press, negative",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "RIGHT_ARROW",
+      "JOY_AXIS_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "negative"
+    ],
     "ActionID": "GoRight"
   },
   "b2g_select": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "SPACE, JOY_BUTTON_0",
-    "JA_DefaultInputsModifiers": "on_press, on_press",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "SPACE",
+      "JOY_BUTTON_0"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ],
     "ActionID": "ASelect"
   },
   "b2g_back": {
-    "JA_DefaultInputsTypes": "keyboard, gamepad",
-    "JA_DefaultInputs": "ESC, JOY_BUTTON_START",
-    "JA_DefaultInputsModifiers": "on_press, on_press",
+    "DefaultInputsTypes": [
+      "keyboard",
+      "gamepad"
+    ],
+    "DefaultInputs": [
+      "ESC",
+      "JOY_BUTTON_START"
+    ],
+    "DefaultInputsModifiers": [
+      "on_press",
+      "on_press"
+    ],
     "ActionID": "ABack"
   }
 }
