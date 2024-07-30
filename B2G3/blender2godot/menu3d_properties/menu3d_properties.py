@@ -458,6 +458,7 @@ def register():
     bpy.utils.register_class(Menu3DManagementPanel)
 
 def unregister():
+    bpy.utils.unregister_class(Menu3DManagementPanel)
     bpy.utils.unregister_class(Menu3DPropertiesPanel)
     clear_properties()
     bpy.utils.unregister_class(CONTROLS_UL_menu3d_input)

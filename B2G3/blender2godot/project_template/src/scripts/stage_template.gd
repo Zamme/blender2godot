@@ -419,6 +419,7 @@ func apply_import_changes(_scenario_scene):
 					"button":
 						self.add_collider(_menu3d_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
 						_menu3d_object.script = menus3d_button_behavior_script
+						_menu3d_object.navigation_dict = _menus3d_json[_menu3d_name]["SpecialObjects"][_menu3d_object.name]["Navigation"]
 						_menu3d_object.add_to_group("menus3d_buttons", true)
 	else:
 		print("Scene ", _scenario_scene.name, " not found in jsons!")
