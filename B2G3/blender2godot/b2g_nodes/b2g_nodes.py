@@ -120,7 +120,7 @@ def update_action_parameter(self, context):
     context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
 
 def on_button_action_update(self, context):
-    print("Update button action click", self.button_node_name)
+    #print("Update button action click", self.button_node_name)
     bpy.data.node_groups["GameManager"].nodes[self.button_node_name].update()
 
 class ActionsProperties(bpy.types.PropertyGroup):
@@ -289,13 +289,13 @@ class B2G_Float_Socket(NodeSocket):
     def draw_color(self, context, node):
         return (0.5, 0.5, 0.0, 1.0)
 
-class B2G_String_Socket(NodeSocket):
+class B2G_Integer_Socket(NodeSocket):
     # Description string
-    """string socket type"""
+    """integer socket type"""
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'B2G_String_SocketType'
+    bl_idname = 'B2G_Integer_SocketType'
     # Label for nice name display
-    bl_label = "String Socket"
+    bl_label = "Integer Socket"
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -306,7 +306,7 @@ class B2G_String_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.0, 0.5, 0.5, 1.0)
+        return (0.5, 0.5, 0.0, 1.0)
 
 class B2G_Boolean_Socket(NodeSocket):
     # Description string
@@ -325,15 +325,15 @@ class B2G_Boolean_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.0, 0.25, 0.0, 1.0)
+        return (0.5, 0.5, 0.0, 1.0)
 
-class B2G_Integer_Socket(NodeSocket):
+class B2G_String_Socket(NodeSocket):
     # Description string
-    """integer socket type"""
+    """string socket type"""
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'B2G_Integer_SocketType'
+    bl_idname = 'B2G_String_SocketType'
     # Label for nice name display
-    bl_label = "Integer Socket"
+    bl_label = "String Socket"
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -344,7 +344,7 @@ class B2G_Integer_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.5, 0.5, 0.5, 1.0)
+        return (0.0, 0.5, 0.5, 1.0)
 
 class B2G_Pipeline_Socket(NodeSocket):
     # Description string
@@ -554,6 +554,9 @@ class B2G_Finish_Node(MyCustomTreeNode, Node):
 # --- END PIPELINE NODES ---
 
 # --- MATH NODES ---
+# --- END MATH NODES ---
+
+# --- VARIABLE NODES ---
 class B2G_Float_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_Float_NodeType'
@@ -563,12 +566,12 @@ class B2G_Float_Node(MyCustomTreeNode, Node):
     bl_icon = 'SEQ_PREVIEW'
     bl_width_default = 200.0
     bl_height_default = 100.0
+    bl_description = "Float Variable Node"
 
-    my_float : bpy.props.FloatProperty(name="MyFloat") # type: ignore
+    my_value : bpy.props.FloatProperty(name="MyFloat") # type: ignore
 
     def init(self, context):
-        #self.inputs.new("NodeSocketString", "Value")
-        self.outputs.new("NodeSocketString", "Value")
+        self.outputs.new("B2G_Float_SocketType", "Value")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -579,13 +582,51 @@ class B2G_Float_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         box1 = layout.box()
         row1 = box1.row()
-        row1.prop(self, "my_float", text="")
+        row1.prop(self, "my_value", text="")
 
     def draw_buttons_ext(self, context, layout):
         pass
 
     def draw_label(self):
         return "Float"
+    
+    def update_inputs(self):
+        pass
+
+    def update_outputs(self):
+        pass
+
+class B2G_Integer_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Integer_NodeType'
+    # Label for nice name display
+    bl_label = "B2G Integer Node"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    my_value : bpy.props.IntProperty(name="MyInt") # type: ignore
+
+    def init(self, context):
+        self.outputs.new("B2G_Integer_SocketType", "Value")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "my_value", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Integer"
     
     def update_inputs(self):
         pass
@@ -603,11 +644,10 @@ class B2G_String_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    my_string : bpy.props.StringProperty(name="MyString") # type: ignore
+    my_value : bpy.props.StringProperty(name="MyString") # type: ignore
 
     def init(self, context):
-        #self.inputs.new("NodeSocketString", "Value")
-        self.outputs.new("NodeSocketString", "Value")
+        self.outputs.new("B2G_String_SocketType", "Value")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -618,7 +658,7 @@ class B2G_String_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         box1 = layout.box()
         row1 = box1.row()
-        row1.prop(self, "my_string", text="")
+        row1.prop(self, "my_value", text="")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -631,7 +671,46 @@ class B2G_String_Node(MyCustomTreeNode, Node):
 
     def update_outputs(self):
         pass
-# --- END MATH NODES ---
+
+class B2G_Boolean_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Boolean_NodeType'
+    # Label for nice name display
+    bl_label = "B2G Boolean Node"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    my_value : bpy.props.BoolProperty(name="MyBoolean") # type: ignore
+
+    def init(self, context):
+        self.outputs.new("B2G_Boolean_SocketType", "Value")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        box1 = layout.box()
+        row1 = box1.row()
+        row1.prop(self, "my_value", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "String"
+    
+    def update_inputs(self):
+        pass
+
+    def update_outputs(self):
+        pass
+
+# --- END VARIABLE NODES ---
 
 # --- SCENE NODES ---
 class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
@@ -657,6 +736,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
             self.inputs.clear()
             self.outputs.clear()
             self.init(context)
+            # STAGE OBJECTS
             for _stage_object in self.stage_objects:
                 match _stage_object.object_type:
                     case "trigger_zone":
@@ -694,6 +774,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                 row2 = box1.row()
                 row2.label(text="Player spawn not set", icon="INFO")
             # Stage objects
+            '''
             box2 = box1.box()
             row3 = box2.row()
             row3.label(text="Stage Objects")
@@ -706,7 +787,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                     if stage_properties.stage_object_types[_ot_index][0] == _stage_object.object_type:
                         _stage_object_type_string = stage_properties.stage_object_types[_ot_index][1]
                 row4.label(text=_stage_object_type_string)
-                '''
+                
                 row5 = box3.row()
                 match _stage_object.object_type:
                     case "player_spawn_empty":
@@ -743,8 +824,22 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     
     def update(self):
         '''Called when node graph is changed'''
-        #print("Update", self.name, "links")
+        self.update_player_ref()
         bpy.app.timers.register(self.mark_invalid_links)
+
+    def update_player_ref(self):
+        if self.inputs[0].is_linked:
+            _player_ref_socket_found = False
+            for _output in self.outputs:
+                if _output.name == "Player REF":
+                    _player_ref_socket_found = True
+                    break
+            if not _player_ref_socket_found:
+                self.outputs.new(type="B2G_Player_SocketType", name="Player REF")
+        else:
+            for _output in self.outputs:
+                if _output.name == "Player REF":
+                    self.outputs.remove(_output)
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
@@ -820,7 +915,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         self.inputs.clear()
         self.inputs.new("B2G_HUD_SocketType", "HUD")
         # Clean outputs on change scene
-        print("Update player")
+        #print("Update player")
         self.outputs.clear()
         self.outputs.new("B2G_Player_SocketType", "Player")
         self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
@@ -890,12 +985,12 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     
     def update(self):
         '''Called when node graph is changed'''
-        print("Update", self.name)
+        #print("Update", self.name)
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
-        print("Update", self.name, "links")
+        #print("Update", self.name, "links")
         _input_player = self.inputs[0]
         for _link in _input_player.links:
             _valid_link = False
@@ -981,7 +1076,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
-        print("Update", self.name, "links")
+        #print("Update", self.name, "links")
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
@@ -1111,7 +1206,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
-        print("Update", self.name)
+        #print("Update", self.name)
         bpy.app.timers.register(self.update_sockets)
         bpy.app.timers.register(self.mark_invalid_links)
 
@@ -1127,7 +1222,7 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link
 
     def update_sockets(self):
-        print("Update", self.name, "links")
+        #print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
                     case "none":
@@ -1246,7 +1341,7 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
-        print("Update", self.name)
+        #print("Update", self.name)
         bpy.app.timers.register(self.update_sockets)
         bpy.app.timers.register(self.mark_invalid_links)
 
@@ -1262,7 +1357,7 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link
 
     def update_sockets(self):
-        print("Update", self.name, "links")
+        #print("Update", self.name, "links")
         for _special_object in self.overlay_special_objects:
             match _special_object.button_action_on_click:
                     case "none":
@@ -1300,7 +1395,6 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:
                             self.outputs.remove(self.outputs[_special_object.button_name])
-
 
 class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -1391,7 +1485,7 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link
 
     def update_sockets(self):
-        print("Update", self.name, "links")
+        #print("Update", self.name, "links")
         for _special_object in self.special_objects:
             match _special_object.button_action_on_click:
                     case "none":
@@ -1512,6 +1606,98 @@ class B2G_Scene_Node(MyCustomTreeNode, Node):
 
 # --- END SCENE NODES ---
 
+# --- ACTION NODES ---
+class B2G_Change_Property_Node(MyCustomTreeNode, Node):
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Change_Property_NodeType'
+    # Label for nice name display
+    bl_label = "Change Property"
+    # Icon identifier
+    bl_icon = 'SEQ_PREVIEW'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    entity_props = [
+            ("none", "None", "NONE"),
+    ]
+
+    def get_entity_props(self, context):
+        return self.entity_props
+    
+    property_selected : bpy.props.EnumProperty(items=get_entity_props) # type: ignore
+
+    def poll_scenes(self, object):
+        return True
+
+    def on_update_scene(self, context):
+        pass
+  
+    def init(self, context):
+        self.inputs.new("B2G_Player_SocketType", "Entity Ref")
+        
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        row1 = layout.row()
+        row1.prop(self, "property_selected")
+
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Change Property"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.update_buttons)
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        pass
+        '''Mark invalid links, must be called from a timer
+        _input_go = self.inputs[0]
+        for _link in _input_go.links:
+            print(type(_link.from_socket).__name__)
+            _valid_link = False
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_3dmenu_Socket")):
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link'''
+
+    def update_buttons(self):
+        if self.inputs[0].is_linked:
+            _from_node = self.inputs[0].links[0].from_node
+            for _input in _from_node.inputs:
+                if (_input.name + " REF") == self.inputs[0].links[0].from_socket.name:
+                    _from_node = _input.links[0].from_node
+                    break
+            if _from_node.scene:
+                print("Node scene found")
+                if hasattr(_from_node.scene, "player_entity_properties"):
+                    self.entity_props.clear()
+                    print("Node scene", _from_node.scene.name, "has player_entity_properties")
+                    self.entity_props.append(("none", "None", "NONE"))
+                    for _prop in _from_node.scene.player_entity_properties:
+                        self.entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
+                else:
+                    print("Node hasn't player_entity_properties")
+        else:
+            print("Inputs not linked")
+
+    def update_sockets(self):
+        pass
+
+# --- END ACTION NODES ---
+
+
 ### Node Categories ###
 # Node categories are a python system for automatically
 # extending the Add menu, toolbar panels and search operator.
@@ -1544,9 +1730,14 @@ node_categories = [
     MyNodeCategory('MATH', "Math", items=[
         #NodeItem("FunctionNodeBooleanMath"),
     ]),
-    MyNodeCategory('CONSTANTS', "Constants", items=[
+    MyNodeCategory('ACTIONS', "Actions", items=[
+        NodeItem("B2G_Change_Property_NodeType"),
+    ]),
+    MyNodeCategory('VARIABLES', "Variables", items=[
         NodeItem("B2G_String_NodeType"),
         NodeItem("B2G_Float_NodeType"),
+        NodeItem("B2G_Integer_NodeType"),
+        NodeItem("B2G_Boolean_NodeType"),
     ]),
     MyNodeCategory('PIPELINE', "Pipeline", items=[
         NodeItem("B2G_Start_NodeType"),
@@ -1595,6 +1786,8 @@ classes = (
     B2G_Finish_Node,
     B2G_String_Node,
     B2G_Float_Node,
+    B2G_Integer_Node,
+    B2G_Boolean_Node,
     B2G_Stage_Scene_Node,
     B2G_Player_Scene_Node,
     B2G_HUD_Scene_Node,
@@ -1602,6 +1795,7 @@ classes = (
     B2G_3dMenu_Scene_Node,
     B2G_OverlayMenu_Scene_Node,
     B2G_NPC_Scene_Node,
+    B2G_Change_Property_Node,
 )
 
 
@@ -1620,6 +1814,8 @@ def register():
     bpy.types.Node.with_pause = bpy.props.BoolProperty(name="With Pause", default=True)
 
 def unregister():
+    del bpy.types.Node.with_pause
+    del bpy.types.Node.stage_objects
     del bpy.types.Node.player_entity_properties
     del bpy.types.Node.actions_settings
     del bpy.types.Node.overlay_special_objects

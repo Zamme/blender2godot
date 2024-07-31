@@ -9,19 +9,21 @@ const FONT_FACTOR = 40
 export var optional_dict : Dictionary
 
 export var hud_settings : Dictionary
+export var hud_fields : Dictionary
 
 var hud_objects_info : Dictionary
 var fade_timer : Timer
 var fade_tween : Tween
 
+var gm_ref
+
 #onready var hud_bg : TextureRect = get_child(0)
 
 
 func _ready():
+	self.gm_ref = get_tree().current_scene
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
 	setup_hud_objects_info()
-	#link_objects()
-	update_hud_objects_info()
 	start_hud()
 	update_hud_objects_info()
 
@@ -48,13 +50,6 @@ func find_child_by_name(root_node, _object_name):
 			if _object != null:
 				break
 	return _object
-
-func link_objects():
-	for _key in hud_objects_info.keys():
-		hud_objects_info[_key]["LinkedControl"] = find_child_by_name(self, _key)
-		# TODO: HERE IS WHERE YOU HAVE TO CHANGE THE INFO BY THE JSON
-		if hud_objects_info[_key].has("SourceInfoScene"):
-			hud_objects_info[_key]["LinkedEntity"] = find_child_by_name(get_tree().current_scene, hud_objects_info[_key]["SourceInfoScene"])
 
 func setup_hud_objects_info():
 	if optional_dict.has("Objects"):
@@ -86,11 +81,28 @@ func start_hud():
 #		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
 
 func update_hud_objects_info():
-	var _parent_props : Dictionary = get_parent()._properties_linked
-	for _parent_prop_key in _parent_props.keys():
-		for _child in get_children():
-			if _parent_props[_parent_prop_key] == _child.name:
-				_child.text = str(get_parent()._entity_properties[_parent_prop_key]["Value"])
+	for _hud_element in get_children():
+		if self.hud_fields.has(_hud_element.name):
+			var _links = self.hud_fields[_hud_element.name]
+			for _link_key in _links.keys(): # MORE THAN ONE INFO INPUT?
+				var _from_node = self.gm_ref.get_tree_node(_link_key, self.gm_ref.gm_dict)
+				var _value_to_assign
+				match _from_node["Type"]:
+					"B2G_Player_Scene_Node":
+						if _from_node.has("EntityProperties"):
+#							print("Searching: ", _from_node["SceneName"] + "Entity")
+							var _scene_node = self.gm_ref.find_node(_from_node["SceneName"] + "Entity", true, false)
+							_value_to_assign = _scene_node._entity_properties[_links[_link_key]]["Value"]
+#							print("Scene node found: ", _scene_node.name)
+					_:
+						_value_to_assign = _from_node["Value"]
+				_hud_element.text = str(_value_to_assign)
+
+#	var _parent_props : Dictionary = get_parent()._properties_linked
+#	for _parent_prop_key in _parent_props.keys():
+#		for _child in get_children():
+#			if _parent_props[_parent_prop_key] == _child.name:
+#				_child.text = str(get_parent()._entity_properties[_parent_prop_key]["Value"])
 
 func _on_fade_timer_timeout():
 	start_fade()

@@ -70,6 +70,7 @@ func add_hud():
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
 		_hud.hud_settings = _hud_dict["Settings"]
+		_hud.hud_fields = _hud_dict["FieldsLinked"]
 		add_child(_hud)
 
 func animate():
@@ -169,7 +170,7 @@ func set_entity_property_value(_property_name, _value):
 func setup_dictionaries():
 	if self.node_info.has("HUD"):
 		self._hud_dict = self.gm_ref.get_tree_node(node_info["HUD"], self.gm_ref.gm_dict)
-		self._properties_linked = self.node_info["PropertiesLinked"]
+#		self._properties_linked = self.node_info["PropertiesLinked"]
 	if self.node_info.has("PauseMenuOverlay"):
 		self._pause_menu_dict = self.gm_ref.get_tree_node(node_info["PauseMenuOverlay"], self.gm_ref.gm_dict)
 		print(self._pause_menu_dict)

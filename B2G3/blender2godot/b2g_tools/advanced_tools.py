@@ -443,6 +443,7 @@ class ExportGameOperator(bpy.types.Operator):
                     _hud_socket = _node.inputs[0]
                     if _hud_socket.is_linked:
                         _current_node_dict.add("HUD", _hud_socket.links[0].from_node.name)
+                        '''
                         if len(_node.outputs) > 1:
                             _props = my_dictionary()
                             for _output in _node.outputs:
@@ -451,6 +452,7 @@ class ExportGameOperator(bpy.types.Operator):
                                         if len(_output.links) > 0:
                                             _props.add(_entity_property.property_name, _output.links[0].to_socket.name)
                             _current_node_dict.add("PropertiesLinked", _props)
+                        '''
                     # Pause Menu assigned
                     print("Assigning pause")
                     for _output in _node.outputs:
@@ -469,6 +471,15 @@ class ExportGameOperator(bpy.types.Operator):
                         _hud_settings.add("HideTransitionType", _node.settings.hide_transition_type)
                         _hud_settings.add("HideTransitionTime", _node.settings.hide_transition_time)
                         _current_node_dict.add("Settings", _hud_settings)
+                        if len(_node.inputs) > 0:
+                            _fields = my_dictionary()
+                            for _input in _node.inputs:
+                                _field_name = _input.name
+                                _field_dict = my_dictionary()
+                                for _link in _input.links:
+                                    _field_dict.add(_link.from_node.name, _link.from_socket.name)
+                                _fields.add(_field_name, _field_dict)
+                            _current_node_dict.add("FieldsLinked", _fields)
                 case "B2G_3dMenu_Scene_Node":
                     if _node.scene:
                         _current_node_dict.add("SceneName", _node.scene.name)
@@ -551,7 +562,9 @@ class ExportGameOperator(bpy.types.Operator):
                                             _special_object_dict.add("ActionParameter", _node.outputs[_output_index].links[0].to_node.name)
                             _special_objects_dict.add(_special_object.button_name, _special_object_dict)
                         _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
-            
+                case "B2G_String_Node":
+                    _current_node_dict.add("Value", _node.my_value)
+
             _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)
@@ -766,30 +779,8 @@ class ExportGameOperator(bpy.types.Operator):
                     for _point in _hud_obj.data.layers[0].active_frame.strokes[0].points:
                         _co_array.append([_point.co[0], _point.co[1], _point.co[2]])
                     _hud_object_dict.add("Points", _co_array)
-            '''
-            if hasattr(_hud_obj, "hud_element_properties"):
-                if _hud_obj.hud_element_properties.source_info_scene:
-                    _scene_name = _hud_obj.hud_element_properties.source_info_scene.name
-                    match _hud_obj.hud_element_properties.source_info_scene.scene_type:
-                        case "stage":
-                            _scene_name = "Stage_" + _scene_name
-                        case "player":
-                            _scene_name = _scene_name + "Entity"
-                    _hud_object_dict.add("SourceInfoScene", _scene_name)
-                    _hud_object_dict.add("SourceInfoProperty", _hud_obj.hud_element_properties.source_info_property)
-            '''
             _hud_objects_dict.add(_hud_obj.name, _hud_object_dict)
         _hud_dict.add("Objects", _hud_objects_dict)
-        ''' ON GAMEMANAGER NODES
-        _hud_settings_dict = my_dictionary()
-        _hud_settings_dict.add("VisibilityType", _sc_added.hud_settings.visibility_type)
-        _hud_settings_dict.add("ShowTransitionType", _sc_added.hud_settings.show_transition_type)
-        _hud_settings_dict.add("ShowTransitionTime", _sc_added.hud_settings.show_transition_time)
-        _hud_settings_dict.add("HideTransitionType", _sc_added.hud_settings.hide_transition_type)
-        _hud_settings_dict.add("HideTransitionTime", _sc_added.hud_settings.hide_transition_time)
-        _hud_settings_dict.add("ExportFormat", _sc_added.hud_settings.hud_export_format)
-        _hud_dict.add("Settings", _hud_settings_dict)
-        '''
         self.dict_huds_info.add(_sc_added.name, _hud_dict)
 
     def export_huds_info(self, context):
