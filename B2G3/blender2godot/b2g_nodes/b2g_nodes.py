@@ -1620,11 +1620,27 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
     entity_props = [
             ("none", "None", "NONE"),
     ]
+    source_node_name : bpy.props.StringProperty(name="Source Node Name") # type: ignore
 
     def get_entity_props(self, context):
         return self.entity_props
     
-    property_selected : bpy.props.EnumProperty(items=get_entity_props) # type: ignore
+    def on_update_property_selected(self, context):
+        pass
+    '''
+        print("On update", self.property_selected)
+        if self.source_node:
+            print("self source_node:", self.source_node)
+            if hasattr(self.source_node, "scene"):
+                for _prop in self.source_node.scene.player_entity_properties:
+                    print("Prop:", _prop)
+            else:
+                print("Has no scene attr", self.source_node.name)
+        else:
+            print(self, "Not self.source_node")
+    '''
+
+    property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected, name="Property selected") # type: ignore
 
     def poll_scenes(self, object):
         return True
@@ -1634,7 +1650,7 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
   
     def init(self, context):
         self.inputs.new("B2G_Player_SocketType", "Entity Ref")
-        
+        self.update_buttons()
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -1643,8 +1659,19 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        row1 = layout.row()
-        row1.prop(self, "property_selected")
+        #if self.source_node is not None:
+            row1 = layout.row()
+            row1.prop(self, "property_selected", text="Property")
+            if self.property_selected == "none":
+                pass
+            else:
+                for _node in bpy.data.node_groups["GameManager"].nodes:
+                    if _node.name == self.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                        if hasattr(_source_node, "scene"):
+                            row2 = layout.row()
+                            print(_source_node)
+                            row2.label(text="Selected")
 
 
     def draw_buttons_ext(self, context, layout):
@@ -1673,20 +1700,26 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link'''
 
     def update_buttons(self):
+        _source_node = None
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+
         if self.inputs[0].is_linked:
-            _from_node = self.inputs[0].links[0].from_node
-            for _input in _from_node.inputs:
+            self.source_node_name = self.inputs[0].links[0].from_node.name
+            for _input in _source_node.inputs:
                 if (_input.name + " REF") == self.inputs[0].links[0].from_socket.name:
-                    _from_node = _input.links[0].from_node
+                    _source_node = _input.links[0].from_node
                     break
-            if _from_node.scene:
+            if _source_node.scene:
                 print("Node scene found")
-                if hasattr(_from_node.scene, "player_entity_properties"):
+                if hasattr(_source_node.scene, "player_entity_properties"):
                     self.entity_props.clear()
-                    print("Node scene", _from_node.scene.name, "has player_entity_properties")
+                    print("Node scene", _source_node.scene.name, "has player_entity_properties")
                     self.entity_props.append(("none", "None", "NONE"))
-                    for _prop in _from_node.scene.player_entity_properties:
+                    for _prop in _source_node.scene.player_entity_properties:
                         self.entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
+                    #print("Properties:", self.entity_props)
                 else:
                     print("Node hasn't player_entity_properties")
         else:
