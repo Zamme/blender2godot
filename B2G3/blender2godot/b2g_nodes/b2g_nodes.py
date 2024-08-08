@@ -837,14 +837,14 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         if self.inputs[0].is_linked:
             _player_ref_socket_found = False
             for _output in self.outputs:
-                if _output.name == "Player REF":
+                if _output.name == "Player_REF":
                     _player_ref_socket_found = True
                     break
             if not _player_ref_socket_found:
-                self.outputs.new(type="B2G_Player_SocketType", name="Player REF")
+                self.outputs.new(type="B2G_Player_SocketType", name="Player_REF")
         else:
             for _output in self.outputs:
-                if _output.name == "Player REF":
+                if _output.name == "Player_REF":
                     self.outputs.remove(_output)
 
     def mark_invalid_links(self):
@@ -1797,6 +1797,7 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     bl_height_default = 100.0
 
     source_node_name : bpy.props.StringProperty(name="Source Node Name", default="") # type: ignore
+    last_source_node_name : bpy.props.StringProperty(name="Last Source Node Name", default="") # type: ignore
     
     def get_entity_props(self, context):
         entity_props = [
@@ -1865,6 +1866,10 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
                                 if _prop.property_name == self.property_selected:
                                     row3 = layout.row()
                                     row3.prop(self, "operation_selected", text="Operation")
+                                    match self.operation_selected:
+                                        case "concat":
+                                            row4 = layout.row()
+                                            row4.prop(self, "operation_parameter", text="To Concat")
                                     break
 
     def draw_buttons_ext(self, context, layout):
@@ -1875,9 +1880,7 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
 
     def update(self):
         '''Called when node graph is changed'''
-        #if not self.inputs[1].is_linked:
-            #self.property_selected = "none"
-            #self.operation_selected = "none"
+        print("Change entity string Node updated")
         bpy.app.timers.register(self.update_sockets)
         bpy.app.timers.register(self.update_buttons)
         bpy.app.timers.register(self.mark_invalid_links)
@@ -1896,9 +1899,10 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link'''
 
     def update_buttons(self):
-        _source_node = None
+        #_source_node = None
         if self.inputs[1].is_linked:
-            if self.source_node_name == self.inputs[1].links[0].from_node.name:
+            print(self.source_node_name, "vs", self.last_source_node_name)
+            if self.source_node_name == self.last_source_node_name:
                 # Not new link
                 pass
             else:
@@ -1910,14 +1914,15 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
                         _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
                         break
                 for _input in _source_node.inputs:
-                    if (_input.name + " REF") == self.inputs[1].links[0].from_socket.name:
+                    if (_input.name + "_REF") == self.inputs[1].links[0].from_socket.name:
                         _source_node = _input.links[0].from_node
                         self.source_node_name = _source_node.name
                     else:
                         pass
+                self.last_source_node_name = self.source_node_name
         else:
             self.source_node_name = ""
-            _source_node = None
+            #_source_node = None
 
     def update_sockets(self):
         pass

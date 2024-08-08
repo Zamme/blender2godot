@@ -52,12 +52,13 @@ func continue_game():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	self.b2g_current_scene.is_paused = false
 
-func execute_command(_command : String, _parameter : String):
+func execute_command(_command : String, _parameters : Array):
 	print("Command to execute: ", _command)
-	print("With parameter :", _parameter)
+	print("With parameter :", _parameters)
 	var _param : String
 	match _command:
 		"load_stage":
+			var _parameter = _parameters[0]
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
 			if self.current_node:
@@ -67,6 +68,7 @@ func execute_command(_command : String, _parameter : String):
 #					print("action parameter:", _parameter)
 				self.load_stage(_param)
 		"load_3dmenu":
+			var _parameter = _parameters[0]
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
 			if self.current_node:
@@ -74,6 +76,7 @@ func execute_command(_command : String, _parameter : String):
 				_param = self.MENUS3D_DIRPATH + self.MENU3D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
 				self.load_menu3d(_param)
 		"load_2dmenu":
+			var _parameter = _parameters[0]
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
 			if self.current_node:
@@ -81,6 +84,7 @@ func execute_command(_command : String, _parameter : String):
 				_param = self.MENUS2D_DIRPATH + self.MENUS2D_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
 				self.load_menu2d(_param)
 		"load_overlay":
+			var _parameter = _parameters[0]
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
 			if self.current_node:
@@ -90,6 +94,11 @@ func execute_command(_command : String, _parameter : String):
 				self.load_overlay(_param, _with_pause)
 		"quit_game":
 			self.quit_game()
+		"change_property":
+			print("Changing property...")
+			var _entity_to_change_prop = self.find_node(_parameters[0], true, false)
+			print("Entity found: ", _entity_to_change_prop)
+			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
 
 func execute_node(_node_name : String):
 	self._last_node_executed = self.current_node
@@ -98,15 +107,26 @@ func execute_node(_node_name : String):
 		print("Execute: ", self.current_node["Type"])
 		match self.current_node["Type"]:
 			"B2G_Finish_Node":
-				self.quit_game()
+				self.execute_command("quit_game", [""])
 			"B2G_Stage_Scene_Node":
-				self.execute_command("load_stage", "")
+				self.execute_command("load_stage", [""])
 			"B2G_2dMenu_Scene_Node":
-				self.execute_command("load_2dmenu", "")
+				self.execute_command("load_2dmenu", [""])
 			"B2G_3dMenu_Scene_Node":
-				self.execute_command("load_3dmenu", "")
+				self.execute_command("load_3dmenu", [""])
 			"B2G_OverlayMenu_Scene_Node":
-				self.execute_command("load_overlay", "")
+				self.execute_command("load_overlay", [""])
+			"B2G_Change_Entity_String_Property_Node":
+				print("Last node executed: ", self._last_node_executed)
+				print("Current node to execute:", self.current_node)
+				var _entity_name : String = self.current_node["SourceNodeName"]
+				var _suffix_pos : int = _entity_name.rfind(" Scene")
+				_entity_name.erase(_suffix_pos, 6)
+				_entity_name += "Entity"
+				self.execute_command("change_property", [_entity_name, 
+															self.current_node["Property"],
+															self.current_node["Operation"],
+															self.current_node["Parameter"]])
 	else:
 		print("No node to execute!")
 		self.show_message("No node to execute!")

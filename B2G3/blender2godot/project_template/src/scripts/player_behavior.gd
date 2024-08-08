@@ -83,6 +83,15 @@ func animate():
 			else:
 				player_mesh._play_animation(_animations["idle"])
 
+func change_entity_property(_prop, _operation, _value):
+	if _entity_properties.has(_prop):
+		match _operation:
+			"concat":
+				_entity_properties[_prop]["Value"] += _value
+	else:
+		print("Entity ", self.name, " has no property ", _prop)
+	_hud.update_hud_objects_info()
+
 func create_pause():
 	if self.node_info.has("PauseMenuOverlay"):
 		self.gm_ref.execute_node(self.node_info["PauseMenuOverlay"])
@@ -204,7 +213,7 @@ func _physics_process(delta):
 
 func process_action(_action, _delta):
 	var _msg : String = "Action " + _action
-	print(_msg)
+#	print(_msg)
 	self.gm_ref.show_message(_msg)
 	match _action:
 		"APause":
@@ -230,7 +239,7 @@ func process_action(_action, _delta):
 func process_actions(_delta):
 	for _action_key in _actions.keys():
 		if Input.is_action_just_released(_action_key):
-			print("pressed")
+#			print("pressed")
 			process_action(_actions[_action_key], _delta)
 
 func process_input(_delta):

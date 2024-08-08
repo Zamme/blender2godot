@@ -86,9 +86,9 @@ func setup_stage_objects():
 	stage_objects_dict = optional_dict["Objects"]
 
 func setup_triggers():
-	print(node_info["Outputs"])
+#	print(node_info["Outputs"])
 	for _node_output_key in node_info["Outputs"].keys():
-		print(_node_output_key)
+#		print(_node_output_key)
 		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
 		match _node_key_parts[1]:
 			"Enter":
@@ -99,8 +99,9 @@ func setup_triggers():
 func stage_trigger_entered(_body_entered, _arg):
 	var _msg : String
 #	_msg = _body_entered.name + " entered " + _arg.name
-	if _enter_triggers.has(_arg.name.rsplit("_", true, 1)[0]):
-		var node_to_call = _enter_triggers[_arg.name.rsplit("_", true, 1)[0]]
+	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
+	if _enter_triggers.has(_trigger_name):
+		var node_to_call = _enter_triggers[_trigger_name]
 		_msg = "Trigger calls " + node_to_call
 		print(_msg)
 		self.gm_ref.show_message(_msg)
@@ -109,8 +110,9 @@ func stage_trigger_entered(_body_entered, _arg):
 func stage_trigger_exited(_body_exited, _arg):
 	var _msg : String
 #	_msg = _body_exited.name + " exited " + _arg.name
-	if _exit_triggers.has(_arg.name.rsplit("_", true, 1)[0]):
-		var node_to_call = _exit_triggers[_arg.name.rsplit("_", true, 1)[0]]
+	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
+	if _exit_triggers.has(_trigger_name):
+		var node_to_call = _exit_triggers[_trigger_name]
 		_msg = "Trigger calls " + node_to_call
 		print(_msg)
 		self.gm_ref.show_message(_msg)

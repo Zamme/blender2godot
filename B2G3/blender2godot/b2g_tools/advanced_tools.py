@@ -564,6 +564,11 @@ class ExportGameOperator(bpy.types.Operator):
                         _current_node_dict.add("SpecialObjects", _special_objects_dict)                                
                 case "B2G_String_Node":
                     _current_node_dict.add("Value", _node.my_value)
+                case "B2G_Change_Entity_String_Property_Node":
+                    _current_node_dict.add("SourceNodeName", _node.source_node_name)
+                    _current_node_dict.add("Property", _node.property_selected)
+                    _current_node_dict.add("Operation", _node.operation_selected)
+                    _current_node_dict.add("Parameter", _node.operation_parameter)
 
             _nodes_dict.add(_node.name, _current_node_dict)
         

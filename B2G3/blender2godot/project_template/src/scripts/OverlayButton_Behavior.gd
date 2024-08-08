@@ -21,8 +21,8 @@ func do_click_action():
 			_msg += " " + self.button_dict["ActionParameter"]
 #	print("Message: ", _msg)
 #	self.gm_ref.execute_command(_action_to_do, _action_parameter)
-	print("ActionToDo: ", _action_to_do)
-	print("ActionParameter: ", _action_parameter)
+#	print("ActionToDo: ", _action_to_do)
+#	print("ActionParameter: ", _action_parameter)
 	match _action_to_do:
 		"close_overlay":
 			self.gm_ref.continue_game()
