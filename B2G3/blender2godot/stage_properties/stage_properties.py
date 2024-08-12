@@ -27,6 +27,7 @@ stage_object_types = [
     ("none", "None", "", 0),
     ("player_spawn_empty", "Player Spawn Point", "", 1),
     ("trigger_zone", "Trigger Zone", "", 2),
+    ("entity", "Entity", "", 3),
 ]
 
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
