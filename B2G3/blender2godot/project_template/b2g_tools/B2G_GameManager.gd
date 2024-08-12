@@ -101,6 +101,8 @@ func execute_command(_command : String, _parameters : Array):
 			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
 
 func execute_node(_node_name : String):
+	print("Last node executed: ", self._last_node_executed)
+	print("Current node to execute:", self.current_node)
 	self._last_node_executed = self.current_node
 	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
 	if self.current_node:
@@ -117,8 +119,6 @@ func execute_node(_node_name : String):
 			"B2G_OverlayMenu_Scene_Node":
 				self.execute_command("load_overlay", [""])
 			"B2G_Change_Entity_String_Property_Node":
-				print("Last node executed: ", self._last_node_executed)
-				print("Current node to execute:", self.current_node)
 				var _entity_name : String = self.current_node["SourceNodeName"]
 				var _suffix_pos : int = _entity_name.rfind(" Scene")
 				_entity_name.erase(_suffix_pos, 6)
@@ -127,6 +127,34 @@ func execute_node(_node_name : String):
 															self.current_node["Property"],
 															self.current_node["Operation"],
 															self.current_node["Parameter"]])
+			"B2G_Change_Entity_Integer_Property_Node":
+				var _entity_name : String = self.current_node["SourceNodeName"]
+				var _suffix_pos : int = _entity_name.rfind(" Scene")
+				_entity_name.erase(_suffix_pos, 6)
+				_entity_name += "Entity"
+				self.execute_command("change_property", [_entity_name, 
+															self.current_node["Property"],
+															self.current_node["Operation"],
+															self.current_node["Parameter"]])
+			"B2G_Change_Entity_Float_Property_Node":
+				var _entity_name : String = self.current_node["SourceNodeName"]
+				var _suffix_pos : int = _entity_name.rfind(" Scene")
+				_entity_name.erase(_suffix_pos, 6)
+				_entity_name += "Entity"
+				self.execute_command("change_property", [_entity_name, 
+															self.current_node["Property"],
+															self.current_node["Operation"],
+															self.current_node["Parameter"]])
+			"B2G_Change_Entity_Boolean_Property_Node":
+				var _entity_name : String = self.current_node["SourceNodeName"]
+				var _suffix_pos : int = _entity_name.rfind(" Scene")
+				_entity_name.erase(_suffix_pos, 6)
+				_entity_name += "Entity"
+				self.execute_command("change_property", [_entity_name, 
+															self.current_node["Property"],
+															self.current_node["Operation"],
+															self.current_node["Parameter"]])
+
 	else:
 		print("No node to execute!")
 		self.show_message("No node to execute!")

@@ -88,6 +88,14 @@ func change_entity_property(_prop, _operation, _value):
 		match _operation:
 			"concat":
 				_entity_properties[_prop]["Value"] += _value
+			"add":
+				_entity_properties[_prop]["Value"] += _value
+			"sub":
+				_entity_properties[_prop]["Value"] -= _value
+			"mul":
+				_entity_properties[_prop]["Value"] *= _value
+			"div":
+				_entity_properties[_prop]["Value"] /= _value
 	else:
 		print("Entity ", self.name, " has no property ", _prop)
 	_hud.update_hud_objects_info()
