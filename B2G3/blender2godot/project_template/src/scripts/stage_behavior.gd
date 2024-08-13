@@ -11,6 +11,7 @@ var is_paused : bool
 var free_camera : Camera
 
 onready var scenario_scene = get_child(0)
+onready var scenario_scene_animation_player = scenario_scene.find_node("AnimationPlayer")
 
 export var optional_dict : Dictionary
 export var node_info : Dictionary
@@ -52,6 +53,15 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 
 func get_player_spawn():
 	return scenario_scene.find_node(self.optional_dict["PlayerSpawnObjectName"])
+
+func play_entity_animation(_animation_name : String, _reproduction : String, _time : float):
+	if self.scenario_scene_animation_player:
+		if self.scenario_scene_animation_player.has_animation(_animation_name):
+			match _reproduction:
+				"play_forward":
+					self.scenario_scene_animation_player.play(_animation_name, -1, _time, false)
+				"play_backward":
+					self.scenario_scene_animation_player.play_backwards(_animation_name)
 
 func setup_player():
 	player_spawn = get_player_spawn()

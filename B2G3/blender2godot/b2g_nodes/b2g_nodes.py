@@ -27,6 +27,11 @@ from blender2godot.stage_properties import stage_properties # type: ignore
 from blender2godot.addon_config import addon_config # type: ignore
 
 
+animation_operations = [
+        ("none", "None", "NONE"),
+        ("play_forward", "Play Forward", "PLAY_FORWARD"),
+        ("play_backward", "Play Backward", "PLAY_BACKWARD"),
+]
 
 string_operations = [
         ("none", "None", "NONE"),
@@ -762,7 +767,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                         _trigger_zone_exit_socket.link_limit = 1
                     case "entity":
                         _entity_ref_socket = self.outputs.new(type="B2G_Player_SocketType", name=(_stage_object.object_name + "_REF"))
-                        _entity_ref_socket.link_limit = 1
+                        #_entity_ref_socket.link_limit = 1
         else:
             self.outputs.clear()
 
@@ -2356,7 +2361,8 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
 
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
-    
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+
     def get_entity_animations(self, context):
         #print("Updating animations")
         entity_animations = [
@@ -2367,35 +2373,25 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                 _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _entity in _source_node.scene.objects:
-                        if _entity.stage_object_type == "entity":
-                            print("Anims of", _entity.name)
-                            #_object_actions = [ a for a in bpy.data.actions if _entity.name in a.keys()]
-                            for _object_action in bpy.data.actions:
-                                print("Anim:", _object_action)
-                            #entity_animations.append((_prop.property_name, _prop.property_name, _prop.property_name))
+                        if len(self.inputs[1].links) > 0:
+                            _socket_name = self.inputs[1].links[0].from_socket.name
+                            if (_entity.name + "_REF") == _socket_name:
+                                if _entity.stage_object_type == "entity":
+                                    _anim_data = _entity.animation_data
+                                    #print("Anims of", _entity.name)
+                                    for _object_action in _anim_data.nla_tracks:
+                                        #print("NLA:", _object_action)
+                                        entity_animations.append((_object_action.name, _object_action.name, _object_action.name))
         return entity_animations
     
-    operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=animation_operations) # type: ignore
 
     def on_update_animation_selected(self, context):
         self.operation_selected = "none"
-        for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
-                if hasattr(_source_node, "scene"):
-                    pass
-                    '''
-                    for _prop in _source_node.scene.player_entity_properties:
-                        if _prop.property_name == self.property_selected:
-                            self.current_property_type = _prop.property_type
-                            break
-                else:
-                    print("Has no scene attr", self.source_node.name)
-                    '''
 
     animation_selected : bpy.props.EnumProperty(items=get_entity_animations, update=on_update_animation_selected) # type: ignore
 
-    operation_parameter : bpy.props.BoolProperty(default=False) # type: ignore
+    operation_parameter : bpy.props.FloatProperty(default=1.0) # type: ignore
     
     def check_source_node_name_changed(self):
         _source_node = None
@@ -2419,25 +2415,17 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
 
     def draw_buttons(self, context, layout):
         if self.inputs[1].is_linked:
-            row1 = layout.row()
-            row1.prop(self, "animation_selected", text="Animation")
-            '''
-            if self.property_selected == "none":
-                pass
-            else:
-                for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
-                        if hasattr(_source_node, "scene"):
-                            for _prop in _source_node.scene.player_entity_properties:
-                                if _prop.property_name == self.property_selected:
-                                    row3 = layout.row()
-                                    row3.prop(self, "operation_selected", text="Operation")
-                                    if self.operation_selected != "none":
-                                        row4 = layout.row()
-                                        row4.prop(self, "operation_parameter", text="Parameter")
-                                    break
-            '''
+            if len(self.get_entity_animations(context)) > 1:
+                row1 = layout.row()
+                row1.prop(self, "animation_selected", text="Animation")
+                if self.animation_selected == "none":
+                    pass
+                else:
+                    row3 = layout.row()
+                    row3.prop(self, "operation_selected", text="Repro.")
+                    if self.operation_selected != "none":
+                        row4 = layout.row()
+                        row4.prop(self, "operation_parameter", text="Speed")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -2469,9 +2457,20 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
             if self.check_source_node_name_changed():
                 self.property_selected = "none"
                 self.source_node_name = self.new_source_node_name
+                for _node in bpy.data.node_groups["GameManager"].nodes:
+                    if _node.name == self.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                        if hasattr(_source_node, "scene"):
+                            for _entity in _source_node.scene.objects:
+                                if len(self.inputs[1].links) > 0:
+                                    _socket_name = self.inputs[1].links[0].from_socket.name
+                                    if (_entity.name + "_REF") == _socket_name:
+                                        self.entity_name = _entity.name
         else:
             self.source_node_name = ""
+            self.animation_selected = "none"
             self.property_selected = "none"
+            self.entity_name = ""
 
     def update_sockets(self):
         pass

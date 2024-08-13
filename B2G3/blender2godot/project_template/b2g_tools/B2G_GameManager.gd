@@ -99,6 +99,9 @@ func execute_command(_command : String, _parameters : Array):
 			var _entity_to_change_prop = self.find_node(_parameters[0], true, false)
 			print("Entity found: ", _entity_to_change_prop)
 			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
+		"play_animation":
+			print("Playing animation...")
+			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])
 
 func execute_node(_node_name : String):
 	print("Last node executed: ", self._last_node_executed)
@@ -154,7 +157,12 @@ func execute_node(_node_name : String):
 															self.current_node["Property"],
 															self.current_node["Operation"],
 															self.current_node["Parameter"]])
-
+			"B2G_Play_Entity_Animation_Node":
+				self.execute_command("play_animation", [
+															self.current_node["AnimationName"],
+															self.current_node["Reproduction"],
+															self.current_node["Parameter"]
+															])
 	else:
 		print("No node to execute!")
 		self.show_message("No node to execute!")

@@ -584,6 +584,12 @@ class ExportGameOperator(bpy.types.Operator):
                     _current_node_dict.add("Property", _node.property_selected)
                     _current_node_dict.add("Operation", _node.operation_selected)
                     _current_node_dict.add("Parameter", _node.operation_parameter)
+                case "B2G_Play_Entity_Animation_Node":
+                    _current_node_dict.add("SourceNodeName", _node.source_node_name)
+                    _current_node_dict.add("EntityName", _node.entity_name)
+                    _current_node_dict.add("AnimationName", _node.animation_selected)
+                    _current_node_dict.add("Reproduction", _node.operation_selected)
+                    _current_node_dict.add("Parameter", _node.operation_parameter)
 
             _nodes_dict.add(_node.name, _current_node_dict)
         
