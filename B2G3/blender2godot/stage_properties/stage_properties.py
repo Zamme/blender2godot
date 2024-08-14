@@ -110,16 +110,11 @@ class StagePropertiesPanel(bpy.types.Panel):
             box3.prop(context.active_object, "stage_object_type", text="Object Type")
             box3.prop(context.active_object, "is_visible")
             box3.prop(context.active_object, "collider")
-            '''
-            box4 = box.box()
-            row1 = box4.row()
-            row1.label(text="Type Properties")
-            match context.active_object.stage_object_type:
-                case "none":
-                    box4.label(text="No properties")
-                case "damage_zone":
-                    box4.prop(context.active_object, "damage_zone_amount", text="Default damage")
-            '''
+            if context.active_object.collider != "none":
+                row0 = box3.row()
+                row0.label(text="Physics Group:")
+                row1 = box3.row()
+                row1.prop_menu_enum(context.active_object, "physics_group", text=context.active_object.physics_group)
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():

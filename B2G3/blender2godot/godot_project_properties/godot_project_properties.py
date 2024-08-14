@@ -139,6 +139,72 @@ class TemplateStruct(bpy.types.PropertyGroup):
     template_requirements : bpy.props.CollectionProperty(type=TemplateRequirements) # type: ignore
 '''
 
+class PhysicsGroup(bpy.types.PropertyGroup):
+    #index : bpy.props.IntProperty(name="Physics Group Index", default=0) # type: ignore
+    name : bpy.props.StringProperty(name="Physics Group Name", default="") # type: ignore
+
+class PHYSICS_UL_groups(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row0 = layout.row(align=True)
+            #col0 = row0.column()
+            #col0.alignment = "EXPAND"
+            #col0.label(text=str(index))
+            col1 = row0.column()
+            col1.prop(item, "name", text="")
+            col1.alignment = "EXPAND"
+            col2 = row0.column()
+            _new_del_operator = col2.operator("scene.del_physics_group")
+            _new_del_operator.physics_group_index = index
+            col2.alignment = "RIGHT"
+            col2.ui_units_x = 1
+        elif self.layout_type in {"GRID"}:
+            layout.alignment = "CENTER"
+            layout.label(text="", icon = "POSE_HLT")
+
+class PHYSICS_OT_add_group(bpy.types.Operator):
+    bl_idname = "scene.add_physics_group"
+    bl_label = "Add"
+    bl_description = "Add a new physics group"
+    bl_options = {"UNDO", "REGISTER"}
+
+    new_group_name : bpy.props.StringProperty(name="New Physics Group Name", default="NewPG") # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        box.prop(self, "new_group_name", text="Group Name")
+    
+    def execute(self, context):
+        #_new_index = len(context.scene.physics_groups)
+        _new_physic_group = context.scene.physics_groups.add()
+        _new_physic_group.name = self.new_group_name
+        return {"FINISHED"}
+
+class PHYSICS_OT_del_group(bpy.types.Operator):
+    bl_idname = "scene.del_physics_group"
+    bl_label = "X"
+    bl_description = "Delete Physics Group"
+    bl_options = {"UNDO", "REGISTER"}
+
+    physics_group_index : bpy.props.IntProperty(name="PG Index") # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        _deleted_group = context.scene.physics_groups.remove(self.physics_group_index)
+        return {"FINISHED"}
+
+
 class GodotProjectPropertiesPanel(bpy.types.Panel):
     """Godot Project Properties Panel"""
     bl_label = "Godot Project Properties"
@@ -185,6 +251,13 @@ class GodotProjectPropertiesPanel(bpy.types.Panel):
                 row1 = box2.row()
                 row1.alignment = "CENTER"
                 row1.template_preview(bpy.data.textures["gameIconImage"], preview_id="GameIconPreview")
+        row2 = box1.row()
+        box3 = row2.box()
+        row3 = box3.row()
+        row3.label(text="Physics Groups:")
+        row3.operator("scene.add_physics_group", text="Add Group")
+        row4 = box3.row()
+        row4.template_list("PHYSICS_UL_groups", "PhysicsGroupsList", context.scene, "physics_groups", scene, "physics_groups_sel")
         #box1.prop(scene, "project_template", icon="SHADERFX")
         #box1.prop(scene, "scene_environment", text="Default environment")
 
@@ -204,6 +277,8 @@ def clear_properties():
     del bpy.types.Scene.game_icon
     del bpy.types.Scene.project_folder
     del bpy.types.Scene.godot_project_filepath
+    del bpy.types.Scene.physics_groups
+    del bpy.types.Scene.physics_groups_sel
     #del bpy.types.Scene.project_template
     #del bpy.types.Scene.game_icon_image
 
@@ -214,6 +289,8 @@ def init_properties():
     bpy.types.Scene.game_icon = bpy.props.StringProperty(name="Game Icon", subtype="FILE_PATH", default=" ", update=load_game_icon)
     bpy.types.Scene.project_folder = bpy.props.StringProperty(name="Project Folder", subtype="DIR_PATH", default=" ")
     bpy.types.Scene.godot_project_filepath = bpy.props.StringProperty(name="GPF", subtype="FILE_PATH", default=" ")
+    bpy.types.Scene.physics_groups = bpy.props.CollectionProperty(type=PhysicsGroup, name="Physics Groups")
+    bpy.types.Scene.physics_groups_sel = bpy.props.IntProperty(name="Physics Group Selected", default=0)
 
     '''
     bpy.types.Scene.project_template = bpy.props.EnumProperty(
@@ -235,12 +312,20 @@ def register():
     #bpy.utils.register_class(TemplateKey)
     #bpy.utils.register_class(TemplateRequirements)
     #bpy.utils.register_class(TemplateStruct)
+    bpy.utils.register_class(PhysicsGroup)
+    bpy.utils.register_class(PHYSICS_OT_add_group)
+    bpy.utils.register_class(PHYSICS_OT_del_group)
+    bpy.utils.register_class(PHYSICS_UL_groups)
     init_properties()
     bpy.utils.register_class(GodotProjectPropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(GodotProjectPropertiesPanel)
     clear_properties()
+    bpy.utils.unregister_class(PHYSICS_UL_groups)
+    bpy.utils.unregister_class(PHYSICS_OT_del_group)
+    bpy.utils.unregister_class(PHYSICS_OT_add_group)
+    bpy.utils.unregister_class(PhysicsGroup)
     #bpy.utils.unregister_class(TemplateStruct)
     #bpy.utils.unregister_class(TemplateRequirements)
     #bpy.utils.unregister_class(TemplateKey)

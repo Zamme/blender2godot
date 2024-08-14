@@ -36,6 +36,14 @@ scene_types = [
     ("overlay_menu", "Overlay Menu", "", 8),
     ]
 
+def get_physics_groups(self, context):
+    _pgs = [
+        ("none", "None", "NONE"),
+    ]
+    for _pg in bpy.data.scenes["B2G_GameManager"].physics_groups:
+        _pgs.append((_pg.name, _pg.name, _pg.name))
+    return _pgs
+
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
         for _error in message:
@@ -148,12 +156,15 @@ def init_properties():
     #bpy.types.Scene.scene_environment = bpy.props.PointerProperty(type=bpy.types.World, name="Environment")
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Export", default=True) # OBJECT EXPORTABLE
+    #bpy.types.Object.physics_group = bpy.props.StringProperty(name="Physics Group", default="") # OBJECT GROUP FOR COLLISIONS
+    bpy.types.Object.physics_group = bpy.props.EnumProperty(items=get_physics_groups, name="Physics Group") # OBJECT GROUP FOR COLLISIONS
 
 def clear_properties():
     #del bpy.types.Scene.scene_environment
     del bpy.types.Scene.scene_type
     del bpy.types.Scene.scene_exportable
     del bpy.types.Object.godot_exportable
+    del bpy.types.Object.physics_group
 
 def register():
     init_properties()
