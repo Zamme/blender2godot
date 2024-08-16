@@ -140,7 +140,7 @@ func _ready():
 		self.play_game()
 
 
-func add_collider(scene_object, collider_type, scene_to_save):
+func add_collider(scene_object, collider_type, physics_group, scene_to_save):
 	"""
 	if scene_collider == null:
 		scene_collider = StaticBody.new()
@@ -163,6 +163,14 @@ func add_collider(scene_object, collider_type, scene_to_save):
 		COLLIDER_TYPE.SMART:
 			pass
 			#self.create_collision_shape(scene_object, scene_to_save)
+	if physics_group != "":
+		var _group_added : bool = false
+		for _child in scene_object.get_children():
+			if _child is CollisionObject:
+				_child.add_to_group(physics_group, true)
+				_group_added = true
+		if not _group_added:
+			scene_object.add_to_group(physics_group, true)
 
 func add_trigger(object_scene, scene):
 	var _shape : ConvexPolygonShape = ConvexPolygonShape.new()
@@ -384,19 +392,24 @@ func apply_import_changes(_scenario_scene):
 						if _stage_objects_dict[_stage_object_dict_key].has("Collider"):
 							var collider_type = _stage_objects_dict[_stage_object_dict_key]["Collider"]
 #							print("Object ", _stage_object.name)
+							# Physics Group
+							var _physics_group : String = ""
+							if _stage_objects_dict[_stage_object_dict_key].has("PhysicsGroup"):
+								_physics_group = _stage_objects_dict[_stage_object_dict_key]["PhysicsGroup"]
+							# End Physics Group
 							match collider_type :
 								"none":
 									pass
 #									print("...without collider!")
 								"convex":
 #									print("...with convex collider!")
-									self.add_collider(_stage_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
+									self.add_collider(_stage_object, COLLIDER_TYPE.CONVEX, _physics_group, _scenario_scene)
 								"mesh":
 #									print("...with mesh collider!")
-									self.add_collider(_stage_object, COLLIDER_TYPE.MESH, _scenario_scene)
+									self.add_collider(_stage_object, COLLIDER_TYPE.MESH, _physics_group, _scenario_scene)
 								"smart":
 #									print("...with smart collider!")
-									self.add_collider(_stage_object, COLLIDER_TYPE.SMART, _scenario_scene)
+									self.add_collider(_stage_object, COLLIDER_TYPE.SMART, _physics_group, _scenario_scene)
 					# Default Visibility
 					if _stage_objects_dict[_stage_object_dict_key].has("Visible"):
 						_stage_object.visible = _stage_objects_dict[_stage_object_dict_key]["Visible"]
@@ -417,10 +430,9 @@ func apply_import_changes(_scenario_scene):
 #					print("Special Object", ob.name, "found")
 				match _menus3d_json[_menu3d_name]["SpecialObjects"][_menu3d_object.name]["ObjectType"]:
 					"button":
-						self.add_collider(_menu3d_object, COLLIDER_TYPE.CONVEX, _scenario_scene)
+						self.add_collider(_menu3d_object, COLLIDER_TYPE.CONVEX, "menus3d_buttons", _scenario_scene)
 						_menu3d_object.script = menus3d_button_behavior_script
 						_menu3d_object.navigation_dict = _menus3d_json[_menu3d_name]["SpecialObjects"][_menu3d_object.name]["Navigation"]
-						_menu3d_object.add_to_group("menus3d_buttons", true)
 	else:
 		print("Scene ", _scenario_scene.name, " not found in jsons!")
 #	self.get_all_scene_objects(_stage_scenario_scene)
@@ -766,6 +778,10 @@ func create_player_props(_player_mesh_scene_name, _player_json):
 				_player_camera.keep_aspect = Camera.KEEP_HEIGHT
 			"HORIZONTAL":
 				_player_camera.keep_aspect = Camera.KEEP_WIDTH
+	# Physics Group
+	if _player_json.has("PhysicsGroup"):
+		player_entity_instance.add_to_group(_player_json["PhysicsGroup"], true)
+	
 	yield(get_tree(), "idle_frame")
 	
 	var packed_scene = PackedScene.new()

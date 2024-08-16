@@ -1175,6 +1175,8 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_player_info = my_dictionary()
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
+        if _player_scene.player_object:
+            self.dict_player_info.add("PhysicsGroup", _player_scene.player_object.physics_group)
         # ENTITY PROPERTIES
         _entity_properties = my_dictionary()
         print("Jsoning entity properties...")
@@ -1266,6 +1268,8 @@ class ExportGameOperator(bpy.types.Operator):
             _stage_object_dict.add("Type", _stage_object.stage_object_type)
             _stage_object_dict.add("Visible", _stage_object.is_visible)
             _stage_object_dict.add("Collider", _stage_object.collider)
+            if _stage_object.physics_group != "none":
+                _stage_object_dict.add("PhysicsGroup", _stage_object.physics_group)
             _stage_objects.add(_stage_object.name, _stage_object_dict)
         _stage_dict.add("Objects", _stage_objects)
         _stage_name = "Stage_" + _stage_scene.name
