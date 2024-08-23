@@ -163,16 +163,17 @@ func add_collider(scene_object, collider_type, physics_group, scene_to_save):
 		COLLIDER_TYPE.SMART:
 			pass
 			#self.create_collision_shape(scene_object, scene_to_save)
-	if physics_group != "":
-		var _group_added : bool = false
-		for _child in scene_object.get_children():
-			if _child is CollisionObject:
-				_child.add_to_group(physics_group, true)
-				_group_added = true
-		if not _group_added:
-			scene_object.add_to_group(physics_group, true)
+	if len(physics_group) > 0:
+		for _pg in physics_group:
+			var _group_added : bool = false
+			for _child in scene_object.get_children():
+				if _child is CollisionObject:
+					_child.add_to_group(_pg, true)
+					_group_added = true
+			if not _group_added:
+				scene_object.add_to_group(_pg, true)
 
-func add_trigger(object_scene, scene):
+func add_trigger(object_scene, scene, _physics_groups):
 	var _shape : ConvexPolygonShape = ConvexPolygonShape.new()
 	if object_scene is MeshInstance:
 		_shape = object_scene.mesh.create_convex_shape()
@@ -181,6 +182,7 @@ func add_trigger(object_scene, scene):
 	object_scene.add_child(_new_area)
 	_new_area.set_owner(scene)
 	_new_area.script = trigger_area_behavior_script
+	_new_area.physics_groups = _physics_groups
 	var _new_collision_shape : CollisionShape = CollisionShape.new()
 	_new_collision_shape.shape = _shape
 	_new_collision_shape.name = object_scene.name + "_CollisionShape"
@@ -393,9 +395,10 @@ func apply_import_changes(_scenario_scene):
 							var collider_type = _stage_objects_dict[_stage_object_dict_key]["Collider"]
 #							print("Object ", _stage_object.name)
 							# Physics Group
-							var _physics_group : String = ""
+							var _physics_group : Array = Array()
 							if _stage_objects_dict[_stage_object_dict_key].has("PhysicsGroup"):
-								_physics_group = _stage_objects_dict[_stage_object_dict_key]["PhysicsGroup"]
+								for _pg in _stage_objects_dict[_stage_object_dict_key]["PhysicsGroup"]:
+									_physics_group.append(_pg)
 							# End Physics Group
 							match collider_type :
 								"none":
@@ -418,7 +421,7 @@ func apply_import_changes(_scenario_scene):
 						match _stage_objects_dict[_stage_object_dict_key]["Type"]:
 							"trigger_zone":
 #								print("Adding trigger to ", _stage_object.name)
-								self.add_trigger(_stage_object, _scenario_scene)
+								self.add_trigger(_stage_object, _scenario_scene, _stage_objects_dict[_stage_object_dict_key]["PhysicsGroup"])
 					break # Pass to next object
 	elif _menus3d_json.has("Menu3d_" + _scenario_scene.name): # IS A MENU 3D SCENARIO
 #		print("Menu 3d in applying!!!!!")
@@ -780,7 +783,8 @@ func create_player_props(_player_mesh_scene_name, _player_json):
 				_player_camera.keep_aspect = Camera.KEEP_WIDTH
 	# Physics Group
 	if _player_json.has("PhysicsGroup"):
-		player_entity_instance.add_to_group(_player_json["PhysicsGroup"], true)
+		for _pg in _player_json["PhysicsGroup"]:
+			player_entity_instance.add_to_group(_pg, true)
 	
 	yield(get_tree(), "idle_frame")
 	

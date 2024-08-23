@@ -1176,7 +1176,11 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
         if _player_scene.player_object:
-            self.dict_player_info.add("PhysicsGroup", _player_scene.player_object.physics_group)
+            if _player_scene.player_object.collider != "none":
+                _player_physics_groups = []
+                for _group in _player_scene.player_object.physics_group:
+                    _player_physics_groups.append(_group)
+                self.dict_player_info.add("PhysicsGroup",_player_physics_groups)
         # ENTITY PROPERTIES
         _entity_properties = my_dictionary()
         print("Jsoning entity properties...")
@@ -1234,6 +1238,7 @@ class ExportGameOperator(bpy.types.Operator):
 
     def export_players_info(self, context):
         # EXPORT JSON
+        #print(self.dict_players_info)
         self.find_players_info_file_path(context)
         self.data_players_info = json.dumps(self.dict_players_info, indent=1, ensure_ascii=True)
         with open(self.players_info_filepath, 'w') as outfile:
@@ -1268,8 +1273,11 @@ class ExportGameOperator(bpy.types.Operator):
             _stage_object_dict.add("Type", _stage_object.stage_object_type)
             _stage_object_dict.add("Visible", _stage_object.is_visible)
             _stage_object_dict.add("Collider", _stage_object.collider)
-            if _stage_object.physics_group != "none":
-                _stage_object_dict.add("PhysicsGroup", _stage_object.physics_group)
+            if ((_stage_object.stage_object_type == "trigger_zone") or (_stage_object.collider != "none")):
+                _stage_object_physics_groups = []
+                for _group in _stage_object.physics_group:
+                    _stage_object_physics_groups.append(_group)
+                _stage_object_dict.add("PhysicsGroup", _stage_object_physics_groups)
             _stage_objects.add(_stage_object.name, _stage_object_dict)
         _stage_dict.add("Objects", _stage_objects)
         _stage_name = "Stage_" + _stage_scene.name

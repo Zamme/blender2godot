@@ -827,9 +827,9 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row2.prop(scene, "camera_control_inverted")
         if scene.player_object == context.active_object:
             row8 = box3.row()
-            row8.label(text="Physics Group:")
+            row8.label(text="Physics Groups:")
             row7 = box3.row()
-            row7.prop_menu_enum(context.active_object, "physics_group", text=context.active_object.physics_group)
+            row7.prop(context.active_object, "physics_group")
 
         # Entity properties
         box4 = box1.box()

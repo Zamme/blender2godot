@@ -106,9 +106,8 @@ func setup_triggers():
 			"Exit":
 				_exit_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
 
-func stage_trigger_entered(_body_entered, _arg):
+func stage_trigger_entered(_arg):
 	var _msg : String
-#	_msg = _body_entered.name + " entered " + _arg.name
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
 	if _enter_triggers.has(_trigger_name):
 		var node_to_call = _enter_triggers[_trigger_name]
@@ -117,7 +116,7 @@ func stage_trigger_entered(_body_entered, _arg):
 		self.gm_ref.show_message(_msg)
 		self.gm_ref.execute_node(node_to_call)
 
-func stage_trigger_exited(_body_exited, _arg):
+func stage_trigger_exited(_arg):
 	var _msg : String
 #	_msg = _body_exited.name + " exited " + _arg.name
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
