@@ -1035,15 +1035,12 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    new_inputs = []
-
     def poll_scenes(self, object):
         return object.scene_type == "hud"
     
     def on_update_scene(self, context):
         # Clean inputs on change scene
         self.inputs.clear()
-        self.new_inputs.clear()
         # Load entity properties as new outputs
         if self.scene:
             for _object in self.scene.objects:
@@ -1051,15 +1048,13 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
                 if hasattr(_object, "hud_element_properties"):
                     match _object.hud_element_properties.element_type:
                         case "text_content":
-                            self.new_inputs.append(self.inputs.new("B2G_String_SocketType", _object.name))
+                            self.inputs.new("B2G_String_SocketType", _object.name)
                         case "horizontal_content":
-                            self.new_inputs.append(self.inputs.new("B2G_Float_SocketType", _object.name))
+                            self.inputs.new("B2G_Float_SocketType", _object.name)
                         case "vertical_content":
-                            self.new_inputs.append(self.inputs.new("B2G_Float_SocketType", _object.name))
+                            self.inputs.new("B2G_Float_SocketType", _object.name)
         else:
-            for _new_input in self.new_inputs:
-                self.inputs.remove(_new_input)
-            self.new_inputs.clear()
+            self.inputs.clear()
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
     settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
@@ -1114,6 +1109,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
                     _valid_link = True
                 else:
                     _valid_link = False
+                    print("Invalidating:", _link)
                 _link.is_valid = _valid_link
 
 class B2G_NPC_Scene_Node(MyCustomTreeNode, Node):
