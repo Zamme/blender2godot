@@ -440,9 +440,9 @@ class ExportGameOperator(bpy.types.Operator):
                         _player_entity_properties_dict.add(_player_entity_property.property_name, _player_entity_property_dict)
                     _current_node_dict.add("EntityProperties", _player_entity_properties_dict)
                     # Player HUD assigned
-                    _hud_socket = _node.inputs[0]
+                    _hud_socket = _node.outputs[2]
                     if _hud_socket.is_linked:
-                        _current_node_dict.add("HUD", _hud_socket.links[0].from_node.name)
+                        _current_node_dict.add("HUD", _hud_socket.links[0].to_node.name)
                         '''
                         if len(_node.outputs) > 1:
                             _props = my_dictionary()
@@ -642,7 +642,12 @@ class ExportGameOperator(bpy.types.Operator):
         self.export_icon(context)
         self.export_godot_project_settings(context)
         self.export_game_manager(context)
-    
+        # Reset GameManager Workspace
+        for _area in context.screen.areas:
+            if _area.type != "NODE_EDITOR":
+                _area.type = "NODE_EDITOR"
+                _area.ui_type = "GameManagerTreeType"
+
     def export_godot_project_settings(self, context):
         print("Exporting project settings...")
 

@@ -64,56 +64,57 @@ def check_godot(self, context):
 @persistent
 def load_handler(dummy):
     regist_msg_bus()
-    #update_workspace()
 
 def update_workspace():
-    #print("Updating workspace")
-    #bpy.context.scene.workspace_name = bpy.context.workspace.name # TODO: remember workspace?
-    if bpy.context.scene == bpy.data.scenes["B2G_GameManager"]:
-        if bpy.data.workspaces.get("B2G_GameManager") == None:
-            print("B2G workspace not found. Creating it ...")
-            possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
-            os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
-            for p_path in possible_paths:
-                if os.path.isdir(p_path):
-                    _b2g_defaults_filepath = os.path.join(p_path, "b2g_defaults.blend")
-                    success = bpy.ops.workspace.append_activate(
-                        idname="B2G_GameManager",
-                        filepath=_b2g_defaults_filepath)
-                    if success == {'FINISHED'}:
-                        print("Workspace created.")
-                        # CONFIG WORKSPACE
-                        if not bpy.data.node_groups.get("GameManager"):
-                            print("GameManager tree not found. Creating it ...")
-                            bpy.ops.node.new_node_tree(type="GameManagerTreeType", name="GameManager")
-                            _gm_node_tree = bpy.data.node_groups.get("GameManager")
-                            _start_node = _gm_node_tree.nodes.new(type="B2G_Start_NodeType")
-                            _start_node.location = (-300.0, 20.0)
-                            _finish_node = _gm_node_tree.nodes.new(type="B2G_Finish_NodeType")
-                            _finish_node.location = (300.0, -20.0)
-                            _gm_node_tree.links.new(_start_node.outputs[0], _finish_node.inputs[0])
-                            print("GameManager tree created.")
-                        else:
-                            _gm_node_tree = bpy.data.node_groups.get("GameManager")
-                        for _screen in bpy.data.workspaces["B2G_GameManager"].screens:
-                            for _area in _screen.areas:
-                                if _area.type == "NODE_EDITOR":
-                                    for _region in _area.regions:
-                                        #print("Region:", _region.type)
-                                        # --- ONLY IN 4.1+ ---
-                                        #if _region.type == "UI":
-                                            #_region.active_panel_category = "Blender2Godot"
-                                        pass
-                                    for _space in _area.spaces:
-                                        if _space.type == "NODE_EDITOR":
-                                            _space.node_tree = _gm_node_tree
-                                            if not _space.node_tree.use_fake_user:
-                                                _space.node_tree.use_fake_user = True
-                    #_ws.use_pin_scene = True
-        else:
-            bpy.context.window.workspace = bpy.data.workspaces["B2G_GameManager"]
-    else:
-        bpy.context.window.workspace = bpy.data.workspaces[bpy.context.scene.workspace_name]
+    if bpy.data.scenes.get("B2G_GameManager"):
+        if not bpy.data.scenes["B2G_GameManager"].godot_exporting:
+            print("Updating workspace")
+            #bpy.context.scene.workspace_name = bpy.context.workspace.name # TODO: remember workspace?
+            if bpy.context.scene == bpy.data.scenes["B2G_GameManager"]:
+                if bpy.data.workspaces.get("B2G_GameManager") == None:
+                    print("B2G workspace not found. Creating it ...")
+                    possible_paths = [os.path.join(bpy.utils.resource_path("USER"), "scripts", "addons", "blender2godot", "b2g_misc"),
+                    os.path.join(bpy.utils.resource_path("LOCAL"), "scripts", "addons", "blender2godot", "b2g_misc")]
+                    for p_path in possible_paths:
+                        if os.path.isdir(p_path):
+                            _b2g_defaults_filepath = os.path.join(p_path, "b2g_defaults.blend")
+                            success = bpy.ops.workspace.append_activate(
+                                idname="B2G_GameManager",
+                                filepath=_b2g_defaults_filepath)
+                            if success == {'FINISHED'}:
+                                print("Workspace created.")
+                                # CONFIG WORKSPACE
+                                if not bpy.data.node_groups.get("GameManager"):
+                                    print("GameManager tree not found. Creating it ...")
+                                    bpy.ops.node.new_node_tree(type="GameManagerTreeType", name="GameManager")
+                                    _gm_node_tree = bpy.data.node_groups.get("GameManager")
+                                    _start_node = _gm_node_tree.nodes.new(type="B2G_Start_NodeType")
+                                    _start_node.location = (-300.0, 20.0)
+                                    _finish_node = _gm_node_tree.nodes.new(type="B2G_Finish_NodeType")
+                                    _finish_node.location = (300.0, -20.0)
+                                    _gm_node_tree.links.new(_start_node.outputs[0], _finish_node.inputs[0])
+                                    print("GameManager tree created.")
+                                else:
+                                    _gm_node_tree = bpy.data.node_groups.get("GameManager")
+                                for _screen in bpy.data.workspaces["B2G_GameManager"].screens:
+                                    for _area in _screen.areas:
+                                        if _area.type == "NODE_EDITOR":
+                                            for _region in _area.regions:
+                                                #print("Region:", _region.type)
+                                                # --- ONLY IN 4.1+ ---
+                                                #if _region.type == "UI":
+                                                    #_region.active_panel_category = "Blender2Godot"
+                                                pass
+                                            for _space in _area.spaces:
+                                                if _space.type == "NODE_EDITOR":
+                                                    _space.node_tree = _gm_node_tree
+                                                    if not _space.node_tree.use_fake_user:
+                                                        _space.node_tree.use_fake_user = True
+                            #_ws.use_pin_scene = True
+                else:
+                    bpy.context.window.workspace = bpy.data.workspaces["B2G_GameManager"]
+            else:
+                bpy.context.window.workspace = bpy.data.workspaces[bpy.context.scene.workspace_name]
 
 def load_custom_icons():
     custom_icons = previews.new()
@@ -145,19 +146,6 @@ def msgbus_callback(*args):
         update_workspace()
         #if bpy.context.scene == bpy.data.scenes["B2G_GameManager"]:
             #bpy.context.window.workspace = bpy.data.workspaces['Layout']
-
-def init_properties():
-    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine", update=check_godot)  
-    bpy.types.Scene.godot_engine_ok = bpy.props.BoolProperty(name="Godot OK", default=False)
-    bpy.types.Scene.workspace_name = bpy.props.StringProperty(name="Workspace name", default="Layout")
-
-def clear_properties():
-    del bpy.types.Scene.workspace_name
-    del bpy.types.Scene.godot_engine_ok
-    del bpy.types.Scene.godot_executable
-    for pcoll in preview_collections:
-        bpy.utils.previews.remove(pcoll)
-    preview_collections.clear()
 
 class ChangeToGameManagerWorkspaceOperator(bpy.types.Operator):
     """Change to Game Manager Workspace Operator"""
@@ -297,6 +285,19 @@ def init_handlers():
 
 def clear_handlers():
     bpy.app.handlers.load_post.remove(load_handler)
+
+def init_properties():
+    bpy.types.Scene.godot_executable = bpy.props.StringProperty(name="Godot Path", subtype="FILE_PATH", default="/usr/local/games/godot-engine", update=check_godot)  
+    bpy.types.Scene.godot_engine_ok = bpy.props.BoolProperty(name="Godot OK", default=False)
+    bpy.types.Scene.workspace_name = bpy.props.StringProperty(name="Workspace name", default="Layout")
+
+def clear_properties():
+    del bpy.types.Scene.workspace_name
+    del bpy.types.Scene.godot_engine_ok
+    del bpy.types.Scene.godot_executable
+    for pcoll in preview_collections:
+        bpy.utils.previews.remove(pcoll)
+    preview_collections.clear()
 
 def regist_msg_bus():
     bpy.msgbus.subscribe_rna(

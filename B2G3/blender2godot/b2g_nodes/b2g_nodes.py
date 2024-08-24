@@ -937,13 +937,14 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                     case "float":
                         _new_property.property_float = _player_property.property_float
         # Clean inputs on change scene
-        self.inputs.clear()
-        self.inputs.new("B2G_HUD_SocketType", "HUD")
+        #self.inputs.clear()
+        #self.inputs.new("B2G_HUD_SocketType", "HUD")
         # Clean outputs on change scene
         #print("Update player")
         self.outputs.clear()
         self.outputs.new("B2G_Player_SocketType", "Player")
         self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
+        self.outputs.new("B2G_HUD_SocketType", "HUD")
         # Load entity properties as new outputs
         if self.scene:
             for _entity_property in self.scene.player_entity_properties:
@@ -953,11 +954,12 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
 
     def init(self, context):
         # INPUTS
-        self.inputs.new("B2G_HUD_SocketType", "HUD")
+        #self.inputs.new("B2G_HUD_SocketType", "HUD")
         #self.inputs.new("B2G_2dmenu_SocketType", "Pause Menu")
         # OUTPUTS
         self.outputs.new("B2G_Player_SocketType", "Player")
         self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
+        self.outputs.new("B2G_HUD_SocketType", "HUD")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -1016,8 +1018,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
         #print("Update", self.name, "links")
-        _input_player = self.inputs[0]
-        for _link in _input_player.links:
+        _output_player = self.outputs[2]
+        for _link in _output_player.links:
             _valid_link = False
             if type(_link.from_socket).__name__ == "B2G_HUD_Socket":
                 _valid_link = True
@@ -1041,7 +1043,8 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     def on_update_scene(self, context):
         # Clean inputs on change scene
         self.inputs.clear()
-        # Load entity properties as new outputs
+        self.inputs.new("B2G_HUD_SocketType", "HUD")
+        # Load entity properties as new inputs
         if self.scene:
             for _object in self.scene.objects:
                 #print(_entity_property.property_name)
@@ -1060,7 +1063,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
     
     def init(self, context):
-        self.outputs.new("B2G_HUD_SocketType", "HUD")
+        self.inputs.new("B2G_HUD_SocketType", "HUD")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -1102,15 +1105,16 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     def mark_invalid_links(self):
         valid_sockets = ["B2G_Float_Socket", "B2G_Integer_Socket", "B2G_Boolean_Socket", "B2G_String_Socket"]
         for _input in self.inputs:
-            for _link in _input.links:
-                _valid_link = False
-                #print(type(_link.from_socket).__name__)
-                if type(_link.from_socket).__name__ in valid_sockets:
-                    _valid_link = True
-                else:
+            if type(_input).__name__ != "B2G_HUD_Socket":
+                for _link in _input.links:
                     _valid_link = False
-                    print("Invalidating:", _link)
-                _link.is_valid = _valid_link
+                    #print(type(_link.from_socket).__name__)
+                    if type(_link.from_socket).__name__ in valid_sockets:
+                        _valid_link = True
+                    else:
+                        _valid_link = False
+                        print("Invalidating:", _link)
+                    _link.is_valid = _valid_link
 
 class B2G_NPC_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
