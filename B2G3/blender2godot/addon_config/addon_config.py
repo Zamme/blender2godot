@@ -68,7 +68,7 @@ def load_handler(dummy):
 def update_workspace():
     if bpy.data.scenes.get("B2G_GameManager"):
         if not bpy.data.scenes["B2G_GameManager"].godot_exporting:
-            print("Updating workspace")
+            #print("Updating workspace")
             #bpy.context.scene.workspace_name = bpy.context.workspace.name # TODO: remember workspace?
             if bpy.context.scene == bpy.data.scenes["B2G_GameManager"]:
                 if bpy.data.workspaces.get("B2G_GameManager") == None:

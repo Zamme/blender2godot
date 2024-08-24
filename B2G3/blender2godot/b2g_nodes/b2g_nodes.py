@@ -325,7 +325,7 @@ class B2G_Integer_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.5, 0.5, 0.0, 1.0)
+        return (0.94,0.97,1.00, 1.0)
 
 class B2G_Boolean_Socket(NodeSocket):
     # Description string
@@ -439,7 +439,7 @@ class B2G_OverlayMenu_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.0, 1.0, 0.0, 1.0)
+        return (1.00,0.60,0.80, 1.0)
 
 class B2G_3dmenu_Socket(NodeSocket):
     # Description string
@@ -477,7 +477,7 @@ class B2G_Player_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.0, 0.0, 1.0, 1.0)
+        return (1.00,0.80,0.60, 1.0)
 
 class B2G_HUD_Socket(NodeSocket):
     # Description string
@@ -496,7 +496,7 @@ class B2G_HUD_Socket(NodeSocket):
 
     # Socket color
     def draw_color(self, context, node):
-        return (0.0, 0.0, 0.5, 1.0)
+        return (1.00,0.75,0.00, 1.00)
 
 # --- END SOCKETS ---
 
