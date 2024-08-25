@@ -118,9 +118,12 @@ class StagePropertiesPanel(bpy.types.Panel):
                 box3.prop(context.active_object, "collider")
                 if context.active_object.collider != "none":
                     row0 = box3.row()
-                    row0.label(text="Physics Group:")
+                    row0.label(text="Physics Groups:")
                     row1 = box3.row()
-                    row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
+                    if len(bpy.data.scenes["B2G_GameManager"].physics_groups) > 0:
+                        row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
+                    else:
+                        row1.label(text="Game Manager physics groups empty!")
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():

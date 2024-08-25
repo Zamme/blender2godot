@@ -113,8 +113,10 @@ def update_workspace():
                             #_ws.use_pin_scene = True
                 else:
                     bpy.context.window.workspace = bpy.data.workspaces["B2G_GameManager"]
+                    #bpy.ops.scene.change_to_gamemanager_workspace_operator()
             else:
                 bpy.context.window.workspace = bpy.data.workspaces[bpy.context.scene.workspace_name]
+                #bpy.ops.scene.change_to_gamemanager_workspace_operator()
 
 def load_custom_icons():
     custom_icons = previews.new()
@@ -154,7 +156,11 @@ class ChangeToGameManagerWorkspaceOperator(bpy.types.Operator):
 
 
     def execute(self, context):
-        bpy.context.window.workspace = bpy.data.workspaces["B2G_GameManager"]
+        if bpy.data.workspaces.get("B2G_GameManager"):
+            bpy.context.window.workspace = bpy.data.workspaces["B2G_GameManager"]
+        else:
+            print("Game Manager not found")
+            #update_workspace()
         return {'FINISHED'}
 
 class CreateGameManagerOperator(bpy.types.Operator):

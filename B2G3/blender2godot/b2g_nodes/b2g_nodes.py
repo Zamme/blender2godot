@@ -33,6 +33,11 @@ animation_operations = [
         ("play_backward", "Play Backward", "PLAY_BACKWARD"),
 ]
 
+execution_behaviors = [
+    ("once", "Once", "ONCE"),
+    ("always", "Always", "ALWAYS"),
+]
+
 string_operations = [
         ("none", "None", "NONE"),
         ("concat", "Concat", "CONCAT"),
@@ -514,6 +519,8 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
         #_new_socket.display_shape="SQUARE"
         #_new_socket.description = "Pipeline socket"
         _new_socket.link_limit = 1
+        #self.use_custom_color = True
+        #self.color = (1.0,1.0,1.0)
 
     #def draw_header(self, context):
         #layout = self.layout
@@ -892,7 +899,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "Player Scene"
     # Icon identifier
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'OUTLINER_OB_ARMATURE'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -1033,7 +1040,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "HUD Scene"
     # Icon identifier
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'DESKTOP'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -1293,7 +1300,7 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "Menu Overlay Scene"
     # Icon identifier
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'NODE_COMPOSITING'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -1638,7 +1645,7 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
     # Label for nice name display
     bl_label = "Change Property"
     # Icon identifier
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'LINENUMBERS_ON'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -1811,7 +1818,7 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
 class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_String_Property_NodeType'
     bl_label = "Change Entity String Property"
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'LINENUMBERS_ON'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -1951,7 +1958,7 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
 class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Integer_Property_NodeType'
     bl_label = "Change Entity Integer Property"
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'LINENUMBERS_ON'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -2088,7 +2095,7 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
 class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Float_Property_NodeType'
     bl_label = "Change Entity Float Property"
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'LINENUMBERS_ON'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -2133,7 +2140,12 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
 
     operation_parameter : bpy.props.FloatProperty(default=0.0) # type: ignore
-    
+
+    ''' for v0.3
+    execution_behavior : bpy.props.EnumProperty(items=execution_behaviors, default="once") # type: ignore
+    execution_parameter : bpy.props.FloatProperty(default=1.0, min=0.01) # type: ignore
+    '''
+
     def check_source_node_name_changed(self):
         _source_node = None
         self.new_source_node_name = self.inputs[1].links[0].from_node.name
@@ -2181,6 +2193,13 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
                                         row4 = layout.row()
                                         row4.prop(self, "operation_parameter", text="Parameter")
                                     break
+            ''' for v0.3
+            row2 = layout.row()
+            row2.prop(self, "execution_behavior", text="Execution")
+            if self.execution_behavior == "always":
+                row5 = layout.row()
+                row5.prop(self, "execution_parameter", text="Cadence")
+            '''
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -2225,7 +2244,7 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
 class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Boolean_Property_NodeType'
     bl_label = "Change Entity Boolean Property"
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = 'LINENUMBERS_ON'
     bl_width_default = 200.0
     bl_height_default = 100.0
 
@@ -2355,7 +2374,7 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
 class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Play_Entity_Animation_NodeType'
     bl_label = "Play Entity Animation"
-    bl_icon = 'SEQ_PREVIEW'
+    bl_icon = "ARMATURE_DATA"
     bl_width_default = 200.0
     bl_height_default = 100.0
 

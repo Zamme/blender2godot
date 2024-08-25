@@ -162,7 +162,6 @@ def init_properties():
     #bpy.types.Scene.scene_environment = bpy.props.PointerProperty(type=bpy.types.World, name="Environment")
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Export", default=True) # OBJECT EXPORTABLE
-    #bpy.types.Object.physics_group = bpy.props.StringProperty(name="Physics Group", default="") # OBJECT GROUP FOR COLLISIONS
     bpy.types.Object.physics_group = bpy.props.EnumProperty(items=get_physics_groups, name="Physics Groups", options={"ENUM_FLAG"}, update=on_object_physics_groups_update) # OBJECT GROUPS FOR COLLISIONS
 
 def clear_properties():
