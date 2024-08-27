@@ -22,6 +22,7 @@ Scene properties panel
 
 import bpy
 from bpy.app.handlers import persistent
+from blender2godot.addon_config import addon_config # type: ignore
 
 global scene_types
 scene_types = [
@@ -35,6 +36,33 @@ scene_types = [
     ("npc", "NPC", "", 7),
     ("overlay_menu", "Overlay Menu", "", 8),
     ]
+
+global property_types
+property_types = [
+    ("boolean", "Boolean", "", "", 0),
+    ("integer", "Integer", "", "", 1),
+    ("float", "Float", "", "", 2),
+    ("string", "String", "", "", 3)
+]
+
+def check_property_name(self, value):
+    _new_value = value
+    for _prop in bpy.context.scene.entity_properties:
+        if _new_value == "none": # name "none" is not allowed
+            _new_value = _prop["property_name"] + "0"
+            _new_value = check_property_name(self, _new_value)
+        if _prop != self:
+            if _prop["property_name"] == _new_value:
+                _new_value = _prop["property_name"] + "0"
+                _new_value = check_property_name(self, _new_value)
+    return _new_value
+
+def get_property_name(self):
+    return self["property_name"]
+
+def set_property_name(self, value):
+    _new_value = check_property_name(self, value)
+    self["property_name"] = _new_value
 
 def get_physics_groups(self, context):
     _pgs = []
@@ -105,9 +133,73 @@ def update_scene_exportable(self, context):
                     bpy.data.scenes[self.name].scene_exportable = False
                     show_error_popup(["Set camera object in player"], "Error detected", "CANCEL")
 
+class EntityProperty(bpy.types.PropertyGroup):
+    property_name : bpy.props.StringProperty(name="Prop_Name", set=set_property_name, get=get_property_name) # type: ignore
+    property_type : bpy.props.EnumProperty(items=property_types, name="Type") # type: ignore
+    property_string : bpy.props.StringProperty(name="Default") # type: ignore
+    property_boolean : bpy.props.BoolProperty(name="Default") # type: ignore
+    property_float : bpy.props.FloatProperty(name="Default") # type: ignore
+    property_integer : bpy.props.IntProperty(name="Default") # type: ignore
+
 class SceneType(bpy.types.PropertyGroup):
     """ Scene type """
     scene_type_options = scene_types
+
+class AddSceneEntityPropertyOperator(bpy.types.Operator):
+    bl_idname = "scene.add_scene_entity_property_operator"
+    bl_label = "Add Property"
+    bl_description = "Add a new property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    property_name : bpy.props.StringProperty(name="Property Name", default="Property_Name") # type: ignore
+    property_type : bpy.props.EnumProperty(items=property_types) # type: ignore
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        row0 = box.row()
+        row0.prop(self, "property_name", text="Property Name")
+        row1 = box.row()
+        row1.prop(self, "property_type", text="Property Type")
+        #for _prop in context.scene.entity_properties:
+            #if _prop.property_name == self.property_name:
+                #row2 = box.row()
+                #row2.label(text="Prop name duplicated", icon="ERROR")
+    
+    def execute(self, context):
+        _new_property = context.scene.entity_properties.add()
+        _new_property.property_name = self.property_name
+        _new_property.property_type = self.property_type
+        return {"FINISHED"}
+
+class RemoveSceneEntityPropertyOperator(bpy.types.Operator):
+    bl_idname = "scene.remove_scene_entity_property_operator"
+    bl_label = "Remove Property"
+    bl_description = "Remove property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    prop_to_remove_name : bpy.props.StringProperty(name="Propname") # type: ignore
+   
+    @classmethod
+    def poll(cls, context):
+        return True
+   
+    def execute(self, context):
+        prop_to_remove_index = -1
+        for _ind,_prop in enumerate(context.scene.entity_properties):
+            if _prop.property_name == self.prop_to_remove_name:
+                prop_to_remove_index = _ind
+                break
+        if prop_to_remove_index > -1:
+            context.scene.entity_properties.remove(prop_to_remove_index)
+        return {"FINISHED"}
 
 class ScenePropertiesPanel(bpy.types.Panel):
     """Scene Properties Panel"""
@@ -140,6 +232,7 @@ class ScenePropertiesPanel(bpy.types.Panel):
             return
         
         # SCENE PROPERTIES
+        scene = context.scene
         row = layout.row()
         row.alignment = "EXPAND"
         column1 = row.column()
@@ -149,6 +242,33 @@ class ScenePropertiesPanel(bpy.types.Panel):
         column2.ui_units_x = 5.0
         if hasattr(context.scene, "scene_exportable"):
             column2.prop(context.scene, "scene_exportable")
+        # Entity properties
+        if scene.scene_type != "none":
+            row1 = layout.row()
+            box4 = row1.box()
+            row4 = box4.row()
+            row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
+            for _property in scene.entity_properties:
+                box2 = box4.box()
+                row5 = box2.row()
+                column0 = row5.column()
+                column0.prop(_property, "property_name", text="Name")
+                column1 = row5.column()
+                column1.prop(_property, "property_type")
+                column2 = row5.column()
+                match _property.property_type:
+                    case "boolean":
+                        column2.prop(_property, "property_boolean")
+                    case "string":
+                        column2.prop(_property, "property_string")
+                    case "integer":
+                        column2.prop(_property, "property_integer")
+                    case "float":
+                        column2.prop(_property, "property_float")
+                column3 = row5.column()
+                column3.operator(operator="scene.remove_scene_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
+            row6 = box4.row()
+            row6.operator("scene.add_scene_entity_property_operator")
 
 def init_properties():
     # Scene props
@@ -163,6 +283,10 @@ def init_properties():
     # Object props
     bpy.types.Object.godot_exportable = bpy.props.BoolProperty(name="Export", default=True) # OBJECT EXPORTABLE
     bpy.types.Object.physics_group = bpy.props.EnumProperty(items=get_physics_groups, name="Physics Groups", options={"ENUM_FLAG"}, update=on_object_physics_groups_update) # OBJECT GROUPS FOR COLLISIONS
+    bpy.types.Scene.entity_properties = bpy.props.CollectionProperty(type=EntityProperty, name="SceneEntityProperties")
+    bpy.types.Scene.entity_property_sel = bpy.props.IntProperty(name="Scene Entity Property Selected", default=0)
+    bpy.types.Object.entity_properties = bpy.props.CollectionProperty(type=EntityProperty, name="ObjectEntityProperties")
+    bpy.types.Object.entity_property_sel = bpy.props.IntProperty(name="Object Entity Property Selected", default=0)
 
 def clear_properties():
     #del bpy.types.Scene.scene_environment
@@ -170,12 +294,22 @@ def clear_properties():
     del bpy.types.Scene.scene_exportable
     del bpy.types.Object.godot_exportable
     del bpy.types.Object.physics_group
+    del bpy.types.Scene.entity_properties
+    del bpy.types.Scene.entity_property_sel
+    del bpy.types.Object.entity_properties
+    del bpy.types.Object.entity_property_sel
 
 def register():
+    bpy.utils.register_class(EntityProperty)
+    bpy.utils.register_class(AddSceneEntityPropertyOperator)
+    bpy.utils.register_class(RemoveSceneEntityPropertyOperator)
     init_properties()
     bpy.utils.register_class(ScenePropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(ScenePropertiesPanel)
     clear_properties()
+    bpy.utils.unregister_class(RemoveSceneEntityPropertyOperator)
+    bpy.utils.unregister_class(AddSceneEntityPropertyOperator)
+    bpy.utils.unregister_class(EntityProperty)
 

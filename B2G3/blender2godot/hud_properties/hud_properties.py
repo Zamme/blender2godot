@@ -92,7 +92,7 @@ def get_source_info_property_items(self, context):
     source_info_property_items = [("none", "None", "None", 0)]
     if self.source_info_scene:
         if self.source_info_scene.scene_type == "player":
-            for _ind,_prop in enumerate(self.source_info_scene.player_entity_properties):
+            for _ind,_prop in enumerate(self.source_info_scene.entity_properties):
                 source_info_property_items.append((_prop.property_name, _prop.property_name, _prop.property_name, _ind+1))
     return source_info_property_items
 '''

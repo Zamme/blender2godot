@@ -425,7 +425,7 @@ class ExportGameOperator(bpy.types.Operator):
                     _current_node_dict.add("ActionsSettings", _player_actions_settings_dict)
                     # Player Entity Properties
                     _player_entity_properties_dict = my_dictionary()
-                    for _player_entity_property in _node.player_entity_properties:
+                    for _player_entity_property in _node.entity_properties:
                         _player_entity_property_dict = my_dictionary()
                         _player_entity_property_dict.add("Type", _player_entity_property.property_type)
                         match _player_entity_property.property_type:
@@ -447,7 +447,7 @@ class ExportGameOperator(bpy.types.Operator):
                         if len(_node.outputs) > 1:
                             _props = my_dictionary()
                             for _output in _node.outputs:
-                                for _entity_property in _node.scene.player_entity_properties:
+                                for _entity_property in _node.scene.entity_properties:
                                     if _output.name == _entity_property.property_name:
                                         if len(_output.links) > 0:
                                             _props.add(_entity_property.property_name, _output.links[0].to_socket.name)
@@ -1189,7 +1189,7 @@ class ExportGameOperator(bpy.types.Operator):
         # ENTITY PROPERTIES
         _entity_properties = my_dictionary()
         print("Jsoning entity properties...")
-        for _player_entity_property in _player_scene.player_entity_properties:
+        for _player_entity_property in _player_scene.entity_properties:
             print("Adding property", _player_entity_property.property_name)
             _prop_value = None
             match _player_entity_property.property_type:
