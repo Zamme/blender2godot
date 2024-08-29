@@ -2022,7 +2022,6 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     def socket_value_update(self, context):
         print("Socket value update")
 
-
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
@@ -2464,7 +2463,7 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     def get_entity_animations(self, context):
         #print("Updating animations")
         entity_animations = [
-                ("none", "None", "NONE"),
+                ("none", "None", "NONE", 0),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
             if _node.name == self.node_properties.source_node_name:
@@ -2476,19 +2475,20 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                             if (_entity.name + "_REF") == _socket_name:
                                 if _entity.stage_object_type == "entity":
                                     _anim_data = _entity.animation_data
+                                    _index = 1
                                     #print("Anims of", _entity.name)
                                     for _object_action in _anim_data.nla_tracks:
                                         #print("NLA:", _object_action)
-                                        entity_animations.append((_object_action.name, _object_action.name, _object_action.name))
+                                        entity_animations.append((_object_action.name, _object_action.name, _object_action.name, _index))
+                                        _index += 1
         return entity_animations
     
     def on_update_animation_selected(self, context):
+        if self.node_properties.animation_selected != self.animation_selected_enum:
+            self.node_properties.animation_selected = self.animation_selected_enum
         self.node_properties.operation_selected = "none"
 
-    def on_set_animation_selected(self, value):
-        self.node_properties.animation_selected = self.get_entity_animations(None)[value][0]
-    
-    animation_selected_enum : bpy.props.EnumProperty(items=get_entity_animations, update=on_update_animation_selected, set=on_set_animation_selected) # type: ignore
+    animation_selected_enum : bpy.props.EnumProperty(items=get_entity_animations, update=on_update_animation_selected)#, set=on_set_animation_selected)#, get=on_get_animation_selected) # type: ignore
    
     def check_source_node_name_changed(self):
         _source_node = None
