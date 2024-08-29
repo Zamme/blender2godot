@@ -22,7 +22,7 @@ For B2G Nodes
 
 import os, json
 import bpy
-from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat, NodeSocketInt, NodeSocketString, NodeSocketBool
+from bpy.types import Context, NodeTree, Node, NodeSocket, NodeSocketFloat, NodeSocketInt, NodeSocketString, NodeSocketBool, NodeSocketInterface, bpy_prop_array
 from blender2godot.stage_properties import stage_properties # type: ignore
 from blender2godot.addon_config import addon_config # type: ignore
 
@@ -72,6 +72,12 @@ property_node_sockets = {
     "integer" : "B2G_Integer_SocketType",
     "float" : "B2G_Float_SocketType"
 }
+
+trigger_conditions = [
+    ("on_enter", "OnEnter", "", 0),
+    ("on_stay", "OnStay", "", 1),
+    ("on_exit", "OnExit", "", 2),
+]
 
 scene_node_sockets = {
     "load_stage" : "B2G_Stage_SocketType",
@@ -192,8 +198,14 @@ class PlayerEntityProperty(bpy.types.PropertyGroup):
 class StageObject(bpy.types.PropertyGroup):
     object_name : bpy.props.StringProperty(name="Stage Object Name") # type: ignore
     object_type : bpy.props.StringProperty(name="Stage Object Type") # type: ignore
-    #damage_zone_amount : bpy.props.FloatProperty(name="Damage Zone Amount") # type: ignore
-    
+
+class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=animation_operations) # type: ignore
+    animation_selected : bpy.props.StringProperty(default="none") # type: ignore
+    operation_parameter : bpy.props.FloatProperty(default=1.0) # type: ignore
+
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class GameManagerTree(NodeTree):
     # Description string
@@ -302,13 +314,14 @@ class B2G_Float_Socket(NodeSocketFloat):
     # Label for nice name display
     bl_label = "Float Socket"
     
+    default_value : bpy.props.FloatProperty(default=0.0) # type: ignore
+    
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.label(text=text)
-            #layout.prop(node, "entity_properties." + text)
+            layout.prop(self, "default_value", text=text)
 
     # Socket color
     def draw_color(self, context, node):
@@ -322,12 +335,14 @@ class B2G_Integer_Socket(NodeSocketInt):
     # Label for nice name display
     bl_label = "Integer Socket"
     
+    default_value : bpy.props.IntProperty(default=0) # type: ignore
+    
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.label(text=text)
+            layout.prop(self, "default_value", text=text)
 
     # Socket color
     def draw_color(self, context, node):
@@ -341,16 +356,29 @@ class B2G_Boolean_Socket(NodeSocketBool):
     # Label for nice name display
     bl_label = "Boolean Socket"
     
+    default_value : bpy.props.BoolProperty(default=False) # type: ignore
+    
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.label(text=text)
+            layout.prop(self, "default_value", text=text)
 
     # Socket color
     def draw_color(self, context, node):
         return (0.5, 0.5, 0.0, 1.0)
+
+'''
+class B2G_Custom_Socket_Interface(NodeSocketInterface):
+    bl_socket_idname = "B2G_String_Socket"
+
+    def draw(self, context, layout):
+        pass
+
+    def draw_color(self, context: Context):
+        return (0.1,1,1)
+'''
 
 class B2G_String_Socket(NodeSocketString):
     # Description string
@@ -359,18 +387,22 @@ class B2G_String_Socket(NodeSocketString):
     bl_idname = 'B2G_String_SocketType'
     # Label for nice name display
     bl_label = "String Socket"
-    default_value = "Empty"
+    
+    default_value : bpy.props.StringProperty(default="empty") # type: ignore
     
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text=text)
         else:
-            layout.label(text=text)
+            layout.prop(self, "default_value", text=text)
 
     # Socket color
     def draw_color(self, context, node):
         return (0.0, 0.5, 0.5, 1.0)
+    
+    def update(self, context):
+        self.hide_value = False
 
 class B2G_Pipeline_Socket(NodeSocket):
     # Description string
@@ -504,6 +536,25 @@ class B2G_HUD_Socket(NodeSocket):
     # Socket color
     def draw_color(self, context, node):
         return (1.00,0.75,0.00, 1.00)
+
+class B2G_Trigger_Socket(NodeSocket):
+    # Description string
+    """triggger socket type"""
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'B2G_Trigger_SocketType'
+    # Label for nice name display
+    bl_label = "Trigger Socket"
+    
+    # Optional function for drawing the socket input value
+    def draw(self, context, layout, node, text):
+        if self.is_output or self.is_linked:
+            layout.label(text=text)
+        else:
+            layout.label(text=text)
+
+    # Socket color
+    def draw_color(self, context, node):
+        return (0.1,0.8,0.2, 1.0)
 
 # --- END SOCKETS ---
 
@@ -765,21 +816,32 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                     _new_stage_object.object_type = _stage_object.stage_object_type
             # Update Sockets
             self.init(context)
-            self.entity_properties.clear()
+            #self.entity_properties.clear()
             for _scene_prop in self.scene.entity_properties:
-                self.inputs.new(property_node_sockets[_scene_prop.property_type], _scene_prop.property_name)
+                _new_socket = self.inputs.new(property_node_sockets[_scene_prop.property_type], _scene_prop.property_name)
+                match _scene_prop.property_type:
+                    case "boolean":
+                        _new_socket.default_value = _scene_prop.property_boolean
+                    case "string":
+                        _new_socket.default_value = _scene_prop.property_string
+                    case "integer":
+                        _new_socket.default_value = _scene_prop.property_integer
+                    case "float":
+                        _new_socket.default_value = _scene_prop.property_float
                 self.outputs.new(property_node_sockets[_scene_prop.property_type], _scene_prop.property_name)
 
             # STAGE OBJECTS
             for _stage_object in self.stage_objects:
                 match _stage_object.object_type:
                     case "trigger_zone":
-                        _trigger_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
-                        _trigger_zone_enter_socket.link_limit = 1
-                        _trigger_zone_stay_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Stay"))
-                        _trigger_zone_stay_socket.link_limit = 1
-                        _trigger_zone_exit_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Exit"))
-                        _trigger_zone_exit_socket.link_limit = 1
+                        _trigger_zone_socket = self.outputs.new(type="B2G_Trigger_SocketType", name=(_stage_object.object_name + "_Trigger"))
+                        #_trigger_zone_socket.link_limit = 1
+                        #_trigger_zone_enter_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Enter"))
+                        #_trigger_zone_enter_socket.link_limit = 1
+                        #_trigger_zone_stay_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Stay"))
+                        #_trigger_zone_stay_socket.link_limit = 1
+                        #_trigger_zone_exit_socket = self.outputs.new(type="B2G_Pipeline_SocketType", name=(_stage_object.object_name + "_Exit"))
+                        #_trigger_zone_exit_socket.link_limit = 1
                     case "entity":
                         _entity_ref_socket = self.outputs.new(type="B2G_Player_SocketType", name=(_stage_object.object_name + "_REF"))
                         #_entity_ref_socket.link_limit = 1
@@ -936,6 +998,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                     _new_action_setting = self.actions_settings.add()
                     _new_action_setting.action_id = _control_property.motion_name
         # Update entity properties
+        '''
         self.entity_properties.clear()
         if self.scene:
             for _player_property in self.scene.entity_properties:
@@ -951,6 +1014,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                         _new_property.property_integer = _player_property.property_integer
                     case "float":
                         _new_property.property_float = _player_property.property_float
+        '''
         self.outputs.clear()
         self.inputs.clear()
         self.outputs.new("B2G_Player_SocketType", "Player")
@@ -959,7 +1023,16 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         # Load entity properties as new inputs/outputs
         if self.scene:
             for _entity_property in self.scene.entity_properties:
-                self.inputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
+                _new_socket = self.inputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
+                match _entity_property.property_type:
+                    case "boolean":
+                        _new_socket.default_value = _entity_property.property_boolean
+                    case "string":
+                        _new_socket.default_value = _entity_property.property_string
+                    case "integer":
+                        _new_socket.default_value = _entity_property.property_integer
+                    case "float":
+                        _new_socket.default_value = _entity_property.property_float
                 self.outputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
@@ -997,6 +1070,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                     _name_parts[_p_index] = _name_part.capitalize()
                 _action_rename = " ".join(_name_parts)
                 row3.prop(_player_action, "action_process", text=_action_rename)
+            '''
             box3 = box1.box()
             row4 = box3.row()
             row4.label(text="Player Properties")
@@ -1011,6 +1085,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                         row5.prop(_player_property, "property_integer", text=_player_property.property_name)
                     case "float":
                         row5.prop(_player_property, "property_float", text=_player_property.property_name)
+            '''
             box1.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
@@ -2383,9 +2458,8 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    node_properties : bpy.props.PointerProperty(type=PlayEntityAnimationNodeProperties) # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
-    entity_name : bpy.props.StringProperty(default="") # type: ignore
 
     def get_entity_animations(self, context):
         #print("Updating animations")
@@ -2393,8 +2467,8 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                 ("none", "None", "NONE"),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _entity in _source_node.scene.objects:
                         if len(self.inputs[1].links) > 0:
@@ -2408,15 +2482,14 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                                         entity_animations.append((_object_action.name, _object_action.name, _object_action.name))
         return entity_animations
     
-    operation_selected : bpy.props.EnumProperty(items=animation_operations) # type: ignore
-
     def on_update_animation_selected(self, context):
-        self.operation_selected = "none"
+        self.node_properties.operation_selected = "none"
 
-    animation_selected : bpy.props.EnumProperty(items=get_entity_animations, update=on_update_animation_selected) # type: ignore
-
-    operation_parameter : bpy.props.FloatProperty(default=1.0) # type: ignore
+    def on_set_animation_selected(self, value):
+        self.node_properties.animation_selected = self.get_entity_animations(None)[value][0]
     
+    animation_selected_enum : bpy.props.EnumProperty(items=get_entity_animations, update=on_update_animation_selected, set=on_set_animation_selected) # type: ignore
+   
     def check_source_node_name_changed(self):
         _source_node = None
         self.new_source_node_name = self.inputs[1].links[0].from_node.name
@@ -2424,7 +2497,7 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
             if _node.name == self.new_source_node_name:
                 _source_node = bpy.data.node_groups["GameManager"].nodes[self.new_source_node_name]
                 break
-        return (self.source_node_name != self.new_source_node_name)
+        return (self.node_properties.source_node_name != self.new_source_node_name)
 
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Do")
@@ -2441,15 +2514,15 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
         if self.inputs[1].is_linked:
             if len(self.get_entity_animations(context)) > 1:
                 row1 = layout.row()
-                row1.prop(self, "animation_selected", text="Animation")
-                if self.animation_selected == "none":
+                row1.prop(self, "animation_selected_enum", text="Animation")
+                if self.node_properties.animation_selected == "none":
                     pass
                 else:
                     row3 = layout.row()
-                    row3.prop(self, "operation_selected", text="Repro.")
-                    if self.operation_selected != "none":
+                    row3.prop(self.node_properties, "operation_selected", text="Repro.")
+                    if self.node_properties.operation_selected != "none":
                         row4 = layout.row()
-                        row4.prop(self, "operation_parameter", text="Speed")
+                        row4.prop(self.node_properties, "operation_parameter", text="Speed")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -2479,11 +2552,11 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
-                self.property_selected = "none"
-                self.source_node_name = self.new_source_node_name
+                self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
                 for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                    if _node.name == self.node_properties.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                         if hasattr(_source_node, "scene"):
                             for _entity in _source_node.scene.objects:
                                 if len(self.inputs[1].links) > 0:
@@ -2491,13 +2564,67 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                                     if (_entity.name + "_REF") == _socket_name:
                                         self.entity_name = _entity.name
         else:
-            self.source_node_name = ""
-            self.animation_selected = "none"
-            self.property_selected = "none"
-            self.entity_name = ""
+            self.node_properties.source_node_name = ""
+            self.node_properties.animation_selected = "none"
+            self.node_properties.property_selected = "none"
+            self.node_properties.entity_name = ""
 
     def update_sockets(self):
         pass
+
+class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
+    bl_idname = 'B2G_Trigger_Action_NodeType'
+    bl_label = "Trigger Action"
+    bl_icon = "ARMATURE_DATA"
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    trigger_condition : bpy.props.EnumProperty(items=trigger_conditions) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Trigger_SocketType", "Trigger Ref")
+        self.outputs.new("B2G_Pipeline_SocketType", "Do")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        if self.inputs[0].is_linked:
+            layout.prop(self, "trigger_condition", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Trigger Action"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.update_buttons)
+
+    def mark_invalid_links(self):
+        for _link in self.inputs[0].links:
+            #print("updating links")
+            _link.is_valid = (type(_link.from_socket).__name__ == "B2G_Trigger_Socket")
+   
+    def update_buttons(self):
+        if self.inputs[0].is_linked:
+            if self.inputs[0].links[0].is_valid:
+                pass
+
+    def update_sockets(self):
+        if self.inputs[0].is_linked:
+            if self.inputs[0].links[0].is_valid:
+                self.inputs[0].name = self.inputs[0].links[0].from_socket.name
+            else:
+                self.inputs[0].name = "Not valid"
+        else:
+            self.inputs[0].name = "Trigger Ref"
 
 
 # --- END ACTION NODES ---
@@ -2541,6 +2668,7 @@ node_categories = [
         NodeItem("B2G_Change_Entity_Float_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Boolean_Property_NodeType"),
         NodeItem("B2G_Play_Entity_Animation_NodeType"),
+        NodeItem("B2G_Trigger_Action_NodeType"),
     ]),
     MyNodeCategory('VARIABLES', "Variables", items=[
         NodeItem("B2G_String_NodeType"),
@@ -2575,15 +2703,18 @@ classes = (
     OverlayButtonAction,
     ActionsProperties,
     HudSettings,
+    PlayEntityAnimationNodeProperties,
     PlayerEntityProperty,
     StageObject,
     GameManagerTree,
     MyCustomSocket,
     MyCustomNode,
     B2G_String_Socket,
+    #B2G_Custom_Socket_Interface,
     B2G_Float_Socket,
     B2G_Integer_Socket,
     B2G_Boolean_Socket,
+    B2G_Trigger_Socket,
     B2G_Pipeline_Socket,
     B2G_Stage_Socket,
     B2G_2dmenu_Socket,
@@ -2609,6 +2740,7 @@ classes = (
     B2G_Change_Entity_Float_Property_Node,
     B2G_Change_Entity_Boolean_Property_Node,
     B2G_Play_Entity_Animation_Node,
+    B2G_Trigger_Action_Node,
 )
 
 
