@@ -43,12 +43,17 @@ string_operations = [
         ("concat", "Concat", "CONCAT"),
     ]
 
-integer_operations = [
+math_operations = [
         ("none", "None", "NONE"),
         ("add", "Add", "ADD"),
         ("sub", "Sub", "SUB"),
         ("mul", "Mul", "MUL"),
         ("div", "Div", "DIV"),
+    ]
+
+bool_operations = [
+        ("none", "None", "NONE"),
+        ("or", "OR", "OR"),
     ]
 
 menu_button_action_type_options = [("none", "None", "", 0), 
@@ -198,6 +203,34 @@ class PlayerEntityProperty(bpy.types.PropertyGroup):
 class StageObject(bpy.types.PropertyGroup):
     object_name : bpy.props.StringProperty(name="Stage Object Name") # type: ignore
     object_type : bpy.props.StringProperty(name="Stage Object Type") # type: ignore
+
+class ChangeEntityStringPropertyNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=string_operations) # type: ignore
+    property_selected : bpy.props.StringProperty(default="none") # type: ignore
+    operation_parameter : bpy.props.StringProperty(default="") # type: ignore
+
+class ChangeEntityIntegerPropertyNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=math_operations) # type: ignore
+    property_selected : bpy.props.StringProperty(default="none") # type: ignore
+    operation_parameter : bpy.props.IntProperty(default=1) # type: ignore
+
+class ChangeEntityFloatPropertyNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=math_operations) # type: ignore
+    property_selected : bpy.props.StringProperty(default="none") # type: ignore
+    operation_parameter : bpy.props.FloatProperty(default=1.0) # type: ignore
+
+class ChangeEntityBoolPropertyNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+    operation_selected : bpy.props.EnumProperty(items=bool_operations) # type: ignore
+    property_selected : bpy.props.StringProperty(default="none") # type: ignore
+    operation_parameter : bpy.props.BoolProperty(default=False) # type: ignore
 
 class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
@@ -1902,7 +1935,8 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    node_properties : bpy.props.PointerProperty(type=ChangeEntityStringPropertyNodeProperties) # type: ignore
+
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
     
     def get_entity_props(self, context):
@@ -1910,16 +1944,19 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
                 ("none", "None", "NONE"),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
                         if _prop.property_type == "string":
                             entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
         return entity_props
-    
-    operation_selected : bpy.props.EnumProperty(items=string_operations) # type: ignore
 
+    def on_update_property_selected_enum(self, context):
+        self.node_properties.property_selected = self.property_selected_enum
+
+    property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
+    
     def on_update_property_selected(self, context):
         self.operation_selected = "none"
         for _node in bpy.data.node_groups["GameManager"].nodes:
@@ -1940,12 +1977,6 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
                 else:
                     print("Has no scene attr", self.source_node.name)
 
-    property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
-
-    operation_parameter : bpy.props.IntProperty(default=0) # type: ignore
-    
-    operation_parameter : bpy.props.StringProperty(default="") # type: ignore
-
     def check_source_node_name_changed(self):
         _source_node = None
         self.new_source_node_name = self.inputs[1].links[0].from_node.name
@@ -1961,7 +1992,7 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
                     break
                 else:
                     pass
-        return (self.source_node_name != self.new_source_node_name)
+        return (self.node_properties.source_node_name != self.new_source_node_name)
 
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Do")
@@ -1977,21 +2008,21 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         if self.inputs[1].is_linked:
             row1 = layout.row()
-            row1.prop(self, "property_selected", text="Property")
-            if self.property_selected == "none":
+            row1.prop(self, "property_selected_enum", text="Property")
+            if self.node_properties.property_selected == "none":
                 pass
             else:
                 for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                    if _node.name == self.node_properties.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                         if hasattr(_source_node, "scene"):
                             for _prop in _source_node.scene.entity_properties:
-                                if _prop.property_name == self.property_selected:
+                                if _prop.property_name == self.node_properties.property_selected:
                                     row3 = layout.row()
-                                    row3.prop(self, "operation_selected", text="Operation")
-                                    if self.operation_selected != "none":
+                                    row3.prop(self.node_properties, "operation_selected", text="Operation")
+                                    if self.node_properties.operation_selected != "none":
                                         row4 = layout.row()
-                                        row4.prop(self, "operation_parameter", text="Parameter")
+                                        row4.prop(self.node_properties, "operation_parameter", text="Parameter")
                                     break
 
     def draw_buttons_ext(self, context, layout):
@@ -2025,14 +2056,22 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
-                self.property_selected = "none"
-                self.source_node_name = self.new_source_node_name
+                self.node_properties.property_selected = "none"
+                self.node_properties.property_selected_enum = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
         else:
-            self.source_node_name = ""
-            self.property_selected = "none"
+            self.node_properties.source_node_name = ""
+            self.node_properties.property_selected = "none"
+            self.node_properties.property_selected_enum = "none"
 
     def update_sockets(self):
-        pass
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Entity Ref"
 
 class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Integer_Property_NodeType'
@@ -2041,7 +2080,8 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    node_properties : bpy.props.PointerProperty(type=ChangeEntityIntegerPropertyNodeProperties) # type: ignore
+    #source_node_name : bpy.props.StringProperty(default="") # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
     
     def get_entity_props(self, context):
@@ -2049,24 +2089,28 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
                 ("none", "None", "NONE"),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
                         if _prop.property_type == "integer":
                             entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
         return entity_props
-    
-    operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
+
+    def on_update_property_selected_enum(self, context):
+        self.node_properties.property_selected = self.property_selected_enum
+
+    property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
+    #operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
 
     def on_update_property_selected(self, context):
-        self.operation_selected = "none"
+        self.node_properties.operation_selected = "none"
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
-                        if _prop.property_name == self.property_selected:
+                        if _prop.property_name == self.node_properties.property_selected:
                             self.current_property_type = _prop.property_type
                             '''
                             if len(self.inputs) < 3:
@@ -2077,11 +2121,12 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
                             '''
                             break
                 else:
-                    print("Has no scene attr", self.source_node.name)
+                    pass
+                    #print("Has no scene attr", self.source_node.name)
 
-    property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
+    #property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
 
-    operation_parameter : bpy.props.IntProperty(default=0) # type: ignore
+    #operation_parameter : bpy.props.IntProperty(default=0) # type: ignore
     
     def check_source_node_name_changed(self):
         _source_node = None
@@ -2098,7 +2143,7 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
                     break
                 else:
                     pass
-        return (self.source_node_name != self.new_source_node_name)
+        return (self.node_properties.source_node_name != self.new_source_node_name)
 
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Do")
@@ -2114,21 +2159,21 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         if self.inputs[1].is_linked:
             row1 = layout.row()
-            row1.prop(self, "property_selected", text="Property")
-            if self.property_selected == "none":
+            row1.prop(self, "property_selected_enum", text="Property")
+            if self.node_properties.property_selected == "none":
                 pass
             else:
                 for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                    if _node.name == self.node_properties.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                         if hasattr(_source_node, "scene"):
                             for _prop in _source_node.scene.entity_properties:
-                                if _prop.property_name == self.property_selected:
+                                if _prop.property_name == self.node_properties.property_selected:
                                     row3 = layout.row()
-                                    row3.prop(self, "operation_selected", text="Operation")
-                                    if self.operation_selected != "none":
+                                    row3.prop(self.node_properties, "operation_selected", text="Operation")
+                                    if self.node_properties.operation_selected != "none":
                                         row4 = layout.row()
-                                        row4.prop(self, "operation_parameter", text="Parameter")
+                                        row4.prop(self.node_properties, "operation_parameter", text="Parameter")
                                     break
 
     def draw_buttons_ext(self, context, layout):
@@ -2162,14 +2207,20 @@ class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
-                self.property_selected = "none"
-                self.source_node_name = self.new_source_node_name
+                self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
         else:
-            self.source_node_name = ""
-            self.property_selected = "none"
+            self.node_properties.source_node_name = ""
+            self.node_properties.property_selected = "none"
 
     def update_sockets(self):
-        pass
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Entity Ref"
 
 class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Float_Property_NodeType'
@@ -2178,7 +2229,8 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    node_properties : bpy.props.PointerProperty(type=ChangeEntityFloatPropertyNodeProperties) # type: ignore
+    #source_node_name : bpy.props.StringProperty(default="") # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
     
     def get_entity_props(self, context):
@@ -2186,24 +2238,28 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
                 ("none", "None", "NONE"),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
                         if _prop.property_type == "float":
                             entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
         return entity_props
-    
-    operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
+
+    def on_update_property_selected_enum(self, context):
+        self.node_properties.property_selected = self.property_selected_enum
+
+    #operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
+    property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
 
     def on_update_property_selected(self, context):
-        self.operation_selected = "none"
+        self.node_properties.operation_selected = "none"
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
-                        if _prop.property_name == self.property_selected:
+                        if _prop.property_name == self.node_properties.property_selected:
                             self.current_property_type = _prop.property_type
                             '''
                             if len(self.inputs) < 3:
@@ -2214,11 +2270,12 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
                             '''
                             break
                 else:
-                    print("Has no scene attr", self.source_node.name)
+                    pass
+                    #print("Has no scene attr", self.source_node.name)
 
-    property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
+    #property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
 
-    operation_parameter : bpy.props.FloatProperty(default=0.0) # type: ignore
+    #operation_parameter : bpy.props.FloatProperty(default=0.0) # type: ignore
 
     ''' for v0.3
     execution_behavior : bpy.props.EnumProperty(items=execution_behaviors, default="once") # type: ignore
@@ -2240,7 +2297,7 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
                     break
                 else:
                     pass
-        return (self.source_node_name != self.new_source_node_name)
+        return (self.node_properties.source_node_name != self.new_source_node_name)
 
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Do")
@@ -2256,21 +2313,21 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         if self.inputs[1].is_linked:
             row1 = layout.row()
-            row1.prop(self, "property_selected", text="Property")
-            if self.property_selected == "none":
+            row1.prop(self, "property_selected_enum", text="Property")
+            if self.node_properties.property_selected == "none":
                 pass
             else:
                 for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                    if _node.name == self.node_properties.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                         if hasattr(_source_node, "scene"):
                             for _prop in _source_node.scene.entity_properties:
-                                if _prop.property_name == self.property_selected:
+                                if _prop.property_name == self.node_properties.property_selected:
                                     row3 = layout.row()
-                                    row3.prop(self, "operation_selected", text="Operation")
-                                    if self.operation_selected != "none":
+                                    row3.prop(self.node_properties, "operation_selected", text="Operation")
+                                    if self.node_properties.operation_selected != "none":
                                         row4 = layout.row()
-                                        row4.prop(self, "operation_parameter", text="Parameter")
+                                        row4.prop(self.node_properties, "operation_parameter", text="Parameter")
                                     break
             ''' for v0.3
             row2 = layout.row()
@@ -2311,14 +2368,20 @@ class B2G_Change_Entity_Float_Property_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
-                self.property_selected = "none"
-                self.source_node_name = self.new_source_node_name
+                self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
         else:
-            self.source_node_name = ""
-            self.property_selected = "none"
+            self.node_properties.source_node_name = ""
+            self.node_properties.property_selected = "none"
 
     def update_sockets(self):
-        pass
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Entity Ref"
 
 class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Boolean_Property_NodeType'
@@ -2327,7 +2390,9 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    node_properties : bpy.props.PointerProperty(type=ChangeEntityBoolPropertyNodeProperties) # type: ignore
+
+    #source_node_name : bpy.props.StringProperty(default="") # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
     
     def get_entity_props(self, context):
@@ -2335,32 +2400,37 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
                 ("none", "None", "NONE"),
         ]
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
                         if _prop.property_type == "boolean":
                             entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
         return entity_props
-    
-    operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
+
+    def on_update_property_selected_enum(self, context):
+        self.node_properties.property_selected = self.property_selected_enum
+
+    property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
+    #operation_selected : bpy.props.EnumProperty(items=integer_operations) # type: ignore
 
     def on_update_property_selected(self, context):
-        self.operation_selected = "none"
+        self.node_properties.operation_selected = "none"
         for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                 if hasattr(_source_node, "scene"):
                     for _prop in _source_node.scene.entity_properties:
-                        if _prop.property_name == self.property_selected:
+                        if _prop.property_name == self.node_properties.property_selected:
                             self.current_property_type = _prop.property_type
                             break
                 else:
-                    print("Has no scene attr", self.source_node.name)
+                    pass
+                    #print("Has no scene attr", self.source_node.name)
 
-    property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
+    #property_selected : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected) # type: ignore
 
-    operation_parameter : bpy.props.BoolProperty(default=False) # type: ignore
+    #operation_parameter : bpy.props.BoolProperty(default=False) # type: ignore
     
     def check_source_node_name_changed(self):
         _source_node = None
@@ -2377,7 +2447,7 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
                     break
                 else:
                     pass
-        return (self.source_node_name != self.new_source_node_name)
+        return (self.node_properties.source_node_name != self.new_source_node_name)
 
     def init(self, context):
         self.inputs.new("B2G_Pipeline_SocketType", "Do")
@@ -2393,21 +2463,21 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
     def draw_buttons(self, context, layout):
         if self.inputs[1].is_linked:
             row1 = layout.row()
-            row1.prop(self, "property_selected", text="Property")
-            if self.property_selected == "none":
+            row1.prop(self, "property_selected_enum", text="Property")
+            if self.node_properties.property_selected == "none":
                 pass
             else:
                 for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                    if _node.name == self.node_properties.source_node_name:
+                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
                         if hasattr(_source_node, "scene"):
                             for _prop in _source_node.scene.entity_properties:
-                                if _prop.property_name == self.property_selected:
+                                if _prop.property_name == self.node_properties.property_selected:
                                     row3 = layout.row()
-                                    row3.prop(self, "operation_selected", text="Operation")
-                                    if self.operation_selected != "none":
+                                    row3.prop(self.node_properties, "operation_selected", text="Operation")
+                                    if self.node_properties.operation_selected != "none":
                                         row4 = layout.row()
-                                        row4.prop(self, "operation_parameter", text="Parameter")
+                                        row4.prop(self.node_properties, "operation_parameter", text="Parameter")
                                     break
 
     def draw_buttons_ext(self, context, layout):
@@ -2441,14 +2511,20 @@ class B2G_Change_Entity_Boolean_Property_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
-                self.property_selected = "none"
-                self.source_node_name = self.new_source_node_name
+                self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
         else:
-            self.source_node_name = ""
-            self.property_selected = "none"
+            self.node_properties.source_node_name = ""
+            self.node_properties.property_selected = "none"
 
     def update_sockets(self):
-        pass
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Entity Ref"
 
 class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Play_Entity_Animation_NodeType'
@@ -2552,6 +2628,8 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[1].is_linked:
             if self.check_source_node_name_changed():
+                self.node_properties.animation_selected = "none"
+                self.animation_selected_enum = "none"
                 self.node_properties.property_selected = "none"
                 self.node_properties.source_node_name = self.new_source_node_name
                 for _node in bpy.data.node_groups["GameManager"].nodes:
@@ -2570,7 +2648,13 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
             self.node_properties.entity_name = ""
 
     def update_sockets(self):
-        pass
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Entity Ref"
 
 class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Trigger_Action_NodeType'
@@ -2703,6 +2787,10 @@ classes = (
     OverlayButtonAction,
     ActionsProperties,
     HudSettings,
+    ChangeEntityStringPropertyNodeProperties,
+    ChangeEntityBoolPropertyNodeProperties,
+    ChangeEntityIntegerPropertyNodeProperties,
+    ChangeEntityFloatPropertyNodeProperties,
     PlayEntityAnimationNodeProperties,
     PlayerEntityProperty,
     StageObject,
@@ -2710,7 +2798,6 @@ classes = (
     MyCustomSocket,
     MyCustomNode,
     B2G_String_Socket,
-    #B2G_Custom_Socket_Interface,
     B2G_Float_Socket,
     B2G_Integer_Socket,
     B2G_Boolean_Socket,
