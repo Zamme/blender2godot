@@ -1106,10 +1106,10 @@ class ExportGameOperator(bpy.types.Operator):
         for _stage_object in _stage_scene.objects:
             _stage_object_dict = my_dictionary()
             #_stage_object_dict.add("Name", _stage_object.name)
-            _stage_object_dict.add("Type", _stage_object.stage_object_type)
+            _stage_object_dict.add("Type", _stage_object.object_type)
             _stage_object_dict.add("Visible", _stage_object.is_visible)
             _stage_object_dict.add("Collider", _stage_object.collider)
-            if ((_stage_object.stage_object_type == "trigger_zone") or (_stage_object.collider != "none")):
+            if ((_stage_object.object_type == "trigger_zone") or (_stage_object.collider != "none")):
                 _stage_object_physics_groups = []
                 for _group in _stage_object.physics_group:
                     _stage_object_physics_groups.append(_group)

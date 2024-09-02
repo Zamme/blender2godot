@@ -872,10 +872,10 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         self.stage_objects.clear()
         if self.scene:
             for _stage_object in self.scene.objects:
-                if _stage_object.stage_object_type != "none":
+                if _stage_object.object_type != "none":
                     _new_stage_object = self.stage_objects.add()
                     _new_stage_object.object_name = _stage_object.name
-                    _new_stage_object.object_type = _stage_object.stage_object_type
+                    _new_stage_object.object_type = _stage_object.object_type
             # Update Sockets
             self.init(context)
             #self.entity_properties.clear()
@@ -883,13 +883,13 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                 _new_socket = self.inputs.new(property_node_sockets[_scene_prop.property_type], _scene_prop.property_name)
                 match _scene_prop.property_type:
                     case "boolean":
-                        _new_socket.default_value = _scene_prop.property_boolean
+                        _new_socket.default_value = bool(_scene_prop.property_value)
                     case "string":
-                        _new_socket.default_value = _scene_prop.property_string
+                        _new_socket.default_value = _scene_prop.property_value
                     case "integer":
-                        _new_socket.default_value = _scene_prop.property_integer
+                        _new_socket.default_value = int(_scene_prop.property_value)
                     case "float":
-                        _new_socket.default_value = _scene_prop.property_float
+                        _new_socket.default_value = float(_scene_prop.property_value)
                 self.outputs.new(property_node_sockets[_scene_prop.property_type], _scene_prop.property_name)
 
             # STAGE OBJECTS
@@ -946,9 +946,9 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                 row4 = box3.row()
                 row4.label(text=_stage_object.object_name)
                 _stage_object_type_string = ""
-                for _ot_index,_ot in enumerate(stage_properties.stage_object_types):
-                    if stage_properties.stage_object_types[_ot_index][0] == _stage_object.object_type:
-                        _stage_object_type_string = stage_properties.stage_object_types[_ot_index][1]
+                for _ot_index,_ot in enumerate(stage_properties.object_types):
+                    if stage_properties.object_types[_ot_index][0] == _stage_object.object_type:
+                        _stage_object_type_string = stage_properties.object_types[_ot_index][1]
                 row4.label(text=_stage_object_type_string)
                 
                 row5 = box3.row()
@@ -2603,7 +2603,7 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
                         if len(self.inputs[1].links) > 0:
                             _socket_name = self.inputs[1].links[0].from_socket.name
                             if (_entity.name + "_REF") == _socket_name:
-                                if _entity.stage_object_type == "entity":
+                                if _entity.object_type == "entity":
                                     _anim_data = _entity.animation_data
                                     _index = 1
                                     #print("Anims of", _entity.name)

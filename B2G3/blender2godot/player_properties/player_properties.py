@@ -688,7 +688,7 @@ class PlayerPropertyLink(bpy.types.PropertyGroup):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Property Scene Link") # type: ignore
     property_name : bpy.props.StringProperty(name="Property Name Link") # type: ignore
 
-
+'''
 class AddPlayerPropertyOperator(bpy.types.Operator):
     bl_idname = "scene.add_player_property_operator"
     bl_label = "Add Property"
@@ -744,6 +744,7 @@ class RemovePlayerPropertyOperator(bpy.types.Operator):
         if prop_to_remove_index > -1:
             context.scene.entity_properties.remove(prop_to_remove_index)
         return {"FINISHED"}
+'''
 
 class PlayerPropertiesPanel(bpy.types.Panel):
     """Player Properties Panel"""
@@ -802,22 +803,23 @@ class PlayerPropertiesPanel(bpy.types.Panel):
             row7.prop(context.active_object, "physics_group")
 
         # Entity properties
-        box4 = box1.box()
-        row4 = box4.row()
-        row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
-        for _property in scene.entity_properties:
-            box2 = box4.box()
-            row5 = box2.row()
-            column0 = row5.column()
-            column0.prop(_property, "property_name", text="Name")
-            column1 = row5.column()
-            column1.prop(_property, "property_type")
-            column2 = row5.column()
-            column2.prop(_property, "property_value")
-            column3 = row5.column()
-            column3.operator(operator="scene.remove_player_property_operator", text="X").prop_to_remove_name = _property.property_name
-        row6 = box4.row()
-        row6.operator("scene.add_player_property_operator")
+        if context.active_object == scene.player_object:
+            box4 = box1.box()
+            row4 = box4.row()
+            row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
+            for _property in context.active_object.entity_properties:
+                box2 = box4.box()
+                row5 = box2.row()
+                column0 = row5.column()
+                column0.prop(_property, "property_name", text="Name")
+                column1 = row5.column()
+                column1.prop(_property, "property_type")
+                #column2 = row5.column()
+                #column2.prop(_property, "property_value")
+                column3 = row5.column()
+                column3.operator(operator="object.remove_object_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
+            row6 = box4.row()
+            row6.operator("object.add_object_entity_property_operator")
 
 def clear_properties():
     del bpy.types.Action.animation_type
@@ -860,8 +862,8 @@ def init_properties():
 def register():
     #bpy.utils.register_class(ControlSettingsType)
     bpy.utils.register_class(PlayerPropertyLink)
-    bpy.utils.register_class(AddPlayerPropertyOperator)
-    bpy.utils.register_class(RemovePlayerPropertyOperator)
+    #bpy.utils.register_class(AddPlayerPropertyOperator)
+    #bpy.utils.register_class(RemovePlayerPropertyOperator)
     bpy.utils.register_class(InputType)
     bpy.utils.register_class(GamepadInputType)
     bpy.utils.register_class(SCENE_OT_add_control)
@@ -907,8 +909,8 @@ def unregister():
     bpy.utils.unregister_class(InputType)
     bpy.utils.unregister_class(GamepadInputType)
     #bpy.utils.unregister_class(ActionsProperties)
-    bpy.utils.unregister_class(RemovePlayerPropertyOperator)
-    bpy.utils.unregister_class(AddPlayerPropertyOperator)
+    #bpy.utils.unregister_class(RemovePlayerPropertyOperator)
+    #bpy.utils.unregister_class(AddPlayerPropertyOperator)
     clear_properties()
     bpy.utils.unregister_class(PlayerPropertyLink)
 

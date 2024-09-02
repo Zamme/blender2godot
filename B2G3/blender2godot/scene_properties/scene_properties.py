@@ -24,6 +24,14 @@ import bpy
 from bpy.app.handlers import persistent
 from blender2godot.addon_config import addon_config # type: ignore
 
+global object_types
+object_types = [
+    ("none", "None", "", 0),
+    ("player_spawn_empty", "Player Spawn Point", "", 1),
+    ("trigger_zone", "Trigger Zone", "", 2),
+    ("entity", "Entity", "", 3),
+]
+
 global scene_types
 scene_types = [
     ("none", "None", "", 0),
@@ -145,6 +153,40 @@ class SceneType(bpy.types.PropertyGroup):
     """ Scene type """
     scene_type_options = scene_types
 
+class AddObjectEntityPropertyOperator(bpy.types.Operator):
+    bl_idname = "object.add_object_entity_property_operator"
+    bl_label = "Add Property"
+    bl_description = "Add a new property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    property_name : bpy.props.StringProperty(name="Property Name", default="Property_Name") # type: ignore
+    property_type : bpy.props.EnumProperty(items=property_types) # type: ignore
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        row0 = box.row()
+        row0.prop(self, "property_name", text="Property Name")
+        row1 = box.row()
+        row1.prop(self, "property_type", text="Property Type")
+        #for _prop in context.scene.entity_properties:
+            #if _prop.property_name == self.property_name:
+                #row2 = box.row()
+                #row2.label(text="Prop name duplicated", icon="ERROR")
+    
+    def execute(self, context):
+        _new_property = context.active_object.entity_properties.add()
+        _new_property.property_name = self.property_name
+        _new_property.property_type = self.property_type
+        return {"FINISHED"}
+
 class AddSceneEntityPropertyOperator(bpy.types.Operator):
     bl_idname = "scene.add_scene_entity_property_operator"
     bl_label = "Add Property"
@@ -177,6 +219,28 @@ class AddSceneEntityPropertyOperator(bpy.types.Operator):
         _new_property = context.scene.entity_properties.add()
         _new_property.property_name = self.property_name
         _new_property.property_type = self.property_type
+        return {"FINISHED"}
+
+class RemoveObjectEntityPropertyOperator(bpy.types.Operator):
+    bl_idname = "object.remove_object_entity_property_operator"
+    bl_label = "Remove Property"
+    bl_description = "Remove property"
+    bl_options = {"UNDO", "REGISTER"}
+
+    prop_to_remove_name : bpy.props.StringProperty(name="Propname") # type: ignore
+   
+    @classmethod
+    def poll(cls, context):
+        return True
+   
+    def execute(self, context):
+        prop_to_remove_index = -1
+        for _ind,_prop in enumerate(context.active_object.entity_properties):
+            if _prop.property_name == self.prop_to_remove_name:
+                prop_to_remove_index = _ind
+                break
+        if prop_to_remove_index > -1:
+            context.active_object.entity_properties.remove(prop_to_remove_index)
         return {"FINISHED"}
 
 class RemoveSceneEntityPropertyOperator(bpy.types.Operator):
@@ -255,8 +319,8 @@ class ScenePropertiesPanel(bpy.types.Panel):
                 column0.prop(_property, "property_name", text="Name")
                 column1 = row5.column()
                 column1.prop(_property, "property_type")
-                column2 = row5.column()
-                column2.prop(_property, "property_value")
+                #column2 = row5.column()
+                #column2.prop(_property, "property_value")
                 column3 = row5.column()
                 column3.operator(operator="scene.remove_scene_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
             row6 = box4.row()
@@ -279,6 +343,8 @@ def init_properties():
     bpy.types.Scene.entity_property_sel = bpy.props.IntProperty(name="Scene Entity Property Selected", default=0)
     bpy.types.Object.entity_properties = bpy.props.CollectionProperty(type=EntityProperty, name="ObjectEntityProperties")
     bpy.types.Object.entity_property_sel = bpy.props.IntProperty(name="Object Entity Property Selected", default=0)
+    bpy.types.Object.object_type = bpy.props.EnumProperty(items=object_types, name="Object Type")
+    bpy.types.Object.is_visible = bpy.props.BoolProperty(name="Visible", default=True)
 
 def clear_properties():
     #del bpy.types.Scene.scene_environment
@@ -290,18 +356,24 @@ def clear_properties():
     del bpy.types.Scene.entity_property_sel
     del bpy.types.Object.entity_properties
     del bpy.types.Object.entity_property_sel
+    del bpy.types.Object.object_type
+    del bpy.types.Object.is_visible
 
 def register():
     bpy.utils.register_class(EntityProperty)
+    bpy.utils.register_class(AddObjectEntityPropertyOperator)
     bpy.utils.register_class(AddSceneEntityPropertyOperator)
     bpy.utils.register_class(RemoveSceneEntityPropertyOperator)
+    bpy.utils.register_class(RemoveObjectEntityPropertyOperator)
     init_properties()
     bpy.utils.register_class(ScenePropertiesPanel)
 
 def unregister():
     bpy.utils.unregister_class(ScenePropertiesPanel)
     clear_properties()
+    bpy.utils.unregister_class(RemoveObjectEntityPropertyOperator)
     bpy.utils.unregister_class(RemoveSceneEntityPropertyOperator)
+    bpy.utils.unregister_class(AddObjectEntityPropertyOperator)
     bpy.utils.unregister_class(AddSceneEntityPropertyOperator)
     bpy.utils.unregister_class(EntityProperty)
 

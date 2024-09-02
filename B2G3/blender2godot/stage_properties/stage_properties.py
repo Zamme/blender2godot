@@ -23,13 +23,6 @@ Stage properties panel
 import bpy
 
 
-stage_object_types = [
-    ("none", "None", "", 0),
-    ("player_spawn_empty", "Player Spawn Point", "", 1),
-    ("trigger_zone", "Trigger Zone", "", 2),
-    ("entity", "Entity", "", 3),
-]
-
 def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
     def draw(self, context):
         for _error in message:
@@ -107,9 +100,9 @@ class StagePropertiesPanel(bpy.types.Panel):
             box3 = box.box()
             box3.label(text=context.active_object.name)
             #if context.active_object.godot_exportable:
-            box3.prop(context.active_object, "stage_object_type", text="Object Type")
+            box3.prop(context.active_object, "object_type", text="Object Type")
             box3.prop(context.active_object, "is_visible")
-            match context.active_object.stage_object_type:
+            match context.active_object.object_type:
                 case "trigger_zone":
                     row0 = box3.row()
                     row0.label(text="Aware Physics Groups:")
@@ -125,12 +118,12 @@ class StagePropertiesPanel(bpy.types.Panel):
                         column0.prop(_property, "property_name", text="Name")
                         column1 = row5.column()
                         column1.prop(_property, "property_type")
-                        column2 = row5.column()
-                        column2.prop(_property, "property_value")
+                        #column2 = row5.column()
+                        #column2.prop(_property, "property_value")
                         column3 = row5.column()
-                        column3.operator(operator="scene.remove_scene_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
+                        column3.operator(operator="object.remove_object_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
                     row6 = box3.row()
-                    row6.operator("scene.add_player_property_operator")
+                    row6.operator("object.add_object_entity_property_operator")
                 case _:
                     box3.prop(context.active_object, "collider")
                     if context.active_object.collider != "none":
@@ -153,15 +146,10 @@ def init_properties():
         name = "Collider Type",
         description = "Collider type",
         default = "convex")
-    bpy.types.Object.stage_object_type = bpy.props.EnumProperty(items=stage_object_types, name="Stage Object Type")
-    bpy.types.Object.is_visible = bpy.props.BoolProperty(name="Visible", default=True)
-    #bpy.types.Object.damage_zone_amount = bpy.props.FloatProperty(name="Damage Zone Amount")
 
 def clear_properties():
     del bpy.types.Scene.player_spawn_empty
     del bpy.types.Object.collider
-    del bpy.types.Object.stage_object_type
-    del bpy.types.Object.is_visible
     #del bpy.types.Object.damage_zone_amount
 
 def register():
