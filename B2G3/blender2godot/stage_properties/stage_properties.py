@@ -109,21 +109,38 @@ class StagePropertiesPanel(bpy.types.Panel):
             #if context.active_object.godot_exportable:
             box3.prop(context.active_object, "stage_object_type", text="Object Type")
             box3.prop(context.active_object, "is_visible")
-            if context.active_object.stage_object_type == "trigger_zone":
-                row0 = box3.row()
-                row0.label(text="Aware Physics Groups:")
-                row1 = box3.row()
-                row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
-            else:
-                box3.prop(context.active_object, "collider")
-                if context.active_object.collider != "none":
+            match context.active_object.stage_object_type:
+                case "trigger_zone":
                     row0 = box3.row()
-                    row0.label(text="Physics Groups:")
+                    row0.label(text="Aware Physics Groups:")
                     row1 = box3.row()
-                    if len(bpy.data.scenes["B2G_GameManager"].physics_groups) > 0:
-                        row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
-                    else:
-                        row1.label(text="Game Manager physics groups empty!")
+                    row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
+                case "entity":
+                    row0 = box3.row()
+                    row0.label(text="Entity Properties:")
+                    for _property in context.active_object.entity_properties:
+                        box2 = box3.box()
+                        row5 = box2.row()
+                        column0 = row5.column()
+                        column0.prop(_property, "property_name", text="Name")
+                        column1 = row5.column()
+                        column1.prop(_property, "property_type")
+                        column2 = row5.column()
+                        column2.prop(_property, "property_value")
+                        column3 = row5.column()
+                        column3.operator(operator="scene.remove_scene_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
+                    row6 = box3.row()
+                    row6.operator("scene.add_player_property_operator")
+                case _:
+                    box3.prop(context.active_object, "collider")
+                    if context.active_object.collider != "none":
+                        row0 = box3.row()
+                        row0.label(text="Physics Groups:")
+                        row1 = box3.row()
+                        if len(bpy.data.scenes["B2G_GameManager"].physics_groups) > 0:
+                            row1.prop(context.active_object, "physics_group")#, text=context.active_object.physics_group)
+                        else:
+                            row1.label(text="Game Manager physics groups empty!")
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():

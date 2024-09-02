@@ -256,6 +256,10 @@ class ExportProjectToGodotOperator(bpy.types.Operator):
         bpy.ops.scene.create_godot_project_operator()
         bpy.ops.scene.export_game_operator()
         #bpy.ops.scene.open_godot_project_operator(no_window = True)
+
+        context.scene.godot_exporting = False # uncomment last line and comment this one
+        context.scene.godot_export_ok = True # uncomment last line and comment this one
+
         context.window.cursor_set(cursor="DEFAULT")
         context.window.cursor_modal_restore()
         return {'FINISHED'}

@@ -158,7 +158,7 @@ def on_button_action_update(self, context):
     #print("Update button action click", self.button_node_name)
     bpy.data.node_groups["GameManager"].nodes[self.button_node_name].update()
 
-class ActionsProperties(bpy.types.PropertyGroup):
+class ActionProperty(bpy.types.PropertyGroup):
     action_id : bpy.props.StringProperty(name="Action ID", default="None") # type: ignore
     action_process : bpy.props.EnumProperty(items=get_actions_list_array, name="Action Process") # type: ignore
 
@@ -192,6 +192,7 @@ class HudSettings(bpy.types.PropertyGroup):
                                         ], name="Hiding HUD effect") # type: ignore
     hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
 
+'''
 class PlayerEntityProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name") # type: ignore
     property_type : bpy.props.StringProperty(name="Type") # type: ignore
@@ -199,6 +200,7 @@ class PlayerEntityProperty(bpy.types.PropertyGroup):
     property_boolean : bpy.props.BoolProperty(name="Value") # type: ignore
     property_float : bpy.props.FloatProperty(name="Value") # type: ignore
     property_integer : bpy.props.IntProperty(name="Value") # type: ignore
+'''
 
 class StageObject(bpy.types.PropertyGroup):
     object_name : bpy.props.StringProperty(name="Stage Object Name") # type: ignore
@@ -238,6 +240,27 @@ class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
     operation_selected : bpy.props.EnumProperty(items=animation_operations) # type: ignore
     animation_selected : bpy.props.StringProperty(default="none") # type: ignore
     operation_parameter : bpy.props.FloatProperty(default=1.0) # type: ignore
+
+class StageSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class PlayerSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class HUDSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class Menu2dSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class Menu3dSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class NPCSceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+
+class OverlaySceneNodeProperties(bpy.types.PropertyGroup):
+    source_scene_name : bpy.props.StringProperty(default="") # type: ignore
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class GameManagerTree(NodeTree):
@@ -835,7 +858,13 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    node_properties : bpy.props.PointerProperty(type=StageSceneNodeProperties) # type: ignore
+
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Clear inputs/outputs
         self.inputs.clear()
         self.outputs.clear()
@@ -944,8 +973,8 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                     row2.label(text="Stage not in pipeline", icon="INFO")
 
         # EXPORT PROPERTY
-        if self.scene:
-            layout.prop(self.scene, "scene_exportable", text="Export")
+        #if self.scene:
+            #layout.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -1006,12 +1035,17 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    #player_actions = []
+    node_properties : bpy.props.PointerProperty(type=PlayerSceneNodeProperties) # type: ignore
+    actions_settings : bpy.props.CollectionProperty(type=ActionProperty) # type: ignore
 
     def poll_scenes(self, object):
         return object.scene_type == "player"
     
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Update actions
         self.actions_settings.clear()
         if self.scene:
@@ -1050,9 +1084,10 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
         '''
         self.outputs.clear()
         self.inputs.clear()
-        self.outputs.new("B2G_Player_SocketType", "Player")
-        self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
-        self.outputs.new("B2G_HUD_SocketType", "HUD")
+        if self.scene:
+            self.outputs.new("B2G_Player_SocketType", "Player")
+            self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
+            self.outputs.new("B2G_HUD_SocketType", "HUD")
         # Load entity properties as new inputs/outputs
         if self.scene:
             for _entity_property in self.scene.entity_properties:
@@ -1119,7 +1154,7 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                     case "float":
                         row5.prop(_player_property, "property_float", text=_player_property.property_name)
             '''
-            box1.prop(self.scene, "scene_exportable", text="Export")
+            #box1.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -1157,10 +1192,16 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    node_properties : bpy.props.PointerProperty(type=HUDSceneNodeProperties) # type: ignore
+
     def poll_scenes(self, object):
         return object.scene_type == "hud"
     
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Clean inputs on change scene
         self.inputs.clear()
         self.inputs.new("B2G_HUD_SocketType", "HUD")
@@ -1288,12 +1329,16 @@ class B2G_2dMenu_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    #new_outputs = []
+    node_prpperties : bpy.props.PointerProperty(type=Menu2dSceneNodeProperties) # type: ignore
 
     def poll_scenes(self, object):
         return object.scene_type == "2dmenu"
 
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Clean new outputs on change scene
         self.outputs.clear()
         #self.new_outputs.clear()
@@ -1417,12 +1462,16 @@ class B2G_OverlayMenu_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
-    #new_outputs = []
+    node_properties : bpy.props.PointerProperty(type=OverlaySceneNodeProperties) # type: ignore
 
     def poll_scenes(self, object):
         return object.scene_type == "overlay_menu"
 
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Clean outputs
         self.inputs.clear()
         # Set default outputs
@@ -1552,11 +1601,16 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
     bl_height_default = 100.0
 
     new_outputs = []
+    node_properties : bpy.props.PointerProperty(type=Menu3dSceneNodeProperties) # type: ignore
 
     def poll_scenes(self, object):
         return object.scene_type == "3dmenu"
 
     def on_update_scene(self, context):
+        if self.scene:
+            self.node_properties.source_scene_name = self.scene.name
+        else:
+            self.node_properties.source_scene_name = ""
         # Clean new outputs on change scene
         self.outputs.clear()
         self.new_outputs.clear()
@@ -2785,15 +2839,21 @@ node_categories = [
 classes = (
     ButtonAction,
     OverlayButtonAction,
-    ActionsProperties,
+    ActionProperty,
     HudSettings,
+    #PlayerEntityProperty,
+    StageObject,
     ChangeEntityStringPropertyNodeProperties,
     ChangeEntityBoolPropertyNodeProperties,
     ChangeEntityIntegerPropertyNodeProperties,
     ChangeEntityFloatPropertyNodeProperties,
     PlayEntityAnimationNodeProperties,
-    PlayerEntityProperty,
-    StageObject,
+    StageSceneNodeProperties,
+    PlayerSceneNodeProperties,
+    Menu2dSceneNodeProperties,
+    Menu3dSceneNodeProperties,
+    HUDSceneNodeProperties,
+    OverlaySceneNodeProperties,
     GameManagerTree,
     MyCustomSocket,
     MyCustomNode,
@@ -2840,16 +2900,15 @@ def register():
 
     bpy.types.Node.special_objects = bpy.props.CollectionProperty(type=ButtonAction, name="Special Objects")
     bpy.types.Node.overlay_special_objects = bpy.props.CollectionProperty(type=OverlayButtonAction, name="Special Objects")
-    bpy.types.Node.actions_settings = bpy.props.CollectionProperty(type=ActionsProperties)
-    bpy.types.Node.entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
+    #bpy.types.Node.entity_properties = bpy.props.CollectionProperty(type=PlayerEntityProperty)
     bpy.types.Node.stage_objects = bpy.props.CollectionProperty(type=StageObject)
     bpy.types.Node.with_pause = bpy.props.BoolProperty(name="With Pause", default=True)
 
 def unregister():
     del bpy.types.Node.with_pause
     del bpy.types.Node.stage_objects
-    del bpy.types.Node.entity_properties
-    del bpy.types.Node.actions_settings
+    #del bpy.types.Node.entity_properties
+    #del bpy.types.Node.actions_settings
     del bpy.types.Node.overlay_special_objects
     del bpy.types.Node.special_objects
     nodeitems_utils.unregister_node_categories('CUSTOM_NODES')

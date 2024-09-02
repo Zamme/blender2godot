@@ -398,8 +398,29 @@ class ExportGameOperator(bpy.types.Operator):
             print("Exporting node:", _node.name)
             _current_node_dict = my_dictionary()
             _current_node_dict.add("Type", type(_node).__name__)
-            
-            # TODO : add node properties (LAST CODE CHANGES AT DESKTOP BACKUP)
+            # NODE PROPERTIES
+            if hasattr(_node, "node_properties"):
+                _current_node_props_dict = my_dictionary()
+                for key in _node.node_properties.__annotations__.keys():
+                    the_value = getattr(_node.node_properties, key)
+                    _current_node_props_dict.add(key, the_value)
+                _current_node_dict.add("NodeProperties", _current_node_props_dict)
+            # NODE ACTIONS
+            if hasattr(_node, "actions_settings"):
+                pass
+            # NODE SOCKETS
+            if len(_node.inputs) > 0:
+                _current_node_inputs = my_dictionary()
+                for _input in _node.inputs:
+                    _new_input_dict = my_dictionary()
+                    if _input.is_linked:
+                        _new_input_dict.add("SourceNodeName", _input.links[0].from_node.name)
+                    else:
+                        if hasattr(_input, "default_value"):
+                            _new_input_dict.add("DefaultValue", _input.default_value)
+                    _current_node_inputs.add(_input.name, _new_input_dict)
+                _current_node_dict.add("NodeInputs", _current_node_inputs)
+            # TODO : (LAST CODE CHANGES AT DESKTOP BACKUP)
 
             _nodes_dict.add(_node.name, _current_node_dict)
         

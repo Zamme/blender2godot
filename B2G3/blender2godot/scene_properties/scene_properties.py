@@ -136,10 +136,10 @@ def update_scene_exportable(self, context):
 class EntityProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name", set=set_property_name, get=get_property_name) # type: ignore
     property_type : bpy.props.EnumProperty(items=property_types, name="Type") # type: ignore
-    property_string : bpy.props.StringProperty(name="Default") # type: ignore
-    property_boolean : bpy.props.BoolProperty(name="Default") # type: ignore
-    property_float : bpy.props.FloatProperty(name="Default") # type: ignore
-    property_integer : bpy.props.IntProperty(name="Default") # type: ignore
+    property_value : bpy.props.StringProperty(name="Default") # type: ignore
+    #property_boolean : bpy.props.BoolProperty(name="Default") # type: ignore
+    #property_float : bpy.props.FloatProperty(name="Default") # type: ignore
+    #property_integer : bpy.props.IntProperty(name="Default") # type: ignore
 
 class SceneType(bpy.types.PropertyGroup):
     """ Scene type """
@@ -247,7 +247,7 @@ class ScenePropertiesPanel(bpy.types.Panel):
             row1 = layout.row()
             box4 = row1.box()
             row4 = box4.row()
-            row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
+            row4.label(text="Scene Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
             for _property in scene.entity_properties:
                 box2 = box4.box()
                 row5 = box2.row()
@@ -256,15 +256,7 @@ class ScenePropertiesPanel(bpy.types.Panel):
                 column1 = row5.column()
                 column1.prop(_property, "property_type")
                 column2 = row5.column()
-                match _property.property_type:
-                    case "boolean":
-                        column2.prop(_property, "property_boolean")
-                    case "string":
-                        column2.prop(_property, "property_string")
-                    case "integer":
-                        column2.prop(_property, "property_integer")
-                    case "float":
-                        column2.prop(_property, "property_float")
+                column2.prop(_property, "property_value")
                 column3 = row5.column()
                 column3.operator(operator="scene.remove_scene_entity_property_operator", text="X").prop_to_remove_name = _property.property_name
             row6 = box4.row()

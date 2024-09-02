@@ -813,15 +813,7 @@ class PlayerPropertiesPanel(bpy.types.Panel):
             column1 = row5.column()
             column1.prop(_property, "property_type")
             column2 = row5.column()
-            match _property.property_type:
-                case "boolean":
-                    column2.prop(_property, "property_boolean")
-                case "string":
-                    column2.prop(_property, "property_string")
-                case "integer":
-                    column2.prop(_property, "property_integer")
-                case "float":
-                    column2.prop(_property, "property_float")
+            column2.prop(_property, "property_value")
             column3 = row5.column()
             column3.operator(operator="scene.remove_player_property_operator", text="X").prop_to_remove_name = _property.property_name
         row6 = box4.row()
