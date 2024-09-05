@@ -407,7 +407,10 @@ class ExportGameOperator(bpy.types.Operator):
                 _current_node_dict.add("NodeProperties", _current_node_props_dict)
             # NODE ACTIONS
             if hasattr(_node, "actions_settings"):
-                pass
+                for _action_setting in _node.actions_settings:
+                    _current_node_actions_dict = my_dictionary()
+                    _current_node_actions_dict.add(_action_setting.action_id, _action_setting.action_process)
+                    _current_node_dict.add("ActionsSettings", _current_node_actions_dict)
             # NODE SOCKETS
             if len(_node.inputs) > 0:
                 _current_node_inputs = my_dictionary()
@@ -415,6 +418,7 @@ class ExportGameOperator(bpy.types.Operator):
                     _new_input_dict = my_dictionary()
                     if _input.is_linked:
                         _new_input_dict.add("SourceNodeName", _input.links[0].from_node.name)
+                        _new_input_dict.add("SourceNodeSocket", _input.links[0].from_socket.name)
                     else:
                         if hasattr(_input, "default_value"):
                             _new_input_dict.add("DefaultValue", _input.default_value)
@@ -1022,16 +1026,7 @@ class ExportGameOperator(bpy.types.Operator):
         print("Jsoning entity properties...")
         for _player_entity_property in _player_scene.entity_properties:
             print("Adding property", _player_entity_property.property_name)
-            _prop_value = None
-            match _player_entity_property.property_type:
-                case "boolean":
-                    _prop_value = _player_entity_property.property_boolean
-                case "string":
-                    _prop_value = _player_entity_property.property_string
-                case "integer":
-                    _prop_value = _player_entity_property.property_integer
-                case "float":
-                    _prop_value = _player_entity_property.property_float
+            _prop_value = _player_entity_property.property_value
             _entity_properties.add(_player_entity_property.property_name, {"Type" : _player_entity_property.property_type,
                                                                         "Value" : _prop_value})
         self.dict_player_info.add("PlayerEntityProperties", _entity_properties)
