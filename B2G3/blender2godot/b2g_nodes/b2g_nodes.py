@@ -234,6 +234,10 @@ class ChangeEntityBoolPropertyNodeProperties(bpy.types.PropertyGroup):
     property_selected : bpy.props.StringProperty(default="none") # type: ignore
     operation_parameter : bpy.props.BoolProperty(default=False) # type: ignore
 
+class GetSceneEntityNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    entity_name : bpy.props.StringProperty(default="") # type: ignore
+
 class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     entity_name : bpy.props.StringProperty(default="") # type: ignore
@@ -2008,10 +2012,14 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
         for _node in bpy.data.node_groups["GameManager"].nodes:
             if _node.name == self.node_properties.source_node_name:
                 _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
-                if hasattr(_source_node, "scene"):
-                    for _prop in _source_node.scene.entity_properties:
-                        if _prop.property_type == "string":
-                            entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
+                if len(_source_node.inputs[0].links) > 0:
+                    _remote_node = _source_node.inputs[0].links[0].from_node
+                    if hasattr(_remote_node, "scene"):
+                        for _obj in _remote_node.scene.objects:
+                            if _obj.name == _source_node.node_properties.entity_name:
+                                for _prop in _obj.entity_properties:
+                                    if _prop.property_type == "string":
+                                        entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
         return entity_props
 
     def on_update_property_selected_enum(self, context):
@@ -2019,26 +2027,6 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
 
     property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
     
-    def on_update_property_selected(self, context):
-        self.operation_selected = "none"
-        for _node in bpy.data.node_groups["GameManager"].nodes:
-            if _node.name == self.source_node_name:
-                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
-                if hasattr(_source_node, "scene"):
-                    for _prop in _source_node.scene.entity_properties:
-                        if _prop.property_name == self.property_selected:
-                            self.current_property_type = _prop.property_type
-                            '''
-                            if len(self.inputs) < 3:
-                                self.inputs.new(property_node_sockets[self.current_property_type], "Param")
-                            else:
-                                self.inputs.remove(self.inputs[2])
-                                self.inputs.new(property_node_sockets[self.current_property_type], "Param")
-                            '''
-                            break
-                else:
-                    print("Has no scene attr", self.source_node.name)
-
     def check_source_node_name_changed(self):
         _source_node = None
         self.new_source_node_name = self.inputs[1].links[0].from_node.name
@@ -2071,21 +2059,14 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
         if self.inputs[1].is_linked:
             row1 = layout.row()
             row1.prop(self, "property_selected_enum", text="Property")
-            if self.node_properties.property_selected == "none":
+            if self.property_selected_enum == "none":
                 pass
             else:
-                for _node in bpy.data.node_groups["GameManager"].nodes:
-                    if _node.name == self.node_properties.source_node_name:
-                        _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
-                        if hasattr(_source_node, "scene"):
-                            for _prop in _source_node.scene.entity_properties:
-                                if _prop.property_name == self.node_properties.property_selected:
-                                    row3 = layout.row()
-                                    row3.prop(self.node_properties, "operation_selected", text="Operation")
-                                    if self.node_properties.operation_selected != "none":
-                                        row4 = layout.row()
-                                        row4.prop(self.node_properties, "operation_parameter", text="Parameter")
-                                    break
+                row3 = layout.row()
+                row3.prop(self.node_properties, "operation_selected", text="Operation")
+                if self.node_properties.operation_selected != "none":
+                    row4 = layout.row()
+                    row4.prop(self.node_properties, "operation_parameter", text="Parameter")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -2133,7 +2114,141 @@ class B2G_Change_Entity_String_Property_Node(MyCustomTreeNode, Node):
             else:
                 self.inputs[1].name = "Not valid"
         else:
+            self.property_selected_enum = "none"
             self.inputs[1].name = "Entity Ref"
+
+class B2G_Change_Scene_String_Property_Node(MyCustomTreeNode, Node):
+    bl_idname = 'B2G_Change_Scene_String_Property_NodeType'
+    bl_label = "Change Scene String Property"
+    bl_icon = 'LINENUMBERS_ON'
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    node_properties : bpy.props.PointerProperty(type=ChangeEntityStringPropertyNodeProperties) # type: ignore
+
+    new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    
+    def get_entity_props(self, context):
+        entity_props = [
+                ("none", "None", "NONE"),
+        ]
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.node_properties.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.node_properties.source_node_name]
+                if hasattr(_source_node, "scene"):
+                    for _prop in _source_node.scene.entity_properties:
+                        if _prop.property_type == "string":
+                            entity_props.append((_prop.property_name, _prop.property_name, _prop.property_name))
+        return entity_props
+
+    def on_update_property_selected_enum(self, context):
+        self.node_properties.property_selected = self.property_selected_enum
+
+    property_selected_enum : bpy.props.EnumProperty(items=get_entity_props, update=on_update_property_selected_enum) # type: ignore
+    
+    '''
+    def on_update_property_selected(self, context):
+        self.operation_selected = "none"
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.source_node_name]
+                if hasattr(_source_node, "scene"):
+                    for _prop in _source_node.scene.entity_properties:
+                        if _prop.property_name == self.property_selected:
+                            self.current_property_type = _prop.property_type
+                            break
+                else:
+                    print("Has no scene attr", self.source_node.name)
+    '''
+
+    def check_source_node_name_changed(self):
+        _source_node = None
+        self.new_source_node_name = self.inputs[1].links[0].from_node.name
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.new_source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.new_source_node_name]
+                break
+        if _source_node:
+            for _input in _source_node.inputs:
+                if (_input.name + "_REF") == self.inputs[1].links[0].from_socket.name:
+                    _source_node = _input.links[0].from_node
+                    self.new_source_node_name = _source_node.name
+                    break
+                else:
+                    pass
+        return (self.node_properties.source_node_name != self.new_source_node_name)
+
+    def init(self, context):
+        self.inputs.new("B2G_Pipeline_SocketType", "Do")
+        self.inputs.new("B2G_Player_SocketType", "Entity Ref")
+        self.update()
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        if self.inputs[1].is_linked:
+            row1 = layout.row()
+            row1.prop(self, "property_selected_enum", text="Property")
+            if self.property_selected_enum == "none":
+                pass
+            else:
+                row3 = layout.row()
+                row3.prop(self.node_properties, "operation_selected", text="Operation")
+                if self.node_properties.operation_selected != "none":
+                    row4 = layout.row()
+                    row4.prop(self.node_properties, "operation_parameter", text="Parameter")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Change Scene String Property"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.update_buttons)
+        bpy.app.timers.register(self.mark_invalid_links)
+
+    def mark_invalid_links(self):
+        pass
+        '''Mark invalid links, must be called from a timer
+        _input_go = self.inputs[0]
+        for _link in _input_go.links:
+            print(type(_link.from_socket).__name__)
+            _valid_link = False
+            if ((type(_link.from_socket).__name__ == "B2G_Pipeline_Socket") or (type(_link.from_socket).__name__ == "B2G_3dmenu_Socket")):
+                _valid_link = True
+            else:
+                _valid_link = False
+            _link.is_valid = _valid_link'''
+
+    def socket_value_update(self, context):
+        print("Socket value update")
+
+    def update_buttons(self):
+        if self.inputs[1].is_linked:
+            if self.check_source_node_name_changed():
+                self.node_properties.property_selected = "none"
+                self.node_properties.property_selected_enum = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
+        else:
+            self.node_properties.source_node_name = ""
+            self.node_properties.property_selected = "none"
+            self.node_properties.property_selected_enum = "none"
+
+    def update_sockets(self):
+        if self.inputs[1].is_linked:
+            if self.inputs[1].links[0].is_valid:
+                self.inputs[1].name = self.inputs[1].links[0].from_socket.name
+            else:
+                self.inputs[1].name = "Not valid"
+        else:
+            self.inputs[1].name = "Scene Ref"
 
 class B2G_Change_Entity_Integer_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Change_Entity_Integer_Property_NodeType'
@@ -2819,6 +2934,106 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
             self.inputs[0].name = "Stage_REF"
             self.outputs.clear()
 
+class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
+    bl_idname = 'B2G_Get_Scene_Entity_NodeType'
+    bl_label = "Get Scene Entity"
+    bl_icon = "ARMATURE_DATA"
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    node_properties : bpy.props.PointerProperty(type=GetSceneEntityNodeProperties) # type: ignore
+    new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
+
+    def check_source_node_name_changed(self):
+        _source_node = None
+        self.new_source_node_name = self.inputs[0].links[0].from_node.name
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.new_source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.new_source_node_name]
+                break
+        if _source_node:
+            for _input in _source_node.inputs:
+                if (_input.name + "_REF") == self.inputs[0].links[0].from_socket.name:
+                    _source_node = _input.links[0].from_node
+                    self.new_source_node_name = _source_node.name
+                    break
+                else:
+                    pass
+        return (self.node_properties.source_node_name != self.new_source_node_name)
+
+    def get_scene_entities(self, context):
+        _entities = [
+            ("none", "None", "NONE", 0)
+        ]
+        if len(self.inputs[0].links) > 0:
+            _source_node = self.inputs[0].links[0].from_node
+            _source_scene = _source_node.scene
+            if _source_scene:
+                _scene_entities = []
+                for _index,_scene_object in enumerate(_source_scene.objects):
+                    if _scene_object.object_type == "entity":
+                        _scene_entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
+                if len(_scene_entities) > 0:
+                    _entities = _scene_entities
+        return _entities
+
+    def on_scene_entities_update(self, context):
+        self.node_properties.entity_name = self.scene_entities
+
+    scene_entities : bpy.props.EnumProperty(items=get_scene_entities, update=on_scene_entities_update) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Player_SocketType", "Stage_REF")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        if self.inputs[0].is_linked:
+            layout.prop(self, "scene_entities", text="Entity")
+            #layout.prop(self, "trigger_condition", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Get Scene Entity"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.update_buttons)
+
+    def mark_invalid_links(self):
+        for _link in self.inputs[0].links:
+            #print("updating links")
+            _link.is_valid = (type(_link.from_socket).__name__ == "B2G_Player_Socket")
+   
+    def update_buttons(self):
+        if self.inputs[0].is_linked:
+            if self.check_source_node_name_changed():
+                #self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
+        else:
+            self.node_properties.source_node_name = ""
+            self.outputs.clear()
+            #self.node_properties.property_selected = "none"
+
+    def update_sockets(self):
+        if self.inputs[0].is_linked:
+            if self.check_source_node_name_changed():
+                self.inputs[0].name = self.inputs[0].links[0].from_socket.name
+                self.outputs.clear()
+                _output_name = self.node_properties.entity_name + "_REF"
+                self.outputs.new("B2G_Player_SocketType", _output_name)
+        else:
+            self.inputs[0].name = "Entity_REF"
+            self.outputs.clear()
+
 
 # --- END ACTION NODES ---
 
@@ -2857,11 +3072,13 @@ node_categories = [
     ]),
     MyNodeCategory('ACTIONS', "Actions", items=[
         NodeItem("B2G_Change_Entity_String_Property_NodeType"),
+        NodeItem("B2G_Change_Scene_String_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Integer_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Float_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Boolean_Property_NodeType"),
         NodeItem("B2G_Play_Entity_Animation_NodeType"),
         NodeItem("B2G_Trigger_Action_NodeType"),
+        NodeItem("B2G_Get_Scene_Entity_NodeType"),
     ]),
     MyNodeCategory('VARIABLES', "Variables", items=[
         NodeItem("B2G_String_NodeType"),
@@ -2902,6 +3119,7 @@ classes = (
     ChangeEntityBoolPropertyNodeProperties,
     ChangeEntityIntegerPropertyNodeProperties,
     ChangeEntityFloatPropertyNodeProperties,
+    GetSceneEntityNodeProperties,
     PlayEntityAnimationNodeProperties,
     StageSceneNodeProperties,
     TriggerActionNodeProperties,
@@ -2939,11 +3157,13 @@ classes = (
     B2G_OverlayMenu_Scene_Node,
     B2G_NPC_Scene_Node,
     B2G_Change_Entity_String_Property_Node,
+    B2G_Change_Scene_String_Property_Node,
     B2G_Change_Entity_Integer_Property_Node,
     B2G_Change_Entity_Float_Property_Node,
     B2G_Change_Entity_Boolean_Property_Node,
     B2G_Play_Entity_Animation_Node,
     B2G_Trigger_Action_Node,
+    B2G_Get_Scene_Entity_Node,
 )
 
 
