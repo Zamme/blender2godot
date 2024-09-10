@@ -410,13 +410,13 @@ class ExportGameOperator(bpy.types.Operator):
                     for key in _node.node_properties.__annotations__.keys():
                         the_value = getattr(_node.node_properties, key)
                         _current_node_props_dict.add(key, the_value)
-                    # NODE ACTIONS
-                    if hasattr(_node, "actions_settings"):
-                        for _action_setting in _node.actions_settings:
-                            _current_node_actions_dict = my_dictionary()
-                            _current_node_actions_dict.add(_action_setting.action_id, _action_setting.action_process)
-                            _current_node_dict.add("ActionsSettings", _current_node_actions_dict)
                     _current_node_dict.add("NodeProperties", _current_node_props_dict)
+                # NODE ACTIONS
+                if hasattr(_node, "actions_settings"):
+                    _current_node_actions_dict = my_dictionary()
+                    for _action_setting in _node.actions_settings:
+                        _current_node_actions_dict.add(_action_setting.action_id, _action_setting.action_process)
+                    _current_node_dict.add("ActionsSettings", _current_node_actions_dict)
                 # NODE INPUT SOCKETS
                 if len(_node.inputs) > 0:
                     _current_node_inputs = my_dictionary()
@@ -1098,10 +1098,10 @@ class ExportGameOperator(bpy.types.Operator):
     def export_stage_info(self, context, _stage_scene):
         _stage_dict = my_dictionary()
         _stage_dict.add("SceneName", _stage_scene.name)
-        if not _stage_scene.player_spawn_empty:
-            _stage_dict.add("PlayerSpawnObjectName", "")
-        else:
-            _stage_dict.add("PlayerSpawnObjectName", _stage_scene.player_spawn_empty.name)
+        #if not _stage_scene.player_spawn_empty:
+            #_stage_dict.add("PlayerSpawnObjectName", "")
+        #else:
+            #_stage_dict.add("PlayerSpawnObjectName", _stage_scene.player_spawn_empty.name)
         _stage_dict.add("DefaultEnvironment", self.export_environment(context, _stage_scene))
         _stage_objects = my_dictionary()
         for _stage_object in _stage_scene.objects:

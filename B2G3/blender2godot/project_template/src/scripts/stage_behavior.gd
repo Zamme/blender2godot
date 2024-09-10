@@ -52,7 +52,12 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 		add_free_camera()
 
 func get_player_spawn():
-	return scenario_scene.find_node(self.optional_dict["PlayerSpawnObjectName"])
+	var _spawn_return = null
+	var _spawn_object_name = ""
+	if self.node_info["NodeProperties"].has("player_spawn_object_name"):
+		_spawn_object_name = self.node_info["NodeProperties"]["player_spawn_object_name"]
+		_spawn_return = scenario_scene.find_node(_spawn_object_name)
+	return _spawn_return
 
 func play_entity_animation(_animation_name : String, _reproduction : String, _time : float):
 	if self.scenario_scene_animation_player:
@@ -67,11 +72,18 @@ func setup_player():
 	player_spawn = get_player_spawn()
 	if player_spawn:
 		var player_node
-		if node_info.has("Player"):
-			player_node = self.gm_ref.get_tree_node(node_info["Player"], self.gm_ref.gm_dict)
+		if self.node_info.has("NodeInputs"):
+			var _node_inputs = self.node_info["NodeInputs"]
+			if _node_inputs.has("Player"):
+				var _node_input_player = _node_inputs["Player"]
+				if _node_input_player.has("SourceNodeName"):
+					var _player_node_name = _node_input_player["SourceNodeName"]
+					player_node = self.gm_ref.get_tree_node(_player_node_name, self.gm_ref.gm_dict)
+		else:
+			print("Node info has no Player")
 		var _player_name : String = ""
 		if player_node:
-			_player_name = player_node["SceneName"]
+			_player_name = player_node["NodeProperties"]["source_scene_name"]
 		else:
 			print("Player node not found")
 		if  _player_name == "":

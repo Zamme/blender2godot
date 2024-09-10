@@ -29,9 +29,6 @@ def show_error_popup(message = [], title = "Message Box", icon = 'INFO'):
            self.layout.label(text=_error, icon="ERROR")
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
-def scene_emptyobject_poll(self, object):
-    return ((object.type == 'EMPTY') and (bpy.context.scene == object.users_scene[0]))
-
 def update_scene_exportable(self, context):
     if bpy.data.scenes[self.name].scene_type == "player":
         if bpy.data.scenes[self.name].player_object != None:
@@ -137,10 +134,6 @@ class StagePropertiesPanel(bpy.types.Panel):
             box.prop(context.active_object, "godot_exportable")
 
 def init_properties():
-    # Scene props
-    bpy.types.Scene.player_spawn_empty = bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=scene_emptyobject_poll)
-
-    # Scene object properties
     bpy.types.Object.collider = bpy.props.EnumProperty(
         items = ColliderProperties.collider_options,
         name = "Collider Type",
@@ -148,7 +141,6 @@ def init_properties():
         default = "convex")
 
 def clear_properties():
-    del bpy.types.Scene.player_spawn_empty
     del bpy.types.Object.collider
     #del bpy.types.Object.damage_zone_amount
 

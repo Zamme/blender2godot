@@ -151,6 +151,10 @@ def get_controls_template(self, context, _player_scene):
                     current_template_controls = json.load(outfile)
     return current_template_controls
 
+def player_spawns_poll(self, _object):
+    _node_scene = bpy.data.scenes[self.node_properties.source_scene_name]
+    return ((_node_scene.objects.find(_object.name) > -1) and ((_object.type == 'EMPTY')))
+
 def update_action_parameter(self, context):
     context.active_object.special_object_info.action_parameter = context.active_object.special_object_info.scene_parameter
 
@@ -176,6 +180,7 @@ class OverlayButtonAction(bpy.types.PropertyGroup):
     action_parameter : bpy.props.StringProperty(name="Action Parameter", default="") # type: ignore
     scene_parameter : bpy.props.EnumProperty(items=get_action_scenes, name="Scene Parameter", default=0, update=update_action_parameter) # type: ignore
 
+'''
 class HudSettings(bpy.types.PropertyGroup):
     visibility_type : bpy.props.EnumProperty(items=[
                                     ("always", "Always", "ALWAYS", "", 0),
@@ -192,7 +197,6 @@ class HudSettings(bpy.types.PropertyGroup):
                                         ], name="Hiding HUD effect") # type: ignore
     hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
 
-'''
 class PlayerEntityProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name") # type: ignore
     property_type : bpy.props.StringProperty(name="Type") # type: ignore
@@ -247,6 +251,7 @@ class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
 
 class StageSceneNodeProperties(bpy.types.PropertyGroup):
     source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+    player_spawn_object_name : bpy.props.StringProperty(default="") # type: ignore
 
 class TriggerActionNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
@@ -257,6 +262,20 @@ class PlayerSceneNodeProperties(bpy.types.PropertyGroup):
 
 class HUDSceneNodeProperties(bpy.types.PropertyGroup):
     source_scene_name : bpy.props.StringProperty(default="") # type: ignore
+    visibility_type : bpy.props.EnumProperty(items=[
+                                    ("always", "Always", "ALWAYS", "", 0),
+                                    ("conditional", "Conditional", "CONDITIONAL", "", 1)
+                                        ], name="Visibility", description="HUD visibility behavior") # type: ignore
+    show_transition_type : bpy.props.EnumProperty(items=[
+                                    ("none", "None", "NONE", "", 0),
+                                    ("fade_in", "Fade In", "FADE IN", "", 1)
+                                        ], name="Showing HUD effect") # type: ignore
+    show_transition_time : bpy.props.FloatProperty(name="Show Transition Time") # type: ignore
+    hide_transition_type : bpy.props.EnumProperty(items=[
+                                    ("none", "None", "NONE", "", 0),
+                                    ("fade_in", "Fade In", "FADE IN", "", 1)
+                                        ], name="Hiding HUD effect") # type: ignore
+    hide_transition_time : bpy.props.FloatProperty(name="Hide Transition Time") # type: ignore
 
 class Menu2dSceneNodeProperties(bpy.types.PropertyGroup):
     source_scene_name : bpy.props.StringProperty(default="") # type: ignore
@@ -866,7 +885,11 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
     bl_width_default = 200.0
     bl_height_default = 100.0
 
+    def on_player_spawn_enum_update(self, context):
+        self.node_properties.player_spawn_object_name = self.player_spawn_enum.name
+    
     node_properties : bpy.props.PointerProperty(type=StageSceneNodeProperties) # type: ignore
+    player_spawn_enum : bpy.props.PointerProperty(type=bpy.types.Object, name="Player Spawn", poll=player_spawns_poll, update=on_player_spawn_enum_update) # type: ignore
 
     def on_update_scene(self, context):
         # Clear inputs/outputs
@@ -945,7 +968,9 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         row1.prop(self, "scene", text="Scene")
         # Check scene properties
         if self.scene:
-            if not self.scene.player_spawn_empty:
+            row3 = box1.row()
+            row3.prop(self, "player_spawn_enum", text="Spawn Empty")
+            if not self.player_spawn_enum:
                 row2 = box1.row()
                 row2.label(text="Player spawn not set", icon="INFO")
             # Stage objects
@@ -1237,7 +1262,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
             self.inputs.clear()
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
-    settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
+    #settings : bpy.props.PointerProperty(type=HudSettings, name="HudSettings") # type: ignore
     
     def init(self, context):
         self.inputs.new("B2G_HUD_SocketType", "HUD")
@@ -1254,16 +1279,16 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
         row1.prop(self, "scene", text="Scene")
         if self.scene:
             row2 = box1.row()
-            row2.prop(self.settings, "visibility_type", text="Visibility")
+            row2.prop(self.node_properties, "visibility_type", text="Visibility")
             row2 = box1.row()
-            row2.prop(self.settings, "show_transition_type", text="Show Transition Type")
+            row2.prop(self.node_properties, "show_transition_type", text="Show Transition Type")
             row2 = box1.row()
-            row2.prop(self.settings, "show_transition_time", text="Show Transition Time")
+            row2.prop(self.node_properties, "show_transition_time", text="Show Transition Time")
             row2 = box1.row()
-            row2.prop(self.settings, "hide_transition_type", text="Hide Transition Type")
+            row2.prop(self.node_properties, "hide_transition_type", text="Hide Transition Type")
             row2 = box1.row()
-            row2.prop(self.settings, "hide_transition_time", text="Hide Transition Time")
-            layout.prop(self.scene, "scene_exportable", text="Export")
+            row2.prop(self.node_properties, "hide_transition_time", text="Hide Transition Time")
+            #layout.prop(self.scene, "scene_exportable", text="Export")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -3118,7 +3143,7 @@ classes = (
     ButtonAction,
     OverlayButtonAction,
     ActionProperty,
-    HudSettings,
+    #HudSettings,
     #PlayerEntityProperty,
     StageObject,
     ChangeEntityStringPropertyNodeProperties,
