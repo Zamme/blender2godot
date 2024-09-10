@@ -395,38 +395,44 @@ class ExportGameOperator(bpy.types.Operator):
         _gm_nodes = _gm_node_tree.nodes
         _nodes_dict = my_dictionary()
         for _node in _gm_nodes:
-            print("Exporting node:", _node.name)
-            _current_node_dict = my_dictionary()
-            _current_node_dict.add("Type", type(_node).__name__)
-            # NODE PROPERTIES
-            if hasattr(_node, "node_properties"):
-                _current_node_props_dict = my_dictionary()
-                for key in _node.node_properties.__annotations__.keys():
-                    the_value = getattr(_node.node_properties, key)
-                    _current_node_props_dict.add(key, the_value)
-                _current_node_dict.add("NodeProperties", _current_node_props_dict)
-            # NODE ACTIONS
-            if hasattr(_node, "actions_settings"):
-                for _action_setting in _node.actions_settings:
-                    _current_node_actions_dict = my_dictionary()
-                    _current_node_actions_dict.add(_action_setting.action_id, _action_setting.action_process)
-                    _current_node_dict.add("ActionsSettings", _current_node_actions_dict)
-            # NODE SOCKETS
-            if len(_node.inputs) > 0:
-                _current_node_inputs = my_dictionary()
-                for _input in _node.inputs:
-                    _new_input_dict = my_dictionary()
-                    if _input.is_linked:
-                        _new_input_dict.add("SourceNodeName", _input.links[0].from_node.name)
-                        _new_input_dict.add("SourceNodeSocket", _input.links[0].from_socket.name)
-                    else:
-                        if hasattr(_input, "default_value"):
-                            _new_input_dict.add("DefaultValue", _input.default_value)
-                    _current_node_inputs.add(_input.name, _new_input_dict)
-                _current_node_dict.add("NodeInputs", _current_node_inputs)
-            # TODO : (LAST CODE CHANGES AT DESKTOP BACKUP)
+            if _node.name == "Start":
+                _starter_node_name = ""
+                if len(_node.outputs[0].links) > 0:
+                    _starter_node_name = _node.outputs[0].links[0].to_node.name
+                self.game_manager_settings.add("StarterNode", _starter_node_name)
+            else:
+                print("Exporting node:", _node.name)
+                _current_node_dict = my_dictionary()
+                _current_node_dict.add("Type", type(_node).__name__)
+                # NODE PROPERTIES
+                if hasattr(_node, "node_properties"):
+                    _current_node_props_dict = my_dictionary()
+                    for key in _node.node_properties.__annotations__.keys():
+                        the_value = getattr(_node.node_properties, key)
+                        _current_node_props_dict.add(key, the_value)
+                    # NODE ACTIONS
+                    if hasattr(_node, "actions_settings"):
+                        for _action_setting in _node.actions_settings:
+                            _current_node_actions_dict = my_dictionary()
+                            _current_node_actions_dict.add(_action_setting.action_id, _action_setting.action_process)
+                            _current_node_dict.add("ActionsSettings", _current_node_actions_dict)
+                    _current_node_dict.add("NodeProperties", _current_node_props_dict)
+                # NODE INPUT SOCKETS
+                if len(_node.inputs) > 0:
+                    _current_node_inputs = my_dictionary()
+                    for _input in _node.inputs:
+                        _new_input_dict = my_dictionary()
+                        if _input.is_linked:
+                            _new_input_dict.add("SourceNodeName", _input.links[0].from_node.name)
+                            _new_input_dict.add("SourceNodeSocket", _input.links[0].from_socket.name)
+                        else:
+                            if hasattr(_input, "default_value"):
+                                _new_input_dict.add("DefaultValue", _input.default_value)
+                        _current_node_inputs.add(_input.name, _new_input_dict)
+                    _current_node_dict.add("NodeInputs", _current_node_inputs)
+                # TODO : (LAST CODE CHANGES AT DESKTOP BACKUP)
 
-            _nodes_dict.add(_node.name, _current_node_dict)
+                _nodes_dict.add(_node.name, _current_node_dict)
         
         self.game_manager_dict.add("Nodes", _nodes_dict)
         self.game_manager_dict.add("Settings", self.game_manager_settings)

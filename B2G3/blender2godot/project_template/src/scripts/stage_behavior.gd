@@ -96,16 +96,17 @@ func setup_stage_objects():
 	stage_objects_dict = optional_dict["Objects"]
 
 func setup_triggers():
-#	print(node_info["Outputs"])
-	for _node_output_key in node_info["Outputs"].keys():
-#		print(_node_output_key)
-		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
-		match _node_key_parts[1]:
-			"Enter":
-				_enter_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
-			"Exit":
-				_exit_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
-
+	# TODO: Pending to change. Outputs are not allowed on game manager
+	pass
+#	for _node_output_key in node_info["Outputs"].keys():
+##		print(_node_output_key)
+#		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
+#		match _node_key_parts[1]:
+#			"Enter":
+#				_enter_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
+#			"Exit":
+#				_exit_triggers[_node_key_parts[0]] = node_info["Outputs"][_node_output_key]
+	
 func stage_trigger_entered(_arg):
 	var _msg : String
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]

@@ -1118,13 +1118,14 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore
 
     def init(self, context):
+        pass
         # INPUTS
         #self.inputs.new("B2G_HUD_SocketType", "HUD")
         #self.inputs.new("B2G_2dmenu_SocketType", "Pause Menu")
         # OUTPUTS
-        self.outputs.new("B2G_Player_SocketType", "Player")
-        self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
-        self.outputs.new("B2G_HUD_SocketType", "HUD")
+        #self.outputs.new("B2G_Player_SocketType", "Player")
+        #self.outputs.new("B2G_OverlayMenu_SocketType", "Pause Menu")
+        #self.outputs.new("B2G_HUD_SocketType", "HUD")
 
     def copy(self, node):
         print("Copying from node ", node)
@@ -1185,6 +1186,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
     def mark_invalid_links(self):
         '''Mark invalid links, must be called from a timer'''
         #print("Update", self.name, "links")
+        pass
+        '''
         _output_player = self.outputs[2]
         for _link in _output_player.links:
             _valid_link = False
@@ -1193,7 +1196,8 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
             else:
                 _valid_link = False
             _link.is_valid = _valid_link
-
+        '''
+    
 class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'B2G_HUD_Scene_NodeType'
@@ -2835,7 +2839,7 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
 
 class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Trigger_Action_NodeType'
-    bl_label = "Trigger Action"
+    bl_label = "Get Stage Trigger"
     bl_icon = "ARMATURE_DATA"
     bl_width_default = 200.0
     bl_height_default = 100.0
@@ -2899,7 +2903,7 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
         pass
 
     def draw_label(self):
-        return "Trigger Action"
+        return "Get Stage Trigger"
 
     def update(self):
         '''Called when node graph is changed'''
@@ -3031,7 +3035,7 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
                 _output_name = self.node_properties.entity_name + "_REF"
                 self.outputs.new("B2G_Player_SocketType", _output_name)
         else:
-            self.inputs[0].name = "Entity_REF"
+            self.inputs[0].name = "Stage_REF"
             self.outputs.clear()
 
 
@@ -3070,15 +3074,17 @@ node_categories = [
     MyNodeCategory('MATH', "Math", items=[
         #NodeItem("FunctionNodeBooleanMath"),
     ]),
-    MyNodeCategory('ACTIONS', "Actions", items=[
-        NodeItem("B2G_Change_Entity_String_Property_NodeType"),
+    MyNodeCategory('SCENE_ACTIONS', "Scene Actions", items=[
         NodeItem("B2G_Change_Scene_String_Property_NodeType"),
+        NodeItem("B2G_Get_Scene_Entity_NodeType"),
+        NodeItem("B2G_Trigger_Action_NodeType"),
+    ]),
+    MyNodeCategory('ENTITY_ACTIONS', "Entity Actions", items=[
+        NodeItem("B2G_Change_Entity_String_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Integer_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Float_Property_NodeType"),
         NodeItem("B2G_Change_Entity_Boolean_Property_NodeType"),
         NodeItem("B2G_Play_Entity_Animation_NodeType"),
-        NodeItem("B2G_Trigger_Action_NodeType"),
-        NodeItem("B2G_Get_Scene_Entity_NodeType"),
     ]),
     MyNodeCategory('VARIABLES', "Variables", items=[
         NodeItem("B2G_String_NodeType"),

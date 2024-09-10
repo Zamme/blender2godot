@@ -62,11 +62,14 @@ func execute_command(_command : String, _parameters : Array):
 			if _parameter != "":
 				self.current_node = self.get_tree_node(_parameter, self.gm_dict)
 			if self.current_node:
-				var _scene_name = self.current_node["SceneName"]
-				_param = self.STAGES_DIRPATH + self.STAGE_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
-				print("Current node:", self.current_node)
-#					print("action parameter:", _parameter)
-				self.load_stage(_param)
+				var _node_properties = null
+				if current_node.has("NodeProperties"):
+					_node_properties = current_node["NodeProperties"]
+					if _node_properties.has("source_scene_name"):
+						var _scene_name = _node_properties["source_scene_name"]
+						_param = self.STAGES_DIRPATH + self.STAGE_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
+						print("Current node:", self.current_node)
+						self.load_stage(_param)
 		"load_3dmenu":
 			var _parameter = _parameters[0]
 			if _parameter != "":
@@ -103,11 +106,8 @@ func execute_command(_command : String, _parameters : Array):
 			print("Playing animation...")
 			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])
 
-func execute_node(_node_name : String):
-	print("Last node executed: ", self._last_node_executed)
+func execute_current_node():
 	print("Current node to execute:", self.current_node)
-	self._last_node_executed = self.current_node
-	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
 	if self.current_node:
 		print("Execute: ", self.current_node["Type"])
 		match self.current_node["Type"]:
@@ -166,6 +166,18 @@ func execute_node(_node_name : String):
 	else:
 		print("No node to execute!")
 		self.show_message("No node to execute!")
+
+func execute_node(_node):
+	print("Last node executed: ", self._last_node_executed)
+	self._last_node_executed = self.current_node
+	self.current_node = _node
+	self.execute_current_node()
+
+func execute_node_by_name(_node_name : String):
+	print("Last node executed: ", self._last_node_executed)
+	self._last_node_executed = self.current_node
+	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
+	self.execute_current_node()
 
 func get_node_next_node(_tree, _node_name):
 	var _node
@@ -238,29 +250,35 @@ func quit_game():
 	get_tree().quit()
 
 func resume_gm():
-	if not self.current_node:
-		self.current_node = self.get_node_next_node(self.gm_dict, "Start")
+	if self.current_node:
+		self.execute_current_node()
+	else:
+		self.execute_node_by_name(self.gm_dict["Settings"]["StarterNode"])
 		if not self.current_node:
 			show_message("No scene to load")
 			return
-	var _scene_filepath : String = ""
-	var _scene_type : String = ""
-	if current_node.has("SceneName"):
-		_scene_filepath = current_node["SceneName"]
-		_scene_type = current_node["Type"]
-	if _scene_filepath == "":
-		print("No scene to load.")
-		show_message("No scene to load")
-	else:
-		_scene_filepath = self.get_scene_filepath(_scene_filepath, current_node["Type"])
-		match _scene_type:
-			"B2G_Stage_Scene_Node":
-				load_stage(_scene_filepath)
-			"B2G_3dMenu_Scene_Node":
-				load_menu3d(_scene_filepath)
-			"B2G_2dMenu_Scene_Node":
-				load_menu2d(_scene_filepath)
-		set_state(GameState.Starting)
+
+#	var _scene_filepath : String = ""
+#	var _scene_type : String = ""
+#	var _node_properties = null
+#	if current_node.has("NodeProperties"):
+#		_node_properties = current_node["NodeProperties"]
+#		if _node_properties.has("source_scene_name"):
+#			_scene_filepath = _node_properties["source_scene_name"]
+#		_scene_type = current_node["Type"]
+#	if _scene_filepath == "":
+#		print("No scene to load.")
+#		show_message("No scene to load")
+#	else:
+#		_scene_filepath = self.get_scene_filepath(_scene_filepath, current_node["Type"])
+#		match _scene_type:
+#			"B2G_Stage_Scene_Node":
+#				load_stage(_scene_filepath)
+#			"B2G_3dMenu_Scene_Node":
+#				load_menu3d(_scene_filepath)
+#			"B2G_2dMenu_Scene_Node":
+#				load_menu2d(_scene_filepath)
+#		set_state(GameState.Starting)
 
 
 func set_state(_state):
