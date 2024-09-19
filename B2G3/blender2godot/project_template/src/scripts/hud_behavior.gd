@@ -57,7 +57,7 @@ func setup_hud_objects_info():
 
 func start_fade():
 	fade_tween.interpolate_property(self, "modulate",
-			Color(1.0, 1.0, 1.0, 0.0), Color(1.0, 1.0, 1.0, 1.0), hud_settings["ShowTransitionTime"],
+			Color(1.0, 1.0, 1.0, 0.0), Color(1.0, 1.0, 1.0, 1.0), hud_settings["show_transition_time"],
 			Tween.TRANS_LINEAR, Tween.EASE_IN_OUT)
 	fade_tween.start()
 
@@ -66,9 +66,9 @@ func start_hud():
 		add_fade_timer()
 	if not fade_tween:
 		add_fade_tween()
-	match hud_settings["VisibilityType"]:
+	match hud_settings["visibility_type"]:
 		"always":
-			fade_timer.start(hud_settings["ShowTransitionTime"])
+			fade_timer.start(hud_settings["show_transition_time"])
 
 #func update_hud_object_info(_key):
 #	# TODO: If is not TEXT?

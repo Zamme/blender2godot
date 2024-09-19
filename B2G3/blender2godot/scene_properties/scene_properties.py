@@ -144,7 +144,7 @@ def update_scene_exportable(self, context):
 class EntityProperty(bpy.types.PropertyGroup):
     property_name : bpy.props.StringProperty(name="Prop_Name", set=set_property_name, get=get_property_name) # type: ignore
     property_type : bpy.props.EnumProperty(items=property_types, name="Type") # type: ignore
-    property_value : bpy.props.StringProperty(name="Default") # type: ignore
+    property_value : bpy.props.StringProperty(name="Default Value", default="empty") # type: ignore
     #property_boolean : bpy.props.BoolProperty(name="Default") # type: ignore
     #property_float : bpy.props.FloatProperty(name="Default") # type: ignore
     #property_integer : bpy.props.IntProperty(name="Default") # type: ignore

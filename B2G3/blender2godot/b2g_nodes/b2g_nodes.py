@@ -452,17 +452,6 @@ class B2G_Boolean_Socket(NodeSocketBool):
     def draw_color(self, context, node):
         return (0.5, 0.5, 0.0, 1.0)
 
-'''
-class B2G_Custom_Socket_Interface(NodeSocketInterface):
-    bl_socket_idname = "B2G_String_Socket"
-
-    def draw(self, context, layout):
-        pass
-
-    def draw_color(self, context: Context):
-        return (0.1,1,1)
-'''
-
 class B2G_String_Socket(NodeSocketString):
     # Description string
     """string socket type"""
@@ -486,6 +475,18 @@ class B2G_String_Socket(NodeSocketString):
     
     def update(self, context):
         self.hide_value = False
+
+
+'''
+class B2G_Custom_Socket_Interface(NodeSocketInterface):
+    bl_socket_idname = "B2G_String_Socket"
+
+    def draw(self, context, layout):
+        pass
+
+    def draw_color(self, context: Context):
+        return (0.1,1,1)
+'''
 
 class B2G_Pipeline_Socket(NodeSocket):
     # Description string
@@ -966,48 +967,27 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         box1 = layout.box()
         row1 = box1.row()
         row1.prop(self, "scene", text="Scene")
-        # Check scene properties
         if self.scene:
-            row3 = box1.row()
-            row3.prop(self, "player_spawn_enum", text="Spawn Empty")
-            if not self.player_spawn_enum:
+            # Player link
+            if self.inputs[0].is_linked:
+                row3 = box1.row()
+                row3.prop(self, "player_spawn_enum", text="Spawn Empty")
+                if not self.player_spawn_enum:
+                    row2 = box1.row()
+                    row2.label(text="Player spawn not set", icon="INFO")
+            else:
                 row2 = box1.row()
-                row2.label(text="Player spawn not set", icon="INFO")
-            # Stage objects
-            '''
-            box2 = box1.box()
-            row3 = box2.row()
-            row3.label(text="Stage Objects")
-            for _stage_object in self.stage_objects:
-                box3 = box2.box()
-                row4 = box3.row()
-                row4.label(text=_stage_object.object_name)
-                _stage_object_type_string = ""
-                for _ot_index,_ot in enumerate(stage_properties.object_types):
-                    if stage_properties.object_types[_ot_index][0] == _stage_object.object_type:
-                        _stage_object_type_string = stage_properties.object_types[_ot_index][1]
-                row4.label(text=_stage_object_type_string)
-                
-                row5 = box3.row()
-                match _stage_object.object_type:
-                    case "player_spawn_empty":
-                        pass
-                        #row5.label(text="Player spawn")
-                    case "damage_zone":
-                        row5.prop(_stage_object, "damage_zone_amount")
-                '''
+                row2.label(text="Player not set", icon="INFO")
+            # Go link
+            if self.inputs[1].is_linked:
+                pass
+            else:
+                row2 = box1.row()
+                row2.label(text="Stage not in pipeline", icon="INFO")
         else:
             row2 = box1.row()
             row2.label(text="Stage scene not set", icon="INFO")
-        # Check scene links
-        if self.scene:
-            if len(self.inputs) > 0:
-                if not self.inputs[0].is_linked:
-                    row2 = box1.row()
-                    row2.label(text="Player not set", icon="INFO")
-                if not self.inputs[1].is_linked:
-                    row2 = box1.row()
-                    row2.label(text="Stage not in pipeline", icon="INFO")
+
 
         # EXPORT PROPERTY
         #if self.scene:
@@ -1131,13 +1111,17 @@ class B2G_Player_Scene_Node(MyCustomTreeNode, Node):
                 _new_socket = self.inputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
                 match _entity_property.property_type:
                     case "boolean":
-                        _new_socket.default_value = bool(_entity_property.property_value)
+                        #_new_socket.default_value = bool(_entity_property.property_value)
+                        _new_socket.default_value = False
                     case "string":
-                        _new_socket.default_value = _entity_property.property_value
+                        #_new_socket.default_value = _entity_property.property_value
+                        _new_socket.default_value = ""
                     case "integer":
-                        _new_socket.default_value = int(_entity_property.property_value)
+                        #_new_socket.default_value = int(_entity_property.property_value)
+                        _new_socket.default_value = 0
                     case "float":
-                        _new_socket.default_value = float(_entity_property.property_value)
+                        #_new_socket.default_value = float(_entity_property.property_value)
+                        _new_socket.default_value = 0.0
                 self.outputs.new(property_node_sockets[_entity_property.property_type], _entity_property.property_name)
 
     scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", poll=poll_scenes, update=on_update_scene) # type: ignore

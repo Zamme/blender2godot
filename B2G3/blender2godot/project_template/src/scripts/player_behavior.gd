@@ -63,14 +63,16 @@ func _ready():
 	#player_mesh._test_anim()
 
 func add_hud():
-	if _hud_dict.has("SceneName"):
-		hud_scene_name = _hud_dict["SceneName"]
+	if _hud_dict.has("NodeProperties"):
+		var _hud_node_properties = _hud_dict["NodeProperties"]
+		if _hud_node_properties.has("source_scene_name"):
+			hud_scene_name = _hud_node_properties["source_scene_name"]
 	if hud_scene_name != "":
 		print("Adding HUD:", hud_scene_name)
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
-		_hud.hud_settings = _hud_dict["Settings"]
-		_hud.hud_fields = _hud_dict["FieldsLinked"]
+		_hud.hud_settings = _hud_dict["NodeProperties"]
+#		_hud.hud_fields = _hud_dict["FieldsLinked"]
 		add_child(_hud)
 
 func animate():
@@ -143,6 +145,17 @@ func find_child_by_name(root_node, _object_name):
 				break
 	return _object
 
+func find_hud_dict(_player_node_name):
+	var _return_dict : Dictionary = Dictionary()
+	for _key in self.gm_ref.gm_dict["Nodes"].keys():
+		if self.gm_ref.gm_dict["Nodes"][_key]["Type"] == "B2G_HUD_Scene_Node":
+			var _hud_node = self.gm_ref.gm_dict["Nodes"][_key]
+			if _hud_node["NodeInputs"]["HUD"]["SourceNodeName"] == _player_node_name:
+				_return_dict = _hud_node
+#				print("Return dict:", _return_dict)
+				break
+	return _return_dict
+
 func find_player_mesh():
 	var _player_mesh = null
 	for _child in get_children():
@@ -185,9 +198,7 @@ func set_entity_property_value(_property_name, _value):
 	# TODO: EMIT A SIGNAL TO LINKED CONTROLS?
 
 func setup_dictionaries():
-	if self.node_info.has("HUD"):
-		self._hud_dict = self.gm_ref.get_tree_node(node_info["HUD"], self.gm_ref.gm_dict)
-#		self._properties_linked = self.node_info["PropertiesLinked"]
+	self._hud_dict = self.find_hud_dict(self.node_info["Name"])
 	if self.node_info.has("PauseMenuOverlay"):
 		self._pause_menu_dict = self.gm_ref.get_tree_node(node_info["PauseMenuOverlay"], self.gm_ref.gm_dict)
 		print(self._pause_menu_dict)

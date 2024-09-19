@@ -403,6 +403,7 @@ class ExportGameOperator(bpy.types.Operator):
             else:
                 print("Exporting node:", _node.name)
                 _current_node_dict = my_dictionary()
+                _current_node_dict.add("Name", _node.name)
                 _current_node_dict.add("Type", type(_node).__name__)
                 # NODE PROPERTIES
                 if hasattr(_node, "node_properties"):
