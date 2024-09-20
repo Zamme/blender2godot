@@ -17,8 +17,6 @@ var fade_tween : Tween
 
 var gm_ref
 
-#onready var hud_bg : TextureRect = get_child(0)
-
 
 func _ready():
 	self.gm_ref = get_tree().current_scene
@@ -70,39 +68,18 @@ func start_hud():
 		"always":
 			fade_timer.start(hud_settings["show_transition_time"])
 
-#func update_hud_object_info(_key):
-#	# TODO: If is not TEXT?
-#	if hud_objects_info[_key].has("SourceInfoProperty"):
-#		var _linked_entity = hud_objects_info[_key]["LinkedEntity"]
-##		print("Linked entity: " + _linked_entity.name)
-#		var _source_info_property_name = hud_objects_info[_key]["SourceInfoProperty"]
-##		print("Property name: " + _source_info_property_name)
-#		var _value_to_assign = _linked_entity._entity_properties[_source_info_property_name]["Value"]
-#		hud_objects_info[_key]["LinkedControl"].text = str(_value_to_assign)
-
 func update_hud_objects_info():
 	for _hud_element in get_children():
 		if self.hud_fields.has(_hud_element.name):
-			var _links = self.hud_fields[_hud_element.name]
-			for _link_key in _links.keys(): # MORE THAN ONE INFO INPUT?
-				var _from_node = self.gm_ref.get_tree_node(_link_key, self.gm_ref.gm_dict)
-				var _value_to_assign
-				match _from_node["Type"]:
-					"B2G_Player_Scene_Node":
-						if _from_node.has("EntityProperties"):
-#							print("Searching: ", _from_node["SceneName"] + "Entity")
-							var _scene_node = self.gm_ref.find_node(_from_node["SceneName"] + "Entity", true, false)
-							_value_to_assign = _scene_node._entity_properties[_links[_link_key]]["Value"]
-#							print("Scene node found: ", _scene_node.name)
-					_:
-						_value_to_assign = _from_node["Value"]
-				_hud_element.text = str(_value_to_assign)
-
-#	var _parent_props : Dictionary = get_parent()._properties_linked
-#	for _parent_prop_key in _parent_props.keys():
-#		for _child in get_children():
-#			if _parent_props[_parent_prop_key] == _child.name:
-#				_child.text = str(get_parent()._entity_properties[_parent_prop_key]["Value"])
+			var _field = self.hud_fields[_hud_element.name]
+			if _field.has("DefaultValue"):
+				_hud_element.text = str(_field["DefaultValue"])
+			elif _field.has("SourceNodeName"):
+				var _source_node = self.gm_ref.get_tree_node(_field["SourceNodeName"], self.gm_ref.gm_dict)
+				if _source_node["NodeProperties"].has("value"):
+					_hud_element.text = str(_source_node["NodeProperties"]["value"])
+#				else:
+#					var _source_node_inputs = _
 
 func _on_fade_timer_timeout():
 	start_fade()

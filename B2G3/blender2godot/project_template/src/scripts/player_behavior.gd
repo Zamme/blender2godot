@@ -72,7 +72,7 @@ func add_hud():
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
 		_hud.hud_settings = _hud_dict["NodeProperties"]
-#		_hud.hud_fields = _hud_dict["FieldsLinked"]
+		_hud.hud_fields = _hud_dict["NodeInputs"]
 		add_child(_hud)
 
 func animate():
