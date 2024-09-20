@@ -247,7 +247,6 @@ class GetSceneEntityNodeProperties(bpy.types.PropertyGroup):
 
 class GetEntityPropertiesNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
-    entity_name : bpy.props.StringProperty(default="") # type: ignore
     property_name : bpy.props.StringProperty(default="") # type: ignore
 
 class PlayEntityAnimationNodeProperties(bpy.types.PropertyGroup):
@@ -1319,6 +1318,8 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
         bpy.app.timers.register(self.mark_invalid_links)
 
     def mark_invalid_links(self):
+        pass
+        '''
         valid_sockets = ["B2G_Float_Socket", "B2G_Integer_Socket", "B2G_Boolean_Socket", "B2G_String_Socket"]
         for _input in self.inputs:
             if type(_input).__name__ != "B2G_HUD_Socket":
@@ -1331,6 +1332,7 @@ class B2G_HUD_Scene_Node(MyCustomTreeNode, Node):
                         _valid_link = False
                         print("Invalidating:", _link)
                     _link.is_valid = _valid_link
+        '''
 
 class B2G_NPC_Scene_Node(MyCustomTreeNode, Node):
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -3022,6 +3024,10 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
 
     def on_scene_entities_update(self, context):
         self.node_properties.entity_name = self.scene_entities
+        self.inputs[0].name = self.inputs[0].links[0].from_socket.name
+        self.outputs.clear()
+        _output_name = self.node_properties.entity_name + "_REF"
+        self.outputs.new("B2G_Player_SocketType", _output_name)
 
     scene_entities : bpy.props.EnumProperty(items=get_scene_entities, update=on_scene_entities_update) # type: ignore
     
@@ -3106,24 +3112,42 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
 
     def get_entity_properties(self, context):
         _properties = [
-            ("none", "None", "NONE", 0)
+            ("none", "None", "NONE", 0),
         ]
-        '''
         if len(self.inputs[0].links) > 0:
             _source_node = self.inputs[0].links[0].from_node
-            _source_scene = _source_node.scene
-            if _source_scene:
-                _scene_entities = []
-                for _index,_scene_object in enumerate(_source_scene.objects):
-                    if _scene_object.object_type == "entity":
-                        _scene_entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
-                if len(_scene_entities) > 0:
-                    _entities = _scene_entities
-        '''
+            _from_socket = self.inputs[0].links[0].from_socket
+            if _from_socket.name == "Player_REF":
+                for _source_socket in _source_node.inputs:
+                    if _source_socket.name == "Player":
+                        _source_source_node = _source_socket.links[0].from_node
+                        _source_scene = _source_source_node.scene
+                        if len(_source_scene.entity_properties) > 0:
+                            for _index,_scene_property in enumerate(_source_scene.entity_properties):
+                                _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
+            else:
+                pass
+                '''
+                _source_node = self.inputs[0].links[0].from_node
+                _source_scene = _source_node.scene
+                if _source_scene:
+                    _scene_entities = []
+                    for _index,_scene_object in enumerate(_source_scene.objects):
+                        if _scene_object.object_type == "entity":
+                            _scene_entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
+                    if len(_scene_entities) > 0:
+                        _entities = _scene_entities
+                '''
         return _properties
 
     def on_entity_properties_update(self, context):
-        self.node_properties.entity_name = self.entity_properties
+        self.node_properties.property_name = self.entity_properties
+        self.outputs.clear()
+        if self.entity_properties == "none":
+            pass
+        else:
+            _output_name = self.node_properties.property_name + "_REF"
+            self.outputs.new("B2G_Player_SocketType", _output_name)
 
     entity_properties : bpy.props.EnumProperty(items=get_entity_properties, update=on_entity_properties_update) # type: ignore
     
@@ -3173,11 +3197,11 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
             if self.check_source_node_name_changed():
                 self.inputs[0].name = self.inputs[0].links[0].from_socket.name
                 self.outputs.clear()
-                _output_name = self.node_properties.entity_name + "_REF"
-                self.outputs.new("B2G_Player_SocketType", _output_name)
         else:
+            self.entity_properties = "none"
             self.inputs[0].name = "Entity_REF"
             self.outputs.clear()
+            self.node_properties.source_node_name = ""
 
 
 # --- END ACTION NODES ---
