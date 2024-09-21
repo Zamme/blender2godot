@@ -36,6 +36,7 @@ const MENU3D_BUTTON_BEHAVIOR_PATH = SCRIPTS_PATH + "menu3d_button.gd"
 const HUDS_PATH = SCENES_PATH + "huds/"
 const HUD_SCENES_PREFIX = "Hud_"
 const HUD_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "hud_behavior.gd"
+const HUD_ELEMENT_CONTENT_BEHAVIOR_FILEPATH = SCRIPTS_PATH + "hud_element_content.gd"
 
 const MENUS2D_PATH = SCENES_PATH + "menus2d/"
 const MENUS2D_SCENES_PREFIX = "Menu2d_"
@@ -94,6 +95,7 @@ var overlay_menu_behavior_script = load(OVERLAYS_BEHAVIOR_FILEPATH)
 var menus2d_behavior_script = load(MENUS2D_BEHAVIOR_FILEPATH)
 var trigger_area_behavior_script = load(TRIGGER_AREA_BEHAVIOR_PATH)
 var menus3d_button_behavior_script = load(MENU3D_BUTTON_BEHAVIOR_PATH)
+var hud_element_content_script = load(HUD_ELEMENT_CONTENT_BEHAVIOR_FILEPATH)
 
 # JSONS
 var _stages_json
@@ -1016,6 +1018,7 @@ func prepare_hud_scene(_hud_scene, _hud_objects):
 				var _location_split = _hud_objects[_hud_object_info]["Location"].split(",")
 #				_new_label.rect_position = _display_size/2
 				_new_label.rect_position += Vector2(float(_location_split[0]) * SCALE_FACTOR, -float(_location_split[1]) * SCALE_FACTOR)
+				_new_label.set_script(hud_element_content_script)
 			"GPENCIL":
 				var _new_texrect : TextureRect = TextureRect.new()
 				_new_texrect.name = _hud_object_info

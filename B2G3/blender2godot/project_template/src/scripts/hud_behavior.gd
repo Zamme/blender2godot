@@ -22,6 +22,7 @@ func _ready():
 	self.gm_ref = get_tree().current_scene
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
 	setup_hud_objects_info()
+	link_contents()
 	start_hud()
 	update_hud_objects_info()
 
@@ -49,6 +50,13 @@ func find_child_by_name(root_node, _object_name):
 				break
 	return _object
 
+func link_contents():
+	for _hud_element in get_children():
+		if _hud_element is HudElementContent:
+			print("Linking element ", _hud_element.name)
+			_hud_element.node_info = hud_fields[_hud_element.name]
+			_hud_element.link_content(self.gm_ref)
+
 func setup_hud_objects_info():
 	if optional_dict.has("Objects"):
 		hud_objects_info = optional_dict["Objects"]
@@ -70,16 +78,19 @@ func start_hud():
 
 func update_hud_objects_info():
 	for _hud_element in get_children():
-		if self.hud_fields.has(_hud_element.name):
-			var _field = self.hud_fields[_hud_element.name]
-			if _field.has("DefaultValue"):
-				_hud_element.text = str(_field["DefaultValue"])
-			elif _field.has("SourceNodeName"):
-				var _source_node = self.gm_ref.get_tree_node(_field["SourceNodeName"], self.gm_ref.gm_dict)
-				if _source_node["NodeProperties"].has("value"):
-					_hud_element.text = str(_source_node["NodeProperties"]["value"])
-#				else:
-#					var _source_node_inputs = _
+		if _hud_element is HudElementContent:
+			_hud_element.update_content()
+#		if self.hud_fields.has(_hud_element.name):
+#			var _field = self.hud_fields[_hud_element.name]
+#			if _field.has("DefaultValue"):
+#				_hud_element.text = str(_field["DefaultValue"])
+#			elif _field.has("SourceNodeName"):
+#				var _source_node = self.gm_ref.get_tree_node(_field["SourceNodeName"], self.gm_ref.gm_dict)
+#				if _source_node["NodeProperties"].has("value"):
+#					_hud_element.text = str(_source_node["NodeProperties"]["value"])
+#				elif _source_node["Type"] == "B2G_Get_Entity_Property_Node":
+#					var _new_source_node = self.gm_ref.get_tree_node(_source_node["NodeProperties"]["source_node_name"], self.gm_ref.gm_dict)
+#					print("New source node:", _new_source_node)
 
 func _on_fade_timer_timeout():
 	start_fade()
