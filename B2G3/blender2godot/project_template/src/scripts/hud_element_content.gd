@@ -13,18 +13,16 @@ func _ready():
 	pass
 
 func link_content(_gm_ref):
-#	var _source_source_node
-	var _source_node = _gm_ref.get_tree_node(node_info["SourceNodeName"], _gm_ref.gm_dict)
-#	print(name, _source_node)
-	self._source_node_properties = _source_node["NodeProperties"]
-	if self._source_node_properties.has("value"):
-		# FIXED VALUE
-		self.current_value = str(_source_node_properties["value"])
-	else:
-		# ENTITY PROPERTY
-		self.is_variable = true
-#		self.current_ref.parse(str("No way"))
-	print("Node properties: ", _source_node_properties)
+	pass
+#	var _source_node = _gm_ref.get_tree_node(node_info["SourceNodeName"], _gm_ref.gm_dict)
+#	self._source_node_properties = _source_node["NodeProperties"]
+#	if self._source_node_properties.has("value"):
+#		# FIXED VALUE
+#		self.current_value = str(_source_node_properties["value"])
+#	else:
+#		# ENTITY PROPERTY
+#		self.is_variable = true
+#	print("Node properties: ", _source_node_properties)
 
 func update_value():
 	pass
