@@ -950,6 +950,21 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         if not _socket_found:
             self.outputs.new("B2G_Player_SocketType", _output_socket_name)
 
+    def delete_output_socket(self, _socket_name):
+        for _socket in self.outputs:
+            if _socket.name == (_socket_name + "_REF"):
+                self.outputs.remove(_socket)
+                break
+
+    def is_input_socket_linked(self, _socket_name):
+        _linked = False
+        for _socket in self.inputs:
+            if _socket.name == _socket_name:
+                if _socket.is_linked:
+                    _linked = True
+                    break
+        return _linked
+
     def init(self, context):
         pass
         #_new_output = self.outputs.new("B2G_Pipeline_SocketType", "Go")
@@ -967,7 +982,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         row1.prop(self, "scene", text="Scene")
         if self.scene:
             # Player link
-            if self.inputs[0].is_linked:
+            if self.inputs[1].is_linked:
                 row3 = box1.row()
                 row3.prop(self, "player_spawn_enum", text="Spawn Empty")
                 if not self.player_spawn_enum:
@@ -977,7 +992,7 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
                 row2 = box1.row()
                 row2.label(text="Player not set", icon="INFO")
             # Go link
-            if self.inputs[1].is_linked:
+            if self.inputs[0].is_linked:
                 pass
             else:
                 row2 = box1.row()
@@ -1006,15 +1021,14 @@ class B2G_Stage_Scene_Node(MyCustomTreeNode, Node):
         bpy.app.timers.register(self.mark_invalid_links)
 
     def update_sockets(self):
-        self.outputs.clear()
+        _optional_sockets = ["Player", "HUD", "Pause Menu"]
         if self.scene:
             self.create_output_socket("Stage")
-            if self.inputs[1].is_linked: # Player socket
-                self.create_output_socket("Player")
-            if self.inputs[2].is_linked: # HUD socket
-                self.create_output_socket("HUD")
-            if self.inputs[3].is_linked: # Pause socket
-                self.create_output_socket("Pause Menu")
+            for _opt_socket in _optional_sockets:
+                if self.is_input_socket_linked(_opt_socket):
+                    self.create_output_socket(_opt_socket)
+                else:
+                    self.delete_output_socket(_opt_socket)
 
 
     def mark_invalid_links(self):
@@ -1723,86 +1737,6 @@ class B2G_3dMenu_Scene_Node(MyCustomTreeNode, Node):
                         _output_index = self.outputs.find(_special_object.button_name)
                         if _output_index > -1:
                             self.outputs.remove(self.outputs[_special_object.button_name])
-
-''' SCENE NODE MASTER CLASS 
-class B2G_Scene_Node(MyCustomTreeNode, Node):
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'B2G_Scene_NodeType'
-    # Label for nice name display
-    bl_label = "B2G Scene Node"
-    # Icon identifier
-    bl_icon = 'SEQ_PREVIEW'
-    bl_width_default = 200.0
-    bl_height_default = 100.0
-
-    def update_all(self, context):
-        self.update_inputs()
-        self.update_outputs()
-
-    scene : bpy.props.PointerProperty(type=bpy.types.Scene, name="Scene", update=update_all) # type: ignore
-
-    def init(self, context):
-        pass
-
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        box1 = layout.box()
-        row1 = box1.row()
-        row1.prop(self, "scene", text="Scene")
-        #row1.label(text=("Scene type: " + self.scene.scene_type.capitalize()))
-        if self.scene:
-            match self.scene.scene_type:
-                case "stage":
-                    row2 = box1.row()
-                    row2.prop(self.scene, "player_spawn_empty", text="Spawn Empty")
-                case "player":
-                    pass
-                case "hud":
-                    row2 = box1.row()
-                    #row2.prop(self.scene.hud_settings, "visibility_type", text="Spawn Empty")
-            layout.prop(self.scene, "scene_exportable", text="Export")
-            #self.update_inputs()
-            #self.update_outputs()
-
-    def draw_buttons_ext(self, context, layout):
-        pass
-
-    def draw_label(self):
-        if self.scene:
-            return (self.scene.name + "(" + self.scene.scene_type.capitalize() + ")")
-        else:
-            return "B2G Scene"
-    
-    def update_inputs(self):
-        self.inputs.clear()
-        match self.scene.scene_type:
-            case "player":
-                for _property in self.scene.entity_properties:
-                    if not self.inputs.get(_property.property_name):
-                        self.inputs.new(property_node_sockets[_property.property_type], _property.property_name)
-            case "hud":
-                for _object in self.scene.objects:
-                    if hasattr(_object, "hud_element_properties"):
-                        #_object.hud_element_properties.element_type
-                        match _object.hud_element_properties.element_type:
-                            case "text_content":
-                                _socket_name = _object.name
-                                if not self.inputs.get(_object.name):
-                                    self.inputs.new("NodeSocketString", _object.name)
-    
-    def update_outputs(self):
-        self.outputs.clear()
-        match self.scene.scene_type:
-            case "player":
-                for _property in self.scene.entity_properties:
-                    if not self.outputs.get(_property.property_name):
-                        self.outputs.new(property_node_sockets[_property.property_type], _property.property_name)
-'''
 
 # --- END SCENE NODES ---
 
@@ -2824,7 +2758,7 @@ class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
 
 class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Trigger_Action_NodeType'
-    bl_label = "Get Stage Trigger"
+    bl_label = "Get Trigger"
     bl_icon = "ARMATURE_DATA"
     bl_width_default = 200.0
     bl_height_default = 100.0
@@ -2888,7 +2822,7 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
         pass
 
     def draw_label(self):
-        return "Get Stage Trigger"
+        return "Get Trigger"
 
     def update(self):
         '''Called when node graph is changed'''
@@ -2925,7 +2859,7 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
 
 class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Get_Scene_Entity_NodeType'
-    bl_label = "Get Scene Entity"
+    bl_label = "Get Entity"
     bl_icon = "ARMATURE_DATA"
     bl_width_default = 200.0
     bl_height_default = 100.0
@@ -2952,26 +2886,32 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
 
     def get_scene_entities(self, context):
         _entities = [
-            ("none", "None", "NONE", 0)
+            ("none", "None", "NONE", 0),
         ]
         if len(self.inputs[0].links) > 0:
-            _source_node = self.inputs[0].links[0].from_node
-            _source_scene = _source_node.scene
+            _from_socket = self.inputs[0].links[0].from_socket
+            _source_node = None
+            _source_scene = None
+            if _from_socket.name == "Stage_REF":
+                _source_node = self.inputs[0].links[0].from_node
+                _source_scene = _source_node.scene
+            else:
+                _resource_socket_index = _from_socket.node.inputs.find(_from_socket.name.rstrip("_REF"))
+                _source_node = _from_socket.node.inputs[_resource_socket_index].links[0].from_node
+                _source_scene = _source_node.scene
             if _source_scene:
-                _scene_entities = []
                 for _index,_scene_object in enumerate(_source_scene.objects):
                     if _scene_object.object_type == "entity":
-                        _scene_entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
-                if len(_scene_entities) > 0:
-                    _entities = _scene_entities
+                        _entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index+1))
         return _entities
 
     def on_scene_entities_update(self, context):
         self.node_properties.entity_name = self.scene_entities
         self.inputs[0].name = self.inputs[0].links[0].from_socket.name
         self.outputs.clear()
-        _output_name = self.node_properties.entity_name + "_REF"
-        self.outputs.new("B2G_Player_SocketType", _output_name)
+        if self.scene_entities != "none":
+            _output_name = self.node_properties.entity_name + "_REF"
+            self.outputs.new("B2G_Player_SocketType", _output_name)
 
     scene_entities : bpy.props.EnumProperty(items=get_scene_entities, update=on_scene_entities_update) # type: ignore
     
@@ -2993,7 +2933,7 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
         pass
 
     def draw_label(self):
-        return "Get Scene Entity"
+        return "Get Entity"
 
     def update(self):
         '''Called when node graph is changed'''
@@ -3024,12 +2964,12 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
                 _output_name = self.node_properties.entity_name + "_REF"
                 self.outputs.new("B2G_Player_SocketType", _output_name)
         else:
-            self.inputs[0].name = "Stage_REF"
+            self.inputs[0].name = "_REF"
             self.outputs.clear()
 
 class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Get_Entity_Property_NodeType'
-    bl_label = "Get Entity Property"
+    bl_label = "Get Property"
     bl_icon = "ARMATURE_DATA"
     bl_width_default = 200.0
     bl_height_default = 100.0
@@ -3061,27 +3001,30 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
         if len(self.inputs[0].links) > 0:
             _source_node = self.inputs[0].links[0].from_node
             _from_socket = self.inputs[0].links[0].from_socket
-            if _from_socket.name == "Player_REF":
-                for _source_socket in _source_node.inputs:
-                    if _source_socket.name == "Player":
-                        _source_source_node = _source_socket.links[0].from_node
-                        _source_scene = _source_source_node.scene
-                        if len(_source_scene.entity_properties) > 0:
-                            for _index,_scene_property in enumerate(_source_scene.entity_properties):
+            match type(_source_node).__name__:
+                case "B2G_Stage_Scene_Node":
+                    if _from_socket.name == "Stage_REF":
+                        if len(_source_node.scene.entity_properties) > 0:
+                            for _index,_scene_property in enumerate(_source_node.scene.entity_properties):
                                 _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
-            else:
-                pass
-                '''
-                _source_node = self.inputs[0].links[0].from_node
-                _source_scene = _source_node.scene
-                if _source_scene:
-                    _scene_entities = []
-                    for _index,_scene_object in enumerate(_source_scene.objects):
-                        if _scene_object.object_type == "entity":
-                            _scene_entities.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
-                    if len(_scene_entities) > 0:
-                        _entities = _scene_entities
-                '''
+                    else:
+                        for _source_socket in _source_node.inputs:
+                            if _source_socket.name == _from_socket.name.rstrip("_REF"):
+                                _source_source_node = _source_socket.links[0].from_node
+                                _source_scene = _source_source_node.scene
+                                if len(_source_scene.entity_properties) > 0:
+                                    for _index,_scene_property in enumerate(_source_scene.entity_properties):
+                                        _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
+                                break
+                case "B2G_Get_Scene_Entity_Node":
+                    _resource_node = _source_node.inputs[0].links[0].from_node
+                    _refrom_socket = _source_node.inputs[0].links[0].from_socket
+                    if _refrom_socket.name == "Stage_REF":
+                        for _scene_object in _resource_node.scene.objects:
+                            if _scene_object.name == _source_node.scene_entities:
+                                if len(_scene_object.entity_properties) > 0:
+                                    for _index,_scene_property in enumerate(_scene_object.entity_properties):
+                                        _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
         return _properties
 
     def on_entity_properties_update(self, context):
@@ -3113,7 +3056,7 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
         pass
 
     def draw_label(self):
-        return "Get Entity Property"
+        return "Get Property"
 
     def update(self):
         '''Called when node graph is changed'''
@@ -3143,7 +3086,7 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
                 self.outputs.clear()
         else:
             self.entity_properties = "none"
-            self.inputs[0].name = "Entity_REF"
+            self.inputs[0].name = "_REF"
             self.outputs.clear()
             self.node_properties.source_node_name = ""
 
