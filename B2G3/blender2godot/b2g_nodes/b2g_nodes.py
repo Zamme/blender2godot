@@ -2789,22 +2789,31 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
 
     def get_stage_triggers(self, context):
         _triggers = [
-            ("none", "None", "NONE", 0)
+            ("none", "None", "NONE", 0),
         ]
         if len(self.inputs[0].links) > 0:
             _source_node = self.inputs[0].links[0].from_node
+            _from_socket_name = self.inputs[0].links[0].from_socket.name
+            if _from_socket_name == "Stage_REF":
+                pass
+            else:
+                _source_node = _source_node.inputs[_source_node.inputs.find(_from_socket_name.rstrip("_REF"))].links[0].from_node
             _source_scene = _source_node.scene
             if _source_scene:
-                _trigger_zones = []
                 for _index,_scene_object in enumerate(_source_scene.objects):
                     if _scene_object.object_type == "trigger_zone":
-                        _trigger_zones.append((_scene_object.name, _scene_object.name, _scene_object.name, _index))
-                if len(_trigger_zones) > 0:
-                    _triggers = _trigger_zones
+                        _triggers.append((_scene_object.name, _scene_object.name, _scene_object.name, _index+1))
         return _triggers
 
     def on_stage_trigger_update(self, context):
         self.node_properties.trigger_name = self.stage_triggers
+        self.outputs.clear()
+        if self.stage_triggers == "none":
+            pass
+        else:
+            self.outputs.new("B2G_Pipeline_SocketType", "OnEnter")
+            self.outputs.new("B2G_Pipeline_SocketType", "OnStay")
+            self.outputs.new("B2G_Pipeline_SocketType", "OnExit")
 
     stage_triggers : bpy.props.EnumProperty(items=get_stage_triggers, update=on_stage_trigger_update) # type: ignore
     
@@ -2842,24 +2851,22 @@ class B2G_Trigger_Action_Node(MyCustomTreeNode, Node):
     def update_buttons(self):
         if self.inputs[0].is_linked:
             if self.check_source_node_name_changed():
-                self.node_properties.property_selected = "none"
                 self.node_properties.source_node_name = self.new_source_node_name
+                self.stage_triggers = "none"
         else:
             self.node_properties.source_node_name = ""
             self.outputs.clear()
-            #self.node_properties.property_selected = "none"
+            self.node_properties.trigger_name = ""
+            self.stage_triggers = "none"
 
     def update_sockets(self):
         if self.inputs[0].is_linked:
             if self.check_source_node_name_changed():
                 self.inputs[0].name = self.inputs[0].links[0].from_socket.name
-                self.outputs.clear()
-                self.outputs.new("B2G_Pipeline_SocketType", "OnEnter")
-                self.outputs.new("B2G_Pipeline_SocketType", "OnStay")
-                self.outputs.new("B2G_Pipeline_SocketType", "OnExit")
         else:
             self.inputs[0].name = "Stage_REF"
             self.outputs.clear()
+            self.stage_triggers = "none"
 
 class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Get_Scene_Entity_NodeType'
