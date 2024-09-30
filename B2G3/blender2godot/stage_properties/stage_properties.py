@@ -142,7 +142,6 @@ def init_properties():
 
 def clear_properties():
     del bpy.types.Object.collider
-    #del bpy.types.Object.damage_zone_amount
 
 def register():
     init_properties()

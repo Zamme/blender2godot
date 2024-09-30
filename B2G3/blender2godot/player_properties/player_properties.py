@@ -756,8 +756,12 @@ class PlayerPropertiesPanel(bpy.types.Panel):
     #bl_options = {"DEFAULT_CLOSED"}
     bl_order = 3
     
+    #player_object_pointer : bpy.props.PointerProperty(type=bpy.types.Object, poll=scene_player_object_poll) # type: ignore
+
     _gamemanager_added = False
     _not_in_gamemanager = False
+
+    #player_object = ""
 
     @classmethod 
     def poll(self, context):
@@ -785,7 +789,9 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row1 = layout.row()
         box1 = row1.box()
         box1.prop(scene, "player_object")
+        #box1.prop(self, "player_object_pointer")
 
+        #if not self.player_object_pointer:
         if not scene.player_object:
             return
 
@@ -796,15 +802,23 @@ class PlayerPropertiesPanel(bpy.types.Panel):
         row2 = box3.row()
         row2.prop(scene, "player_gravity_on")
         row2.prop(scene, "camera_control_inverted")
-        if scene.player_object == context.active_object:
-            row8 = box3.row()
-            row8.label(text="Physics Groups:")
-            row7 = box3.row()
-            row7.prop(context.active_object, "physics_group")
+        #if self.player_object == context.active_object:
 
+        # Active object
+        box5 = box1.box()
+        row9 = box5.row()
+        row9.label(text="Active Object:")
         # Entity properties
-        if context.active_object == scene.player_object:
-            box4 = box1.box()
+        row10 = box5.row()
+        row10.prop(context.active_object, "object_type", text="Object Type")
+        if context.active_object.object_type == "entity":
+            box4 = box5.box()
+            if scene.player_object == context.active_object:
+                box6 = box4.box()
+                row8 = box6.row()
+                row8.label(text="Physics Groups:")
+                row7 = box6.row()
+                row7.prop(context.active_object, "physics_group")
             row4 = box4.row()
             row4.label(text="Entity Properties:", icon_value=addon_config.preview_collections[0]["properties_icon"].icon_id)
             for _property in context.active_object.entity_properties:

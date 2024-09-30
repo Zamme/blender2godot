@@ -245,6 +245,10 @@ class GetSceneEntityNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     entity_name : bpy.props.StringProperty(default="") # type: ignore
 
+class GetHUDContentNodeProperties(bpy.types.PropertyGroup):
+    source_node_name : bpy.props.StringProperty(default="") # type: ignore
+    content_name : bpy.props.StringProperty(default="") # type: ignore
+
 class GetEntityPropertiesNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     property_name : bpy.props.StringProperty(default="") # type: ignore
@@ -3020,11 +3024,14 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
                     _resource_node = _source_node.inputs[0].links[0].from_node
                     _refrom_socket = _source_node.inputs[0].links[0].from_socket
                     if _refrom_socket.name == "Stage_REF":
-                        for _scene_object in _resource_node.scene.objects:
-                            if _scene_object.name == _source_node.scene_entities:
-                                if len(_scene_object.entity_properties) > 0:
-                                    for _index,_scene_property in enumerate(_scene_object.entity_properties):
-                                        _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
+                        pass
+                    else:
+                        _resource_node = _resource_node.inputs[_resource_node.inputs.find(_refrom_socket.name.rstrip("_REF"))].links[0].from_node
+                    for _scene_object in _resource_node.scene.objects:
+                        if _scene_object.name == _source_node.scene_entities:
+                            if len(_scene_object.entity_properties) > 0:
+                                for _index,_scene_property in enumerate(_scene_object.entity_properties):
+                                    _properties.append((_scene_property.property_name, _scene_property.property_name, _scene_property.property_name, _index+1))
         return _properties
 
     def on_entity_properties_update(self, context):
@@ -3057,6 +3064,109 @@ class B2G_Get_Entity_Property_Node(MyCustomTreeNode, Node):
 
     def draw_label(self):
         return "Get Property"
+
+    def update(self):
+        '''Called when node graph is changed'''
+        bpy.app.timers.register(self.mark_invalid_links)
+        bpy.app.timers.register(self.update_sockets)
+        bpy.app.timers.register(self.update_buttons)
+
+    def mark_invalid_links(self):
+        for _link in self.inputs[0].links:
+            #print("updating links")
+            _link.is_valid = (type(_link.from_socket).__name__ == "B2G_Player_Socket")
+   
+    def update_buttons(self):
+        if self.inputs[0].is_linked:
+            if self.check_source_node_name_changed():
+                #self.node_properties.property_selected = "none"
+                self.node_properties.source_node_name = self.new_source_node_name
+        else:
+            self.node_properties.source_node_name = ""
+            self.outputs.clear()
+            #self.node_properties.property_selected = "none"
+
+    def update_sockets(self):
+        if self.inputs[0].is_linked:
+            if self.check_source_node_name_changed():
+                self.inputs[0].name = self.inputs[0].links[0].from_socket.name
+                self.outputs.clear()
+        else:
+            self.entity_properties = "none"
+            self.inputs[0].name = "_REF"
+            self.outputs.clear()
+            self.node_properties.source_node_name = ""
+
+class B2G_Get_HUD_Content_Node(MyCustomTreeNode, Node):
+    bl_idname = 'B2G_Get_HUD_Content_NodeType'
+    bl_label = "Get Content"
+    bl_icon = "ARMATURE_DATA"
+    bl_width_default = 200.0
+    bl_height_default = 100.0
+
+    node_properties : bpy.props.PointerProperty(type=GetHUDContentNodeProperties) # type: ignore
+    new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
+
+    def check_source_node_name_changed(self):
+        _source_node = None
+        self.new_source_node_name = self.inputs[0].links[0].from_node.name
+        for _node in bpy.data.node_groups["GameManager"].nodes:
+            if _node.name == self.new_source_node_name:
+                _source_node = bpy.data.node_groups["GameManager"].nodes[self.new_source_node_name]
+                break
+        if _source_node:
+            for _input in _source_node.inputs:
+                if (_input.name + "_REF") == self.inputs[0].links[0].from_socket.name:
+                    _source_node = _input.links[0].from_node
+                    self.new_source_node_name = _source_node.name
+                    break
+                else:
+                    pass
+        return (self.node_properties.source_node_name != self.new_source_node_name)
+
+    def get_hud_contents(self, context):
+        _contents = [
+            ("none", "None", "NONE", 0),
+        ]
+        if len(self.inputs[0].links) > 0:
+            _source_node = self.inputs[0].links[0].from_node
+            _resource_node = _source_node.inputs[_source_node.inputs.find("HUD")].links[0].from_node
+            for _index,_scene_object in enumerate(_resource_node.scene.objects):
+                if hasattr(_scene_object, "hud_element_properties"):
+                    if _scene_object.hud_element_properties.element_type == "text_content":
+                        _contents.append((_scene_object.name, _scene_object.name, _scene_object.name, _index+1))
+        return _contents
+
+    def on_hud_contents_update(self, context):
+        self.node_properties.content_name = self.hud_contents
+        self.outputs.clear()
+        if self.hud_contents == "none":
+            pass
+        else:
+            _output_name = self.node_properties.content_name + "_REF"
+            self.outputs.new("B2G_Player_SocketType", _output_name)
+
+    hud_contents : bpy.props.EnumProperty(items=get_hud_contents, update=on_hud_contents_update) # type: ignore
+    
+    def init(self, context):
+        self.inputs.new("B2G_Player_SocketType", "Stage_REF")
+
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        if self.inputs[0].is_linked:
+            layout.prop(self, "hud_contents", text="HUD Contents")
+            #layout.prop(self, "trigger_condition", text="")
+
+    def draw_buttons_ext(self, context, layout):
+        pass
+
+    def draw_label(self):
+        return "Get Content"
 
     def update(self):
         '''Called when node graph is changed'''
@@ -3130,6 +3240,7 @@ node_categories = [
         NodeItem("B2G_Change_Scene_String_Property_NodeType"),
         NodeItem("B2G_Get_Scene_Entity_NodeType"),
         NodeItem("B2G_Trigger_Action_NodeType"),
+        NodeItem("B2G_Get_HUD_Content_NodeType"),
     ]),
     MyNodeCategory('ENTITY_ACTIONS', "Entity Actions", items=[
         NodeItem("B2G_Change_Entity_String_Property_NodeType"),
@@ -3181,6 +3292,7 @@ classes = (
     ValueNodeProperties,
     GetSceneEntityNodeProperties,
     GetEntityPropertiesNodeProperties,
+    GetHUDContentNodeProperties,
     PlayEntityAnimationNodeProperties,
     StageSceneNodeProperties,
     TriggerActionNodeProperties,
@@ -3226,6 +3338,7 @@ classes = (
     B2G_Trigger_Action_Node,
     B2G_Get_Scene_Entity_Node,
     B2G_Get_Entity_Property_Node,
+    B2G_Get_HUD_Content_Node,
 )
 
 
