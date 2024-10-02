@@ -21,18 +21,40 @@ var gm_ref
 var _enter_triggers : Dictionary
 var _exit_triggers : Dictionary
 
+var _hud_dict : Dictionary
+export var hud_scene_name : String
+var _hud
+
 
 func _ready():
 	print("Stage ", name, " loaded!")
 	self.gm_ref = get_tree().current_scene
 	self.setup_stage_objects()
 	self.setup_player()
+	self.add_hud()
 	self.setup_triggers()
 
 func add_free_camera():
 	free_camera = Camera.new()
 	free_camera.script = load(FREE_CAMERA_SCRIPT_FILEPATH)
 	add_child(free_camera)
+
+func add_hud():
+	var hud_node_name = self.node_info["NodeInputs"]["HUD"]["SourceNodeName"]
+	self._hud_dict = self.get_node_dict(hud_node_name)
+	if _hud_dict.empty():
+		return
+	if _hud_dict.has("NodeProperties"):
+		var _hud_node_properties = _hud_dict["NodeProperties"]
+		if _hud_node_properties.has("source_scene_name"):
+			hud_scene_name = _hud_node_properties["source_scene_name"]
+	if hud_scene_name != "":
+		print("Adding HUD:", hud_scene_name)
+		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
+		_hud = load(_hud_scene_path).instance()
+		_hud.hud_settings = _hud_dict["NodeProperties"]
+		_hud.hud_fields = _hud_dict["NodeInputs"]
+		add_child(_hud)
 
 func add_player(_player_name : String, _player_node : Dictionary = {}):
 	var _player_entity_path : String = get_tree().current_scene.PLAYERS_DIRPATH + _player_name + "Entity.tscn"
@@ -50,6 +72,14 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 	else:
 		get_tree().current_scene.show_message("Empty player")
 		add_free_camera()
+
+func get_node_dict(_node_name):
+	var _return_dict : Dictionary = Dictionary()
+	for _key in self.gm_ref.gm_dict["Nodes"].keys():
+		if _key == _node_name:
+			_return_dict = self.gm_ref.gm_dict["Nodes"][_key]
+			break
+	return _return_dict
 
 func get_player_spawn():
 	var _spawn_return = null

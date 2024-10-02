@@ -562,7 +562,7 @@ func apply_new_config():
 		ResourceSaver.save(_filepath, _env)
 	# Gamemanager
 	var _gm = load(GAMEMANAGER_FILEPATH).instance()
-	_gm.debug_hud_enabled = _godot_project_settings_json["DebugHudEnabled"]
+	#_gm.debug_hud_enabled = _godot_project_settings_json["DebugHudEnabled"]
 	self.repack_scene(_gm, GAMEMANAGER_FILEPATH)
 	ProjectSettings.set_setting("application/run/main_scene", GAMEMANAGER_FILEPATH)
 	ProjectSettings.save()

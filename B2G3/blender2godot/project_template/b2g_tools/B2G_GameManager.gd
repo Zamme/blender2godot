@@ -42,8 +42,7 @@ func _ready():
 	print("GameManager Loaded")
 	self.resume_gm()
 	# DEBUG
-	if debug_hud_enabled:
-		add_b2g_hud()
+	add_b2g_hud()
 	# END DEBUG
 
 func continue_game():
@@ -302,12 +301,14 @@ func update_state():
 
 	# DEBUG
 func add_b2g_hud():
-	var b2g_hud_canvas : CanvasLayer = CanvasLayer.new()
-	b2g_hud_canvas.layer = 99
-	b2g_hud_canvas.name = "HUD_Canvas_Layer"
-	b2g_hud = load(B2G_HUD_FILEPATH).instance()
-	b2g_hud_canvas.add_child(b2g_hud)
-	add_child(b2g_hud_canvas)
+	self.debug_hud_enabled = gm_dict["Settings"]["DebugEnabled"]
+	if self.debug_hud_enabled:
+		var b2g_hud_canvas : CanvasLayer = CanvasLayer.new()
+		b2g_hud_canvas.layer = 99
+		b2g_hud_canvas.name = "HUD_Canvas_Layer"
+		b2g_hud = load(B2G_HUD_FILEPATH).instance()
+		b2g_hud_canvas.add_child(b2g_hud)
+		add_child(b2g_hud_canvas)
 
 func show_message(_text):
 	if b2g_hud:

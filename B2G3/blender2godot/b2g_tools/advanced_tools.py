@@ -400,6 +400,7 @@ class ExportGameOperator(bpy.types.Operator):
                 if len(_node.outputs[0].links) > 0:
                     _starter_node_name = _node.outputs[0].links[0].to_node.name
                 self.game_manager_settings.add("StarterNode", _starter_node_name)
+                self.game_manager_settings.add("DebugEnabled", _node.debug_enabled)
             else:
                 print("Exporting node:", _node.name)
                 _current_node_dict = my_dictionary()
@@ -431,6 +432,22 @@ class ExportGameOperator(bpy.types.Operator):
                                 _new_input_dict.add("DefaultValue", _input.default_value)
                         _current_node_inputs.add(_input.name, _new_input_dict)
                     _current_node_dict.add("NodeInputs", _current_node_inputs)
+                # NODE OUTPUTS SOCKETS
+                if len(_node.outputs) > 0:
+                    _current_node_outputs = my_dictionary()
+                    for _output in _node.outputs:
+                        _new_output_dict = my_dictionary()
+                        if _output.is_linked:
+                            for _link in _output.links:
+                                _link_dict = my_dictionary()
+                                _link_dict.add("DestNodeName", _link.to_node.name)
+                                _link_dict.add("DestNodeSocket", _link.to_socket.name)
+                                _new_output_dict.add("Links", _link_dict)
+                        else:
+                            if hasattr(_output, "default_value"):
+                                _new_output_dict.add("DefaultValue", _output.default_value)
+                        _current_node_outputs.add(_output.name, _new_output_dict)
+                    _current_node_dict.add("NodeOutputs", _current_node_outputs)
                 # TODO : (LAST CODE CHANGES AT DESKTOP BACKUP)
 
                 _nodes_dict.add(_node.name, _current_node_dict)
@@ -528,7 +545,7 @@ class ExportGameOperator(bpy.types.Operator):
         self.dict_godot_project_settings.add("DisplaySettings", self.display_settings_dict)
         self.dict_godot_project_settings.add("OtherSettings", self.other_settings_dict)
         self.dict_godot_project_settings.add("DefaultEnvironment", self.default_environment_dict)
-        self.dict_godot_project_settings.add("DebugHudEnabled", context.scene.debug_hud_enabled)
+        #self.dict_godot_project_settings.add("DebugHudEnabled", context.scene.debug_hud_enabled)
 
         self.data_settings = json.dumps(self.dict_godot_project_settings, indent=1, ensure_ascii=True)
         with open(self.godot_project_settings_filepath, 'w') as outfile:

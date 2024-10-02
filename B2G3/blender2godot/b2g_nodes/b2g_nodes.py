@@ -652,6 +652,8 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
     # Icon identifier
     bl_icon = 'NODE'
     
+    debug_enabled : bpy.props.BoolProperty(default=False, name="Debug") # type: ignore
+    
     def init(self, context):
         _new_socket = self.outputs.new("B2G_Pipeline_SocketType", "Go")
         #_new_socket.display_shape="SQUARE"
@@ -671,8 +673,8 @@ class B2G_Start_Node(MyCustomTreeNode, Node):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        #layout.label(text="Start")
-        pass
+        row0 = layout.row()
+        row0.prop(self, "debug_enabled")
 
     def draw_buttons_ext(self, context, layout):
         pass
@@ -2512,6 +2514,7 @@ class B2G_Set_Content_Node(MyCustomTreeNode, Node):
                 self.inputs.new("B2G_String_SocketType", "value")
             case "property_ref":
                 self.inputs.new("B2G_Player_SocketType", "Property_REF")
+                self.outputs.clear()
 
     value_type_enum : bpy.props.EnumProperty(items=value_types, update=on_update_value_type_enum) # type: ignore
 
@@ -2579,8 +2582,14 @@ class B2G_Set_Content_Node(MyCustomTreeNode, Node):
                     self.inputs[1].name = self.inputs[1].links[0].from_socket.name
                     self.node_properties.source_node_name = self.inputs[1].links[0].from_node.name
                 if self.inputs[0].is_linked:
-                    if len(self.outputs) < 1:
-                        self.outputs.new("B2G_Pipeline_SocketType", "OnDone")
+                    if self.inputs[2].is_linked:
+                        if len(self.outputs) < 1:
+                            self.outputs.new("B2G_Pipeline_SocketType", "OnDone")
+                    else:
+                        if self.value_type_enum == "property_ref":
+                            self.outputs.clear()
+                else:
+                    self.outputs.clear()
             else:                    
                 self.inputs[1].name = "Content_REF"
                 self.outputs.clear()
