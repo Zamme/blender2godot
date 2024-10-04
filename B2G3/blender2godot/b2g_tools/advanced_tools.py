@@ -432,17 +432,17 @@ class ExportGameOperator(bpy.types.Operator):
                                 _new_input_dict.add("DefaultValue", _input.default_value)
                         _current_node_inputs.add(_input.name, _new_input_dict)
                     _current_node_dict.add("NodeInputs", _current_node_inputs)
-                # NODE OUTPUTS SOCKETS
+                # NODE OUTPUT SOCKETS
                 if len(_node.outputs) > 0:
                     _current_node_outputs = my_dictionary()
                     for _output in _node.outputs:
                         _new_output_dict = my_dictionary()
                         if _output.is_linked:
-                            for _link in _output.links:
+                            for _link_index,_link in enumerate(_output.links):
                                 _link_dict = my_dictionary()
                                 _link_dict.add("DestNodeName", _link.to_node.name)
                                 _link_dict.add("DestNodeSocket", _link.to_socket.name)
-                                _new_output_dict.add("Links", _link_dict)
+                                _new_output_dict.add(_link_index, _link_dict)
                         else:
                             if hasattr(_output, "default_value"):
                                 _new_output_dict.add("DefaultValue", _output.default_value)

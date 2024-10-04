@@ -1854,6 +1854,7 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
     bl_height_default = 100.0
 
     node_properties : bpy.props.PointerProperty(type=GetSceneEntityNodeProperties) # type: ignore
+    #last_source_node_name : bpy.props.StringProperty(default="") # type: ignore
     new_source_node_name : bpy.props.StringProperty(default="") # type: ignore
 
     def check_source_node_name_changed(self):
@@ -1872,6 +1873,7 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
                 else:
                     pass
         return (self.node_properties.source_node_name != self.new_source_node_name)
+        #return (self.last_source_node_name != self.new_source_node_name)
 
     def get_scene_entities(self, context):
         _entities = [
@@ -1937,8 +1939,10 @@ class B2G_Get_Scene_Entity_Node(MyCustomTreeNode, Node):
    
     def update_buttons(self):
         if self.inputs[0].is_linked:
+            self.node_properties.source_node_name = self.inputs[0].links[0].from_node.name
             if self.check_source_node_name_changed():
                 #self.node_properties.property_selected = "none"
+                #self.last_source_node_name = self.new_source_node_name
                 self.node_properties.source_node_name = self.new_source_node_name
         else:
             self.node_properties.source_node_name = ""

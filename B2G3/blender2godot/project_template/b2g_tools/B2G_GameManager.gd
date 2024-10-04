@@ -97,10 +97,11 @@ func execute_command(_command : String, _parameters : Array):
 		"quit_game":
 			self.quit_game()
 		"change_property":
-			print("Changing property...")
-			var _entity_to_change_prop = self.find_node(_parameters[0], true, false)
-			print("Entity found: ", _entity_to_change_prop)
-			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
+			pass
+#			print("Changing property...")
+#			var _entity_to_change_prop = self.find_node(_parameters[0], true, false)
+#			print("Entity found: ", _entity_to_change_prop)
+#			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
 		"play_animation":
 			print("Playing animation...")
 			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])

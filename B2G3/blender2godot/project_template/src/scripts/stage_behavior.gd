@@ -52,6 +52,7 @@ func add_hud():
 		print("Adding HUD:", hud_scene_name)
 		var _hud_scene_path : String = get_tree().current_scene.HUDS_SCENES_DIRPATH + "Hud_" + hud_scene_name + ".tscn"
 		_hud = load(_hud_scene_path).instance()
+		_hud.node_info = _hud_dict
 		_hud.hud_settings = _hud_dict["NodeProperties"]
 		_hud.hud_fields = _hud_dict["NodeInputs"]
 		add_child(_hud)
@@ -138,8 +139,22 @@ func setup_stage_objects():
 	stage_objects_dict = optional_dict["Objects"]
 
 func setup_triggers():
-	# TODO: Pending to change. Outputs are not allowed on game manager
-	pass
+	var _node_outputs : Dictionary = self.node_info["NodeOutputs"]
+	for _node_output_key in _node_outputs.keys():
+		if _node_output_key == "Stage_REF":
+			var _links_keys = _node_outputs[_node_output_key].keys()
+			for _link_key in _links_keys:
+				var _link = _node_outputs[_node_output_key][_link_key]
+				var _dest_node = self.gm_ref.get_tree_node(_link["DestNodeName"], self.gm_ref.gm_dict)
+				if _dest_node["Type"] == "B2G_Trigger_Action_Node":
+					print("Setting ", _dest_node["NodeProperties"]["trigger_name"], " of ", _dest_node["Name"], " node")
+					var _trigger_outputs = _dest_node["NodeOutputs"]
+					var _trigger_outputs_keys = _dest_node["NodeOutputs"].keys()
+					for _trigger_outputs_key in _trigger_outputs_keys:
+						match _trigger_outputs_key:
+							"OnEnter":
+								self._enter_triggers[_dest_node["NodeProperties"]["trigger_name"]] = _dest_node["NodeOutputs"]["OnEnter"]["0"]["DestNodeName"]
+		print(_enter_triggers)
 #	for _node_output_key in node_info["Outputs"].keys():
 ##		print(_node_output_key)
 #		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
@@ -152,6 +167,7 @@ func setup_triggers():
 func stage_trigger_entered(_arg):
 	var _msg : String
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
+	print("ET:", _enter_triggers)
 	if _enter_triggers.has(_trigger_name):
 		var node_to_call = _enter_triggers[_trigger_name]
 		_msg = "Trigger calls " + node_to_call

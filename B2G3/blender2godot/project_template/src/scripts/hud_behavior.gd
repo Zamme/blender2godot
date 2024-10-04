@@ -16,15 +16,18 @@ var fade_timer : Timer
 var fade_tween : Tween
 
 var gm_ref
+var node_info
 
 
 func _ready():
 	self.gm_ref = get_tree().current_scene
 	modulate = Color(0.0, 0.0, 0.0, 0.0)
 	setup_hud_objects_info()
-	link_contents()
+	initialize_contents_values()
+#	link_contents()
 	start_hud()
 	update_hud_objects_info()
+	pass
 
 func add_fade_timer():
 	fade_timer = Timer.new()
@@ -50,12 +53,25 @@ func find_child_by_name(root_node, _object_name):
 				break
 	return _object
 
-func link_contents():
+func initialize_contents_values():
 	for _hud_element in get_children():
 		if _hud_element is HudElementContent:
-			print("Linking element ", _hud_element.name)
-			_hud_element.node_info = hud_fields[_hud_element.name]
-			_hud_element.link_content(self.gm_ref)
+			for _node_input_name in self.node_info["NodeInputs"].keys():
+				if _hud_element.name == _node_input_name:
+					var _dict : Dictionary = self.node_info["NodeInputs"][_node_input_name]
+					if _dict.has("DefaultValue"):
+						_hud_element.current_value = _dict["DefaultValue"]
+					else:
+						var _ref_node_name = _dict["SourceNodeName"]
+						var _ref_node = self.gm_ref.get_tree_node(_ref_node_name, self.gm_ref.gm_dict)
+						_hud_element.current_value = _ref_node["NodeProperties"]["value"]
+
+#func link_contents():
+#	for _hud_element in get_children():
+#		if _hud_element is HudElementContent:
+#			print("Linking element ", _hud_element.name)
+#			_hud_element.node_info = hud_fields[_hud_element.name]
+#			_hud_element.link_content(self.gm_ref)
 
 func setup_hud_objects_info():
 	if optional_dict.has("Objects"):
