@@ -147,14 +147,15 @@ func setup_triggers():
 				var _link = _node_outputs[_node_output_key][_link_key]
 				var _dest_node = self.gm_ref.get_tree_node(_link["DestNodeName"], self.gm_ref.gm_dict)
 				if _dest_node["Type"] == "B2G_Trigger_Action_Node":
-					print("Setting ", _dest_node["NodeProperties"]["trigger_name"], " of ", _dest_node["Name"], " node")
+#					print("Setting ", _dest_node["NodeProperties"]["trigger_name"], " of ", _dest_node["Name"], " node")
 					var _trigger_outputs = _dest_node["NodeOutputs"]
 					var _trigger_outputs_keys = _dest_node["NodeOutputs"].keys()
 					for _trigger_outputs_key in _trigger_outputs_keys:
 						match _trigger_outputs_key:
 							"OnEnter":
-								self._enter_triggers[_dest_node["NodeProperties"]["trigger_name"]] = _dest_node["NodeOutputs"]["OnEnter"]["0"]["DestNodeName"]
-		print(_enter_triggers)
+								var _trigger_node_name = _dest_node["NodeOutputs"]["OnEnter"]["0"]["DestNodeName"]
+								self._enter_triggers[_dest_node["NodeProperties"]["trigger_name"]] = self.gm_ref.get_tree_node(_trigger_node_name, self.gm_ref.gm_dict)
+#		print(_enter_triggers)
 #	for _node_output_key in node_info["Outputs"].keys():
 ##		print(_node_output_key)
 #		var _node_key_parts : PoolStringArray = _node_output_key.rsplit("_", true, 1)
@@ -167,21 +168,19 @@ func setup_triggers():
 func stage_trigger_entered(_arg):
 	var _msg : String
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
-	print("ET:", _enter_triggers)
 	if _enter_triggers.has(_trigger_name):
 		var node_to_call = _enter_triggers[_trigger_name]
-		_msg = "Trigger calls " + node_to_call
+		_msg = "Trigger calls " + node_to_call["Name"]
 		print(_msg)
 		self.gm_ref.show_message(_msg)
 		self.gm_ref.execute_node(node_to_call)
 
 func stage_trigger_exited(_arg):
 	var _msg : String
-#	_msg = _body_exited.name + " exited " + _arg.name
 	var _trigger_name : String = _arg.name.rsplit("_", true, 1)[0]
 	if _exit_triggers.has(_trigger_name):
 		var node_to_call = _exit_triggers[_trigger_name]
-		_msg = "Trigger calls " + node_to_call
+		_msg = "Trigger calls " + node_to_call["Name"]
 		print(_msg)
 		self.gm_ref.show_message(_msg)
 		self.gm_ref.execute_node(node_to_call)

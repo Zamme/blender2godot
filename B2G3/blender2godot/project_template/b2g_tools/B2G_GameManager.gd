@@ -52,8 +52,8 @@ func continue_game():
 	self.b2g_current_scene.is_paused = false
 
 func execute_command(_command : String, _parameters : Array):
-	print("Command to execute: ", _command)
-	print("With parameter :", _parameters)
+#	print("Command to execute: ", _command)
+#	print("With parameter :", _parameters)
 	var _param : String
 	match _command:
 		"load_stage":
@@ -67,7 +67,7 @@ func execute_command(_command : String, _parameters : Array):
 					if _node_properties.has("source_scene_name"):
 						var _scene_name = _node_properties["source_scene_name"]
 						_param = self.STAGES_DIRPATH + self.STAGE_SCENES_PREFIX + _scene_name + self.SCENE_EXTENSION
-						print("Current node:", self.current_node)
+#						print("Current node:", self.current_node)
 						self.load_stage(_param)
 		"load_3dmenu":
 			var _parameter = _parameters[0]
@@ -107,9 +107,9 @@ func execute_command(_command : String, _parameters : Array):
 			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])
 
 func execute_current_node():
-	print("Current node to execute:", self.current_node)
+	print("Current node to execute:", self.current_node["Name"])
 	if self.current_node:
-		print("Execute: ", self.current_node["Type"])
+		print("Type: ", self.current_node["Type"])
 		match self.current_node["Type"]:
 			"B2G_Finish_Node":
 				self.execute_command("quit_game", [""])
@@ -121,34 +121,7 @@ func execute_current_node():
 				self.execute_command("load_3dmenu", [""])
 			"B2G_OverlayMenu_Scene_Node":
 				self.execute_command("load_overlay", [""])
-			"B2G_Change_Entity_String_Property_Node":
-				var _entity_name : String = self.current_node["SourceNodeName"]
-				var _suffix_pos : int = _entity_name.rfind(" Scene")
-				_entity_name.erase(_suffix_pos, 6)
-				_entity_name += "Entity"
-				self.execute_command("change_property", [_entity_name, 
-															self.current_node["Property"],
-															self.current_node["Operation"],
-															self.current_node["Parameter"]])
-			"B2G_Change_Entity_Integer_Property_Node":
-				var _entity_name : String = self.current_node["SourceNodeName"]
-				var _suffix_pos : int = _entity_name.rfind(" Scene")
-				_entity_name.erase(_suffix_pos, 6)
-				_entity_name += "Entity"
-				self.execute_command("change_property", [_entity_name, 
-															self.current_node["Property"],
-															self.current_node["Operation"],
-															self.current_node["Parameter"]])
-			"B2G_Change_Entity_Float_Property_Node":
-				var _entity_name : String = self.current_node["SourceNodeName"]
-				var _suffix_pos : int = _entity_name.rfind(" Scene")
-				_entity_name.erase(_suffix_pos, 6)
-				_entity_name += "Entity"
-				self.execute_command("change_property", [_entity_name, 
-															self.current_node["Property"],
-															self.current_node["Operation"],
-															self.current_node["Parameter"]])
-			"B2G_Change_Entity_Boolean_Property_Node":
+			"B2G_Change_Property_Node":
 				var _entity_name : String = self.current_node["SourceNodeName"]
 				var _suffix_pos : int = _entity_name.rfind(" Scene")
 				_entity_name.erase(_suffix_pos, 6)
@@ -168,13 +141,13 @@ func execute_current_node():
 		self.show_message("No node to execute!")
 
 func execute_node(_node):
-	print("Last node executed: ", self._last_node_executed)
+#	print("Last node executed: ", self._last_node_executed)
 	self._last_node_executed = self.current_node
 	self.current_node = _node
 	self.execute_current_node()
 
 func execute_node_by_name(_node_name : String):
-	print("Last node executed: ", self._last_node_executed)
+#	print("Last node executed: ", self._last_node_executed)
 	self._last_node_executed = self.current_node
 	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
 	self.execute_current_node()

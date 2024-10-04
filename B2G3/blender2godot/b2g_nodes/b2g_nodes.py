@@ -211,11 +211,13 @@ class StageObject(bpy.types.PropertyGroup):
     object_type : bpy.props.StringProperty(name="Stage Object Type") # type: ignore
 
 class ChangePropertyNodeProperties(bpy.types.PropertyGroup):
-    source_pipeline_node_name : bpy.props.StringProperty(default="") # type: ignore
+    #source_pipeline_node_name : bpy.props.StringProperty(default="") # type: ignore
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     operation_selected : bpy.props.StringProperty(default="") # type: ignore
     property_name : bpy.props.StringProperty(default="") # type: ignore
     operation_parameter : bpy.props.StringProperty(default="") # type: ignore
+    entity_scene_type : bpy.props.StringProperty(default="") # type: ignore
+    property_entity : bpy.props.StringProperty(default="") # type: ignore
 
 class DebugPrintNodeProperties(bpy.types.PropertyGroup):
     source_pipeline_node_name : bpy.props.StringProperty(default="") # type: ignore
@@ -2267,6 +2269,7 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
         return _operations
 
     def on_update_operation_selected(self, context):
+        self.node_properties.operation_selected = self.operation_selected
         if self.operation_selected == "none":
             self.outputs.clear()
         else:
@@ -2353,12 +2356,27 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
                     self.inputs[1].name = self.inputs[1].links[0].from_socket.name
                     self.reload_operations()
                     self.operation_selected = "none"
-                    self.node_properties.source_node_name = self.inputs[1].links[0].from_node.name
+                    _source_node = self.inputs[1].links[0].from_node
+                    self.node_properties.source_node_name = _source_node.name
+                    self.node_properties.property_name = self.inputs[1].name.rstrip("_REF")
+                    _resource_node = _source_node.inputs[0].links[0].from_node
+                    if type(_resource_node).__name__ == "B2G_Get_Scene_Entity_Node":
+                        self.node_properties.entity_scene_type = _resource_node.inputs[0].name.rstrip("_REF")
+                        self.node_properties.property_entity = _resource_node.node_properties.entity_name
+                    else:
+                        self.node_properties.entity_scene_type = _source_node.inputs[0].name.rstrip("_REF")
+                        self.node_properties.property_entity = ""
             else:                    
                 self.current_property_type = ""
                 self.inputs[1].name = "_REF"
                 self.outputs.clear()
                 self.node_properties.source_node_name = ""
+                self.node_properties.property_name = ""
+            if len(self.inputs) > 1:
+                if self.inputs[2].is_linked:
+                    pass # TODO : if operation parameter is linked
+                else:
+                    self.node_properties.operation_parameter = self.inputs[2].default_value
 
 class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Play_Entity_Animation_NodeType'
