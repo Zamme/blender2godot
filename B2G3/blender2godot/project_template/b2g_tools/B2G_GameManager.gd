@@ -97,11 +97,16 @@ func execute_command(_command : String, _parameters : Array):
 		"quit_game":
 			self.quit_game()
 		"change_property":
-			pass
-#			print("Changing property...")
-#			var _entity_to_change_prop = self.find_node(_parameters[0], true, false)
-#			print("Entity found: ", _entity_to_change_prop)
-#			_entity_to_change_prop.change_entity_property(_parameters[1], _parameters[2], _parameters[3])
+			print("Changing property...")
+			print(_parameters)
+			match _parameters[1]:
+				"Stage":
+					pass
+				"Player":
+					if _parameters[0] == "":
+						self.b2g_current_scene.change_player_property(_parameters[2], _parameters[4]["DefaultValue"])
+					else:
+						self.b2g_current_scene.change_player_entity_property(_parameters[0], _parameters[2], _parameters[4]["DefaultValue"])
 		"play_animation":
 			print("Playing animation...")
 			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])
@@ -122,14 +127,14 @@ func execute_current_node():
 			"B2G_OverlayMenu_Scene_Node":
 				self.execute_command("load_overlay", [""])
 			"B2G_Change_Property_Node":
-				var _entity_name : String = self.current_node["SourceNodeName"]
-				var _suffix_pos : int = _entity_name.rfind(" Scene")
-				_entity_name.erase(_suffix_pos, 6)
-				_entity_name += "Entity"
+				var _node_properties = self.current_node["NodeProperties"]
+				var _node_inputs = self.current_node["NodeInputs"]
+				var _entity_name : String = _node_properties["property_entity"]
 				self.execute_command("change_property", [_entity_name, 
-															self.current_node["Property"],
-															self.current_node["Operation"],
-															self.current_node["Parameter"]])
+															_node_properties["entity_scene_type"],
+															_node_properties["property_name"],
+															_node_properties["operation_selected"],
+															_node_inputs["value"]])
 			"B2G_Play_Entity_Animation_Node":
 				self.execute_command("play_animation", [
 															self.current_node["AnimationName"],

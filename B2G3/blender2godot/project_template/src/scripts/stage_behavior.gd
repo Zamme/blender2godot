@@ -74,6 +74,28 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 		get_tree().current_scene.show_message("Empty player")
 		add_free_camera()
 
+func change_player_property(_property_name, _property_value):
+	if player.has("_entity_properties"):
+		if player._entity_properties.has[_property_name]:
+			player._entity_properties[_property_name] = _property_value
+		else:
+			print("Property not found")
+	else:
+		print("Properties not found")
+
+func change_player_entity_property(_property_entity, _property_name, _property_value):
+	var _entity = player.find_node(_property_entity)
+	if _entity:
+		if _entity.has("_entity_properties"):
+			if _entity._entity_properties.has[_property_name]:
+				_entity._entity_properties[_property_name] = _property_value
+			else:
+				print("Property not found")
+		else:
+			print("Properties not found")
+	else:
+		print("Entity not found")
+
 func get_node_dict(_node_name):
 	var _return_dict : Dictionary = Dictionary()
 	for _key in self.gm_ref.gm_dict["Nodes"].keys():

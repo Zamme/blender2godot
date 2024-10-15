@@ -215,7 +215,6 @@ class ChangePropertyNodeProperties(bpy.types.PropertyGroup):
     source_node_name : bpy.props.StringProperty(default="") # type: ignore
     operation_selected : bpy.props.StringProperty(default="") # type: ignore
     property_name : bpy.props.StringProperty(default="") # type: ignore
-    operation_parameter : bpy.props.StringProperty(default="") # type: ignore
     entity_scene_type : bpy.props.StringProperty(default="") # type: ignore
     property_entity : bpy.props.StringProperty(default="") # type: ignore
 
@@ -2346,6 +2345,7 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link'''
 
     def update_all(self):
+        print("Update")
         if len(self.inputs) < 1:
             self.inputs.new("B2G_Pipeline_SocketType", "Do")
             self.inputs.new("B2G_Player_SocketType", "Property_REF")
@@ -2372,11 +2372,6 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
                 self.outputs.clear()
                 self.node_properties.source_node_name = ""
                 self.node_properties.property_name = ""
-            if len(self.inputs) > 1:
-                if self.inputs[2].is_linked:
-                    pass # TODO : if operation parameter is linked
-                else:
-                    self.node_properties.operation_parameter = self.inputs[2].default_value
 
 class B2G_Play_Entity_Animation_Node(MyCustomTreeNode, Node):
     bl_idname = 'B2G_Play_Entity_Animation_NodeType'
