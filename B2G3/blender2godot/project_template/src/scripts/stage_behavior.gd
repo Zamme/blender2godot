@@ -75,8 +75,8 @@ func add_player(_player_name : String, _player_node : Dictionary = {}):
 		add_free_camera()
 
 func change_player_property(_property_name, _property_value):
-	if player.has("_entity_properties"):
-		if player._entity_properties.has[_property_name]:
+	if "_entity_properties" in player:
+		if player._entity_properties.has(_property_name):
 			player._entity_properties[_property_name] = _property_value
 		else:
 			print("Property not found")
@@ -85,9 +85,24 @@ func change_player_property(_property_name, _property_value):
 
 func change_player_entity_property(_property_entity, _property_name, _property_value):
 	var _entity = player.find_node(_property_entity)
+	_entity = _entity.get_parent()
 	if _entity:
-		if _entity.has("_entity_properties"):
-			if _entity._entity_properties.has[_property_name]:
+		if "_entity_properties" in _entity:
+			print("Looking for ", _property_name, " in ", _entity.name)
+			if _entity._entity_properties.has(_property_name):
+				_entity._entity_properties[_property_name] = _property_value
+			else:
+				print("Property not found")
+		else:
+			print("Properties not found")
+	else:
+		print("Entity not found")
+
+func change_stage_entity_property(_property_entity, _property_name, _property_value):
+	var _entity = player.find_node(_property_entity)
+	if _entity:
+		if "_entity_properties" in _entity:
+			if _entity._entity_properties.has(_property_name):
 				_entity._entity_properties[_property_name] = _property_value
 			else:
 				print("Property not found")

@@ -1071,6 +1071,7 @@ class ExportGameOperator(bpy.types.Operator):
                                                          "KeepFOV" : _player_scene.camera_object.data.sensor_fit})
         # ANIMATIONS
         _animation_dictionary = my_dictionary()
+        # TODO: DATA.ACTIONS IS RETRIEVING ALL BPY.DATA ACTIONS! RESTRICT TO PLAYER ACTIONS!
         for _player_action in bpy.data.actions:
             _animation_dictionary.add(_player_action.animation_type , _player_action.name)
         self.dict_player_info.add("PlayerAnimations", _animation_dictionary)
