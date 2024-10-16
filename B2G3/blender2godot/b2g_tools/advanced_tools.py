@@ -1038,6 +1038,8 @@ class ExportGameOperator(bpy.types.Operator):
         # GENERAL PROPS
         self.dict_player_info = my_dictionary()
         self.dict_player_info.add("PlayerSceneName", _player_scene.name)
+        if _player_scene.player_object:
+            self.dict_player_info.add("PlayerObjectName", _player_scene.player_object.name)
         self.dict_player_info.add("GravityOn", _player_scene.player_gravity_on)
         if _player_scene.player_object:
             if _player_scene.player_object.collider != "none":
@@ -1045,15 +1047,15 @@ class ExportGameOperator(bpy.types.Operator):
                 for _group in _player_scene.player_object.physics_group:
                     _player_physics_groups.append(_group)
                 self.dict_player_info.add("PhysicsGroup",_player_physics_groups)
-        # ENTITY PROPERTIES
-        _entity_properties = my_dictionary()
-        print("Jsoning entity properties...")
-        for _player_entity_property in _player_scene.entity_properties:
-            print("Adding property", _player_entity_property.property_name)
-            _prop_value = _player_entity_property.property_value
-            _entity_properties.add(_player_entity_property.property_name, {"Type" : _player_entity_property.property_type,
+        # SCENE PROPERTIES
+        _scene_properties = my_dictionary()
+        print("Jsoning scene properties...")
+        for _player_scene_property in _player_scene.entity_properties:
+            print("Adding property", _player_scene_property.property_name)
+            _prop_value = _player_scene_property.property_value
+            _scene_properties.add(_player_scene_property.property_name, {"Type" : _player_scene_property.property_type,
                                                                         "Value" : _prop_value})
-        self.dict_player_info.add("PlayerEntityProperties", _entity_properties)
+        self.dict_player_info.add("PlayerSceneProperties", _scene_properties)
         # DIMENSIONS
         self.dict_player_info.add("PlayerDimensions", {"DimX" : _player_scene.player_object.dimensions.x,
                                                        "DimY" : _player_scene.player_object.dimensions.y,
@@ -1088,6 +1090,17 @@ class ExportGameOperator(bpy.types.Operator):
                 _control_inputs_array.append(_inputs)
             _controls_dictionary.add(_control_setting.motion_name, _control_inputs_array)
         self.dict_player_info.add("PlayerControls", _controls_dictionary)
+        # OBJECTS PROPERTIES
+        _objects_properties = my_dictionary()
+        print("Jsoning objects properties...")
+        for _object in _player_scene.objects:
+            _object_properties = my_dictionary()
+            for _scene_object_property in _object.entity_properties:
+                print("Adding property", _scene_object_property.property_name)
+                _object_properties.add(_scene_object_property.property_name, {"Type" : _scene_object_property.property_type,
+                                                                            "Value" : _scene_object_property.property_value})
+            _objects_properties.add(_object.name, _object_properties)
+        self.dict_player_info.add("ObjectsProperties", _objects_properties)
         
         # ADD to global
         self.dict_players_info.add(_player_scene.name, self.dict_player_info)

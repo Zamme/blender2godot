@@ -66,12 +66,10 @@ func initialize_contents_values():
 						var _ref_node = self.gm_ref.get_tree_node(_ref_node_name, self.gm_ref.gm_dict)
 						_hud_element.current_value = _ref_node["NodeProperties"]["value"]
 
-#func link_contents():
-#	for _hud_element in get_children():
-#		if _hud_element is HudElementContent:
-#			print("Linking element ", _hud_element.name)
-#			_hud_element.node_info = hud_fields[_hud_element.name]
-#			_hud_element.link_content(self.gm_ref)
+func set_content_value(_content_name, _content_value):
+	var _object = self.find_child_by_name(self, _content_name)
+	if _object:
+		_object.set_value(_content_value)
 
 func setup_hud_objects_info():
 	if optional_dict.has("Objects"):

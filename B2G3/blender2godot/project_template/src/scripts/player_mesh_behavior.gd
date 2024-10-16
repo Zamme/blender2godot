@@ -3,7 +3,7 @@ class_name PlayerMesh extends Node
 
 onready var animation_player : AnimationPlayer = find_node("AnimationPlayer")
 
-var _entity_properties : Dictionary
+export var _entity_properties : Dictionary
 
 
 func _ready():

@@ -3,6 +3,7 @@ class_name PlayerBehavior extends KinematicBody
 
 export var optional_dict : Dictionary
 export var node_info : Dictionary
+export var scene_entities_properties : Dictionary
 
 export var gravity_enabled : bool
 
@@ -67,22 +68,19 @@ func animate():
 			else:
 				player_mesh._play_animation(_animations["idle"])
 
-func change_entity_property(_prop, _operation, _value):
-	if _entity_properties.has(_prop):
-		match _operation:
-			"concat":
-				_entity_properties[_prop]["Value"] += _value
-			"add":
-				_entity_properties[_prop]["Value"] += _value
-			"sub":
-				_entity_properties[_prop]["Value"] -= _value
-			"mul":
-				_entity_properties[_prop]["Value"] *= _value
-			"div":
-				_entity_properties[_prop]["Value"] /= _value
-	else:
-		print("Entity ", self.name, " has no property ", _prop)
-	stage_scene._hud.update_hud_objects_info()
+func change_entity_property(_entity, _prop, _operation, _value):
+	match _operation:
+		"concat":
+			scene_entities_properties[_entity][_prop] += _value
+		"add":
+			scene_entities_properties[_entity][_prop] += _value
+		"sub":
+			scene_entities_properties[_entity][_prop] -= _value
+		"mul":
+			scene_entities_properties[_entity][_prop] *= _value
+		"div":
+			scene_entities_properties[_entity][_prop] /= _value
+	print("Property modified: ", _prop, " with value ", _value)
 
 func create_pause():
 	if self.node_info.has("PauseMenuOverlay"):
@@ -178,8 +176,8 @@ func setup_dictionaries():
 		self._controls = self.optional_dict["PlayerControls"]
 	else:
 		print("PlayerControls not found on optional_dict")
-	if self.optional_dict.has("PlayerEntityProperties"):
-		self._entity_properties = self.optional_dict["PlayerEntityProperties"]
+	if self.optional_dict.has("PlayerSceneProperties"):
+		self._entity_properties = self.optional_dict["PlayerSceneProperties"]
 	if self.node_info.has("ActionsSettings"):
 		self._actions = self.node_info["ActionsSettings"]
 

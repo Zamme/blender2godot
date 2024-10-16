@@ -106,10 +106,14 @@ func execute_command(_command : String, _parameters : Array):
 					if _parameters[0] == "":
 						self.b2g_current_scene.change_player_property(_parameters[2], _parameters[4]["DefaultValue"])
 					else:
-						self.b2g_current_scene.change_player_entity_property(_parameters[0], _parameters[2], _parameters[4]["DefaultValue"])
+						self.b2g_current_scene.change_player_entity_property(_parameters[0], _parameters[2], _parameters[3],_parameters[4]["DefaultValue"])
 		"play_animation":
 			print("Playing animation...")
 			self.b2g_current_scene.play_entity_animation(_parameters[0], _parameters[1], _parameters[2])
+		"set_content":
+			print("Setting content ", _parameters[0], " with ", _parameters[1])
+			self.b2g_current_scene._hud.set_content_value(_parameters[0], _parameters[1])
+			self.b2g_current_scene._hud.update_hud_objects_info()
 
 func execute_current_node():
 	print("Current node to execute:", self.current_node["Name"])
@@ -141,6 +145,19 @@ func execute_current_node():
 															self.current_node["Reproduction"],
 															self.current_node["Parameter"]
 															])
+			"B2G_Set_Content_Node":
+				print(self.current_node)
+				var _content_name : String
+				var _property_name : String
+				var _node_inputs = self.current_node["NodeInputs"]
+				for _node_input_name in _node_inputs.keys():
+					if _node_input_name.ends_with("Content_REF"):
+						_content_name = _node_input_name.rstrip("_REF")
+					elif _node_input_name == "Property_REF":
+						_property_name = _node_inputs["Property_REF"]["SourceNodeSocket"].rstrip("_REF")
+						var _get_prop_node = self.get_tree_node(_node_inputs["Property_REF"]["SourceNodeName"], self.gm_dict)
+						print("REF node:", _get_prop_node)
+				self.execute_command("set_content", [_content_name, _property_name])
 	else:
 		print("No node to execute!")
 		self.show_message("No node to execute!")
@@ -150,12 +167,26 @@ func execute_node(_node):
 	self._last_node_executed = self.current_node
 	self.current_node = _node
 	self.execute_current_node()
+	self.execute_on_done_node()
 
 func execute_node_by_name(_node_name : String):
 #	print("Last node executed: ", self._last_node_executed)
 	self._last_node_executed = self.current_node
 	self.current_node = self.get_tree_node(_node_name, self.gm_dict)
 	self.execute_current_node()
+	self.execute_on_done_node()
+
+func execute_on_done_node():
+	# ONDONE OUTPUT
+	if current_node.has("NodeOutputs"):
+		var _node_outputs = current_node["NodeOutputs"]
+#		print("Node Outputs found:")
+#		print(_node_outputs)
+		if _node_outputs.has("OnDone"):
+			if _node_outputs["OnDone"].has("0"):
+				var _on_done_node_name = _node_outputs["OnDone"]["0"]["DestNodeName"]
+#				print("On done node to do: ", _on_done_node_name)
+				self.execute_node_by_name(_on_done_node_name)
 
 func get_node_next_node(_tree, _node_name):
 	var _node

@@ -2345,7 +2345,6 @@ class B2G_Change_Property_Node(MyCustomTreeNode, Node):
             _link.is_valid = _valid_link'''
 
     def update_all(self):
-        print("Update")
         if len(self.inputs) < 1:
             self.inputs.new("B2G_Pipeline_SocketType", "Do")
             self.inputs.new("B2G_Player_SocketType", "Property_REF")

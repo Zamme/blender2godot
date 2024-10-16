@@ -745,19 +745,30 @@ func create_player_props(_player_mesh_scene_name, _player_json):
 	player_collision_shape.shape = caps_shape
 	# ADD MESH
 	var _player_mesh_scene = load(SOURCES_SCENES_PATH + _player_mesh_scene_name + ".tscn").instance()
+	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
 	player_entity_instance.add_child(_player_mesh_scene)
 	_player_mesh_scene.set_owner(player_entity_instance)
-	_player_mesh_scene.script = load(PLAYER_MESH_BEHAVIOR_PATH)
 	# ADD ENTITY BEHAVIOR
 	player_entity_instance.script = load(PLAYER_BEHAVIOR_PATH)
 	player_entity_instance.optional_dict = _player_json
-	# JSON INFO TO ENTITY BEHAVIOR
-	# GENERAL
-	#player_entity_instance._player_mesh_name = _player_mesh_scene_name
-	#player_entity_instance.gravity_enabled = _gravity_enabled
-
-#	if _pause_menu:
-#		player_entity_instance.PAUSE_MENU_PATH = MENUS2D_PATH + MENUS2D_SCENES_PREFIX + _pause_menu + ".tscn"
+	# ADD SCENE ENTITIES PROPERTIES
+	var _scene_entities_properties_temp = {}
+	for _object_name in _player_json["ObjectsProperties"].keys():
+		var _object_properties_dictionary = {}
+		for _object_property_name in _player_json["ObjectsProperties"][_object_name].keys():
+			match _player_json["ObjectsProperties"][_object_name][_object_property_name]["Type"]:
+				"boolean":
+					_object_properties_dictionary[_object_property_name] = false
+				"integer":
+					_object_properties_dictionary[_object_property_name] = 0
+				"float":
+					_object_properties_dictionary[_object_property_name] = 0.0
+				"string":
+					_object_properties_dictionary[_object_property_name] = ""
+#		if _object_name == _player_json["PlayerObjectName"]:
+#			_object_name = "Player"
+		_scene_entities_properties_temp[_object_name] = _object_properties_dictionary
+	player_entity_instance.scene_entities_properties = _scene_entities_properties_temp
 	# PLAYER CAMERA
 	var _player_camera
 	var _camera_props = _player_json["PlayerCameraObject"]
